@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AquaCoinX Terminal</title>
+<title>AquaCoinX Terminal | L.E.G A.C.Y</title>
 
 <script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -14,12 +14,12 @@
 <style>
     :root { --bg: #0b111b; --card: #131b29; --border: #1e293b; --text: #ffffff; --subtext: #94a3b8; --primary: #3b82f6; }
     body.light-mode { --bg: #f1f5f9; --card: #ffffff; --border: #cbd5e1; --text: #0f172a; --subtext: #64748b; }
-    body { background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif; -webkit-tap-highlight-color: transparent; transition: 0.3s; }
+    body { background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif; -webkit-tap-highlight-color: transparent; transition: 0.3s; margin: 0; padding: 0; }
     
     .card-bg { background: var(--card); border: 1px solid var(--border); border-radius: 1.25rem; position: relative; overflow: hidden; transition: 0.2s; }
     .glow-card:hover { border-color: rgba(59, 130, 246, 0.5); transform: translateY(-2px); }
 
-    .input { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; width: 100%; color: var(--text); outline: none; font-weight: 600; }
+    .input { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; width: 100%; color: var(--text); outline: none; font-weight: 600; appearance: none; }
     .input:focus { border-color: var(--primary); }
     
     .nav-item { color: var(--subtext); display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; gap: 6px; font-weight: 600; cursor: pointer; }
@@ -29,25 +29,26 @@
     .view-section.active-view { display: block; }
     @keyframes fadeIn { to { opacity: 1; } }
 
-    #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 100; width: 90%; max-width: 400px; }
-    .toast { 
-        backdrop-filter: blur(12px); padding: 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); 
-        margin-bottom: 10px; opacity: 0; transform: translateY(-20px); transition: 0.4s; display: flex; align-items: center; gap: 12px;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-    }
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .toast-success { background: linear-gradient(135deg, rgba(34, 197, 94, 0.9), rgba(21, 128, 61, 0.9)); }
-    .toast-error { background: linear-gradient(135deg, rgba(239, 68, 68, 0.9), rgba(185, 28, 28, 0.9)); }
+    
+    #ton-connect button { background: var(--primary) !important; color: white !important; border-radius: 12px !important; }
+   .bar {
+    width: 16px;
+    background: linear-gradient(to top, #3b82f6, #60a5fa);
+    border-radius: 4px 4px 0 0;
+    min-height: 60px; /* 🔥 prevents invisible bars */
+    transition: height 0.6s ease;
+}
+.bar {
+    transition: height 0.6s cubic-bezier(.4,0,.2,1);
+}
 </style>
 </head>
 
 <body class="pb-28 select-none">
 
-<div id="toast-container"></div>
-
 <header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 border-b border-gray-800/20" style="background-color: var(--bg)">
   <div class="flex items-center gap-3">
-    <img src="logo.png" onerror="this.src='https://ui-avatars.com/api/?name=Aqua&background=3b82f6&color=fff'" class="w-10 h-10 rounded-full">
+    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">A</div>
     <div>
       <div class="font-extrabold text-lg tracking-tight">AquaCoinX</div>
       <div id="status" class="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
@@ -61,140 +62,149 @@
 <main class="p-5">
   <div id="view-home" class="view-section active-view space-y-8">
     <div class="card-bg p-6 relative">
-      <div class="relative z-10">
-        <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color: var(--subtext)">Available Balance</p>
-        <h2 class="text-4xl font-black tracking-tight flex items-baseline gap-2">
-          <span id="aquaBal">0</span> <span class="text-lg font-bold text-blue-500">AQUAM</span>
-        </h2>
-        <div class="flex items-center gap-3 mt-6 pt-4 border-t border-gray-700/20">
-           <div class="flex items-center gap-3 bg-gray-500/10 px-4 py-3 rounded-xl border border-gray-500/20 basis-1/2">
-               <img src="ton.png" class="w-6 h-6">
-               <div><p class="text-[10px] font-bold opacity-60 uppercase">TON</p><p class="font-bold text-base"><span id="tonBal">0.00</span></p></div>
-           </div>
-           <div class="flex items-center gap-3 bg-green-500/10 px-4 py-3 rounded-xl border border-green-500/20 basis-1/2">
-               <i class="fa-solid fa-wallet text-green-400 text-lg"></i>
-               <div><p class="text-[10px] font-bold opacity-60 text-green-400 uppercase">Value</p><p class="font-bold text-base text-green-400">≈ $<span id="tonUsdVal">0.00</span></p></div>
-           </div>
-        </div>
+      <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color: var(--subtext)">Available Balance</p>
+      <h2 class="text-4xl font-black tracking-tight flex items-baseline gap-2">
+        <span id="aquaBal">0</span> <span class="text-lg font-bold text-blue-500">AQUAM</span>
+      </h2>
+      <div class="flex items-center gap-3 mt-6 pt-4 border-t border-gray-700/20">
+         <div class="flex items-center gap-3 bg-gray-500/10 px-4 py-3 rounded-xl border border-gray-500/20 basis-1/2">
+             <div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white font-bold">T</div>
+             <div><p class="text-[10px] font-bold opacity-60 uppercase">TON</p><p class="font-bold text-base"><span id="tonBal">0.00</span></p></div>
+         </div>
+         <div class="flex items-center gap-3 bg-green-500/10 px-4 py-3 rounded-xl border border-green-500/20 basis-1/2">
+             <i class="fa-solid fa-wallet text-green-400 text-lg"></i>
+             <div><p class="text-[10px] font-bold opacity-60 text-green-400 uppercase">Value</p><p class="font-bold text-base text-green-400">≈ $<span id="tonUsdVal">0.00</span></p></div>
+         </div>
       </div>
     </div>
 
     <div class="grid grid-cols-2 gap-4">
         <div onclick="openModal('Airtime')" class="card-bg glow-card p-5 cursor-pointer flex flex-col gap-3">
             <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20"><i class="fa-solid fa-phone"></i></div>
-            <div><p class="font-bold text-sm">Airtime</p><p class="text-[10px] opacity-60">Top-up instantly</p></div>
+            <div><p class="font-bold text-sm">Airtime</p><p class="text-[10px] opacity-60">Instant Top-up</p></div>
         </div>
         <div onclick="openModal('Data')" class="card-bg glow-card p-5 cursor-pointer flex flex-col gap-3">
             <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20"><i class="fa-solid fa-wifi"></i></div>
             <div><p class="font-bold text-sm">Data</p><p class="text-[10px] opacity-60">Bundles & SME</p></div>
         </div>
-        <div onclick="openModal('Bills')" class="card-bg glow-card p-5 cursor-pointer flex flex-col gap-3">
-            <div class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center text-yellow-400 border border-yellow-500/20"><i class="fa-solid fa-lightbulb"></i></div>
-            <div><p class="font-bold text-sm">Electricity</p><p class="text-[10px] opacity-60">Prepaid Tokens</p></div>
-        </div>
-        <div onclick="openModal('Cable')" class="card-bg glow-card p-5 cursor-pointer flex flex-col gap-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20"><i class="fa-solid fa-tv"></i></div>
-            <div><p class="font-bold text-sm">Cable TV</p><p class="text-[10px] opacity-60">DSTV / GOTV</p></div>
-        </div>
     </div>
 
-    <div class="card-bg p-5 border-t-4 border-t-blue-500">
+    <div class="card-bg p-5">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xs font-black uppercase opacity-60">Spending Analytics</h3>
-            <span class="text-[10px] font-bold text-blue-400 bg-blue-400/10 px-2 py-1 rounded">V-Graph</span>
+            <h3 class="text-xs font-black uppercase opacity-60 tracking-widest">Usage Graph</h3>
         </div>
-        <div id="analyticsGraph" class="h-32 w-full flex items-end">
-            </div>
+        <div id="analyticsGraph" class="h-24 w-full flex items-end gap-[2px] px-1 pb-2"></div>
     </div>
   </div>
 
   <div id="view-history" class="view-section space-y-5">
     <div class="flex items-center justify-between">
         <h2 class="text-xl font-extrabold">Transactions</h2>
-        <button onclick="clearHistory()" class="text-xs text-red-500 font-bold"><i class="fa-solid fa-trash"></i> Clear</button>
+        <button onclick="clearHistory()" class="text-xs text-red-500 font-bold uppercase tracking-wider">Clear</button>
     </div>
     <div id="historyList" class="space-y-3 pb-20"></div>
   </div>
 
   <div id="view-services" class="view-section py-4 space-y-4">
-     <h2 class="text-xl font-black mb-4">All Services</h2>
-     <div onclick="window.location.href='service.html'" class="card-bg p-4 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition">
-         <div class="w-12 h-12 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center text-xl"><i class="fa-solid fa-futbol"></i></div>
-         <div><p class="font-bold">Betting Funding</p><p class="text-xs opacity-60">SportyBet, 1xBet, Bet9ja</p></div>
-         <i class="fa-solid fa-chevron-right ml-auto opacity-30"></i>
+     <h2 class="text-xl font-black mb-4">Marketplace</h2>
+     <div class="card-bg p-4 flex items-center gap-4 opacity-50 grayscale">
+         <div class="w-12 h-12 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center text-xl"><i class="fa-solid fa-bolt"></i></div>
+         <div><p class="font-bold">Electricity</p><p class="text-xs">Coming Soon</p></div>
      </div>
   </div>
 
   <div id="view-settings" class="view-section space-y-4">
-    <h2 class="text-xl font-extrabold">Settings</h2>
+    <h2 class="text-xl font-extrabold">Terminal Settings</h2>
     <div class="card-bg p-4 flex items-center justify-between cursor-pointer" onclick="toggleTheme()">
-        <span class="font-bold text-sm">Day Mode</span>
-        <div id="themeToggle" class="w-10 h-5 bg-gray-600 rounded-full relative"><div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full"></div></div>
+        <span class="font-bold text-sm">Light Mode Toggle</span>
+        <div class="w-12 h-6 bg-gray-700 rounded-full relative">
+            <div id="themeDot" class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></div>
+        </div>
     </div>
-    <div class="card-bg p-4 text-red-500 font-bold cursor-pointer" onclick="tonUI.disconnect()">Disconnect Wallet</div>
+    <div class="card-bg p-4 text-red-500 font-bold cursor-pointer text-center" onclick="tonUI.disconnect()">Disconnect Wallet</div>
   </div>
 </main>
 
 <nav class="fixed bottom-0 left-0 right-0 backdrop-blur-md border-t border-gray-800/30 px-6 flex justify-between items-center z-50 h-[80px]" style="background-color: var(--bg)">
-    <div onclick="switchView('home')" class="nav-item active" id="nav-home"><i class="fa-solid fa-house"></i><span>Home</span></div>
-    <div onclick="switchView('history')" class="nav-item" id="nav-history"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></div>
-    <div onclick="switchView('services')" class="nav-item" id="nav-services"><i class="fa-solid fa-layer-group"></i><span>Services</span></div>
-    <div onclick="switchView('settings')" class="nav-item" id="nav-settings"><i class="fa-solid fa-gear"></i><span>Settings</span></div>
+    <div onclick="switchView('home')" class="nav-item active" id="nav-home"><i class="fa-solid fa-house-chimney text-lg"></i><span>Home</span></div>
+    <div onclick="switchView('history')" class="nav-item" id="nav-history"><i class="fa-solid fa-list-ul text-lg"></i><span>History</span></div>
+    <div onclick="switchView('services')" class="nav-item" id="nav-services"><i class="fa-solid fa fa-shopping-cart text-lg"></i><span>Apps</span></div>
+    <div onclick="switchView('settings')" class="nav-item" id="nav-settings"><i class="fa-solid fa-sliders text-lg"></i><span>Settings</span></div>
 </nav>
 
-<div id="modal" class="fixed inset-0 hidden bg-black/95 backdrop-blur-sm z-[60] flex items-end justify-center">
+<div id="modal" class="fixed inset-0 hidden bg-black/90 backdrop-blur-sm z-[100] flex items-end justify-center">
   <div class="bg-[#131b29] w-full max-w-md p-6 space-y-6 rounded-t-3xl border-t border-gray-700" style="background: var(--card)">
     <div class="flex justify-between items-center">
-      <h2 id="modalTitle" class="font-black text-xl"></h2>
-      <button onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+      <h2 id="modalTitle" class="font-black text-xl tracking-tight"></h2>
+      <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
     </div>
+
     <div id="formContainer" class="space-y-4"></div>
-    <div>
-        <label class="text-[10px] uppercase font-extrabold mb-2 block opacity-50">Amount (₦ Naira)</label>
+    
+    <div id="amountInputGroup">
+        <label class="text-[10px] uppercase font-extrabold mb-1 block opacity-50 tracking-widest">Amount (NGN)</label>
         <div class="relative">
-            <input id="nairaAmount" type="number" placeholder="Enter Naira amount" class="input" oninput="updateConversion()">
-            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold opacity-50">NGN</span>
-        </div>
-        <div class="mt-2 text-[10px] font-bold text-blue-400">
-            Deducting: <span id="aquamDeduction">0.00</span> AQUAM
+            <input id="nairaAmount" type="number" placeholder="0.00" class="input" oninput="updateConversion()" style="color:white">
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-blue-500">NGN</span>
         </div>
     </div>
-    <div id="gasWarning" class="hidden p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-xs font-bold text-red-400">Insufficient Gas (Need > 0.08 TON)</div>
-    <button id="payBtn" onclick="pay()" class="w-full py-4 bg-gray-800 rounded-xl font-bold opacity-50 pointer-events-none transition-all flex justify-center items-center gap-2 text-white">
-      <i class="fa-solid fa-fingerprint text-lg"></i> <span>CONFIRM PAYMENT</span>
+
+    <div class="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+        <div class="flex justify-between items-center">
+            <span class="text-xs font-bold opacity-60">Estimated Cost:</span>
+            <span class="text-sm font-black text-blue-400"><span id="aquamDeduction">0.00</span> AQUAM</span>
+        </div>
+    </div>
+    
+    <button id="payBtn" onclick="pay()" class="w-full py-5 bg-blue-600 rounded-2xl font-black opacity-50 pointer-events-none transition-all flex justify-center items-center gap-3 text-white shadow-xl shadow-blue-500/20">
+      <i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>
     </button>
   </div>
 </div>
 
 <script>
+// --- CONFIGURATION ---
+const SUPABASE_ENDPOINT = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/proxy-bills";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
 const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
 const TREASURY = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D"; 
 const API = "https://tonapi.io/v2";
-const AQUAM_RATE = 0.012; // 1 AQUAM = 0.012 Naira
+const AQUAM_RATE = 0.012; // Update based on your actual pricing
 
-let userAddress = "", jettonWallet = "", aquaBal = 0, tonBal = 0, tonPrice = 0, currentService = "";
+// --- APP STATE ---
+let userAddress = "", jettonWallet = "", aquaBal = 0, tonBal = 0;
+let currentService = "", selectedPlanId = "", selectedPlanPrice = 0;
+let txHistory = JSON.parse(localStorage.getItem('aqua_tx_history')) || [];
+window.allPlans = null;
 
 const tonUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json",
   buttonRootId: "ton-connect"
 });
 
-tonUI.onStatusChange(async w => {
-  if (!w) {
+// --- INITIALIZATION ---
+document.addEventListener('DOMContentLoaded', () => {
+    renderHistory();
+    renderGraph();
+});
+
+tonUI.onStatusChange(async wallet => {
+  if (!wallet) {
     document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle text-[6px] text-red-500"></i> Disconnected';
+    userAddress = "";
     return;
   }
-  userAddress = w.account.address;
+  userAddress = wallet.account.address;
   document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle text-[6px] text-green-500"></i> Connected';
   loadBalances();
-  setInterval(loadBalances, 10000);
 });
 
 async function loadBalances() {
   try {
       const priceData = await fetch(`${API}/rates?tokens=ton&currencies=usd`).then(r => r.json());
-      tonPrice = priceData.rates.TON.prices.USD;
+      const tonPrice = priceData.rates.TON.prices.USD;
       const acc = await fetch(`${API}/accounts/${userAddress}`).then(r => r.json());
+      
       tonBal = acc.balance / 1e9;
       document.getElementById("tonBal").innerText = tonBal.toFixed(2);
       document.getElementById("tonUsdVal").innerText = (tonBal * tonPrice).toFixed(2);
@@ -204,147 +214,283 @@ async function loadBalances() {
       if (aqua) {
         aquaBal = Number(aqua.balance) / 1e9;
         jettonWallet = new TonWeb.utils.Address(aqua.wallet_address.address).toString(true, true, true);
-        document.getElementById("aquaBal").innerText = aquaBal.toLocaleString();
+        document.getElementById("aquaBal").innerText = Math.floor(aquaBal).toLocaleString();
       }
-      if(!document.getElementById("modal").classList.contains("hidden")) validate();
-  } catch(e) { console.error(e); }
+  } catch(e) { console.error("Balance Error:", e); }
 }
 
-function updateConversion() {
-    const naira = Number(document.getElementById("nairaAmount").value) || 0;
-    const aquamNeeded = naira > 0 ? (naira / AQUAM_RATE).toFixed(3) : "0.00";
-    document.getElementById("aquamDeduction").innerText = aquamNeeded;
-    validate();
+// --- NAVIGATION & UI ---
+function switchView(view) {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active-view'));
+    document.getElementById('view-' + view).classList.add('active-view');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-' + view).classList.add('active');
 }
 
-function openModal(serviceType) {
-    currentService = serviceType;
-    document.getElementById("modalTitle").innerText = serviceType;
+function toggleTheme() {
+    document.body.classList.toggle('light-mode');
+    const isLight = document.body.classList.contains('light-mode');
+    document.getElementById('themeDot').style.transform = isLight ? 'translateX(24px)' : 'translateX(0)';
+}
+
+function openModal(service) {
+    currentService = service;
+    document.getElementById("modalTitle").innerText = `Purchase ${service}`;
     document.getElementById("modal").classList.remove("hidden");
     const container = document.getElementById("formContainer");
-    container.innerHTML = (serviceType === 'Airtime' || serviceType === 'Data') ? 
-        `<select class="input"><option>MTN NG</option><option>Airtel NG</option></select><input type="tel" placeholder="Phone Number" class="input">` :
-        `<input type="text" placeholder="ID Number / Meter Number" class="input">`;
+    const amountGroup = document.getElementById("amountInputGroup");
+    
+    container.innerHTML = "";
     document.getElementById("nairaAmount").value = "";
+    document.getElementById("aquamDeduction").innerText = "0.00";
+    selectedPlanId = ""; selectedPlanPrice = 0;
+
+    if (service === 'Data') {
+        amountGroup.style.display = 'none';
+        container.innerHTML = `<p class="text-center py-4 text-xs text-blue-400 animate-pulse font-bold">Synchronizing Provider Plans...</p>`;
+        fetchPlans();
+    } else {
+        amountGroup.style.display = 'block';
+        container.innerHTML = `
+            <select id="networkSelect" class="input" style="color:white">
+                <option value="01">MTN (NG)</option>
+                <option value="02">Glo (NG)</option>
+                <option value="04">Airtel (NG)</option>
+                <option value="03">9Mobile (NG)</option>
+            </select>
+            <input id="phoneNumber" type="tel" placeholder="Mobile Number (e.g. 080123...)" class="input" style="color:white">
+        `;
+    }
+}
+
+// --- DATA LOGIC (MATCHED TO EDGE FUNCTION) ---
+async function fetchPlans() {
+    try {
+        const res = await fetch(SUPABASE_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({ action: "get_plans" })
+        });
+
+        const data = await res.json();
+
+        // 🔥 FIX IS HERE
+        window.allPlans = data.networks;
+
+        console.log("✅ Plans loaded:", window.allPlans);
+
+        document.getElementById("formContainer").innerHTML = `
+            <select id="networkSelect" class="input" style="color:white" onchange="renderPlans(this.value)">
+                <option value="">Choose Network</option>
+                <option value="01">MTN</option>
+                <option value="02">Glo</option>
+                <option value="04">Airtel</option>
+                <option value="03">9Mobile</option>
+            </select>
+
+            <select id="planSelect" class="input" style="color:white" onchange="selectPlan(this)">
+                <option value="">Select Bundle</option>
+            </select>
+
+            <input id="phoneNumber" type="tel" placeholder="Recipient Phone" class="input" style="color:white">
+        `;
+    } catch (e) {
+        console.error("❌ Plan fetch failed:", e);
+        document.getElementById("formContainer").innerHTML =
+            `<p class="text-xs text-red-500 font-bold">Provider Connection Failed.</p>`;
+    }
+}
+function renderPlans(code) {
+    const pSel = document.getElementById("planSelect");
+    if (!window.allPlans) return;
+
+    // Map frontend codes to the keys in your normalized "plans" object
+    const networkMap = { "01": "MTN", "02": "GLO", "04": "AIRTEL", "03": "ETISALAT" };
+    const key = networkMap[code];
+    const plans = window.allPlans[key] || [];
+    
+    let html = `<option value="">Select Bundle</option>`;
+    plans.forEach(p => {
+        // MATCHING NORMALIZED KEYS: p.id, p.name, p.price
+        html += `<option value="${p.id}" data-price="${p.price}">${p.name} - ₦${p.price}</option>`;
+    });
+    pSel.innerHTML = html;
+}
+
+function selectPlan(el) {
+    const opt = el.options[el.selectedIndex];
+    selectedPlanId = el.value;
+    selectedPlanPrice = parseFloat(opt.getAttribute('data-price')) || 0;
     updateConversion();
 }
 
-function closeModal() { document.getElementById("modal").classList.add("hidden"); }
-
-function validate() {
-  const aquamNeeded = Number(document.getElementById("aquamDeduction").innerText) || 0;
-  const btn = document.getElementById("payBtn");
-  const gasWarn = document.getElementById("gasWarning");
-  
-  if(tonBal < 0.08) { gasWarn.classList.remove("hidden"); btn.classList.add("pointer-events-none", "opacity-50"); return; }
-  gasWarn.classList.add("hidden");
-
-  if (aquamNeeded > 0 && aquaBal >= aquamNeeded) {
-    btn.classList.remove("opacity-50", "pointer-events-none", "bg-gray-800");
-    btn.classList.add("bg-blue-600");
-  } else {
-    btn.classList.add("opacity-50", "pointer-events-none", "bg-gray-800");
-    btn.classList.remove("bg-blue-600");
-  }
-}
-
-async function pay() {
-  try {
-      const aquamVal = Number(document.getElementById("aquamDeduction").innerText);
-      const jetAmt = BigInt(Math.floor(aquamVal * 1e9));
-      
-      const cell = new TonWeb.boc.Cell();
-      cell.bits.writeUint(0xf8a7ea5, 32); cell.bits.writeUint(0, 64);
-      cell.bits.writeCoins(jetAmt);
-      cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY));
-      cell.bits.writeAddress(new TonWeb.utils.Address(userAddress));
-      cell.bits.writeBit(0);
-      cell.bits.writeCoins(TonWeb.utils.toNano("0.001"));
-      cell.bits.writeBit(0);
-      const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
-
-      await tonUI.sendTransaction({
-        validUntil: Math.floor(Date.now() / 1000) + 300,
-        messages: [{ address: jettonWallet, amount: TonWeb.utils.toNano("0.08").toString(), payload: payload }]
-      });
-
-      addToHistory(aquamVal, currentService);
-      closeModal();
-      showToast("Transaction Success!", "success");
-  } catch (e) { showToast("Canceled", "error"); }
-}
-
-function addToHistory(amount, service) {
-    let history = JSON.parse(localStorage.getItem('aquaHistory') || "[]");
-    history.unshift({ amount, service, date: new Date().toLocaleString(), rawDate: Date.now() });
-    localStorage.setItem('aquaHistory', JSON.stringify(history));
-    renderHistory();
-    renderAnalytics();
-}
-
-function renderAnalytics() {
-    const history = JSON.parse(localStorage.getItem('aquaHistory') || "[]").slice(0, 7).reverse();
-    const container = document.getElementById("analyticsGraph");
-    if(history.length < 2) {
-        container.innerHTML = `<p class="text-[10px] opacity-40 italic w-full text-center pb-10">Need more transactions for graph</p>`;
-        return;
-    }
+function updateConversion() {
+    let naira = currentService === 'Data' ? selectedPlanPrice : Number(document.getElementById("nairaAmount").value);
+    let needed = (naira / AQUAM_RATE).toFixed(2);
+    document.getElementById("aquamDeduction").innerText = needed;
     
-    const maxVal = Math.max(...history.map(h => h.amount)) || 1;
-    const points = history.map((h, i) => {
-        const x = (i / (history.length - 1)) * 100;
-        const y = 100 - (h.amount / maxVal * 80);
-        return `${x},${y}`;
-    }).join(' ');
+    const btn = document.getElementById("payBtn");
+    if (naira > 0 && aquaBal >= parseFloat(needed) && userAddress) {
+        btn.classList.remove("opacity-50", "pointer-events-none");
+    } else {
+        btn.classList.add("opacity-50", "pointer-events-none");
+    }
+}
 
-    container.innerHTML = `
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" class="w-full h-full">
-            <defs>
-                <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.5"/>
-                    <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
-                </linearGradient>
-            </defs>
-            <path d="M0,100 L${points} L100,100 Z" fill="url(#grad)" />
-            <polyline points="${points}" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linejoin="round" />
-        </svg>
-    `;
+// --- PAYMENT LOGIC ---
+async function pay() {
+    const btn = document.getElementById("payBtn");
+    const original = btn.innerHTML;
+    const phone = document.getElementById("phoneNumber").value;
+    const network = document.getElementById("networkSelect").value;
+    const aquamVal = parseFloat(document.getElementById("aquamDeduction").innerText);
+    const naira = currentService === 'Data' ? selectedPlanPrice : Number(document.getElementById("nairaAmount").value);
+
+    if(!phone || phone.length < 10) return alert("Please provide a valid phone number.");
+
+    btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> AUTHORIZING...`;
+
+    try {
+        // 1. SEND BLOCKCHAIN TRANSACTION
+        const jetAmt = BigInt(Math.floor(aquamVal * 1e9));
+        const cell = new TonWeb.boc.Cell();
+        cell.bits.writeUint(0xf8a7ea5, 32); 
+        cell.bits.writeUint(0, 64);
+        cell.bits.writeCoins(jetAmt);
+        cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY));
+        cell.bits.writeAddress(new TonWeb.utils.Address(userAddress));
+        cell.bits.writeBit(0);
+        cell.bits.writeCoins(TonWeb.utils.toNano("0.02")); 
+        cell.bits.writeBit(0);
+        const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+
+        await tonUI.sendTransaction({
+            validUntil: Math.floor(Date.now() / 1000) + 300,
+            messages: [{ address: jettonWallet, amount: TonWeb.utils.toNano("0.07").toString(), payload: payload }]
+        });
+
+        // 2. TRIGGER EDGE FUNCTION AFTER BLOCKCHAIN OK
+        const res = await fetch(SUPABASE_ENDPOINT, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` },
+            body: JSON.stringify({
+                action: currentService === 'Data' ? "buy_data" : "buy_airtime",
+                networkCode: network,
+                mobileNumber: phone,
+                planId: selectedPlanId,
+                amount: naira
+            })
+        });
+
+        // Your buy actions return the raw provider text, but we check if successful
+        const resultText = await res.text();
+        
+        // Simple check: most successful orders in Nellobyte contain "SUCCESS" or "100"
+        if(resultText.includes("100") || resultText.includes("ORDER_RECEIVED")) {
+            saveTx(currentService, naira, "Success");
+            alert("Payment Confirmed! Your " + currentService + " is processing.");
+            closeModal();
+            loadBalances();
+        } else {
+            throw new Error("Provider Response: " + resultText);
+        }
+
+    } catch(e) {
+        console.error("TX ERROR:", e);
+        saveTx(currentService, naira, "Failed");
+        alert("Transaction Failed. Check your wallet balance or connection.");
+    } finally {
+        btn.innerHTML = original;
+    }
+}
+
+// --- UTILITIES ---
+function saveTx(type, amt, status) {
+    const tx = { type, amt, status, date: new Date().toLocaleTimeString() };
+    txHistory.unshift(tx);
+    localStorage.setItem('aqua_tx_history', JSON.stringify(txHistory.slice(0, 15)));
+    renderHistory();
 }
 
 function renderHistory() {
     const list = document.getElementById("historyList");
-    const history = JSON.parse(localStorage.getItem('aquaHistory') || "[]");
-    list.innerHTML = history.map(tx => `
+    if(txHistory.length === 0) {
+        list.innerHTML = `<p class="text-center opacity-30 text-xs py-10 font-bold uppercase tracking-widest">No Activity Records</p>`;
+        return;
+    }
+    list.innerHTML = txHistory.map(tx => `
         <div class="card-bg p-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400 text-xs">
-                    <i class="fa-solid ${tx.service === 'Airtime' ? 'fa-phone' : 'fa-bolt'}"></i>
-                </div>
-                <div><p class="font-bold text-sm">${tx.service}</p><p class="text-[10px] opacity-60">${tx.date}</p></div>
-            </div>
-            <p class="font-black text-red-400">-${tx.amount} <span class="text-[8px]">AQUAM</span></p>
-        </div>`).join('');
+            <div><p class="font-bold text-sm">${tx.type}</p><p class="text-[10px] opacity-40">${tx.date}</p></div>
+            <div class="text-right"><p class="font-bold text-sm">₦${tx.amt}</p><p class="text-[10px] ${tx.status === 'Success' ? 'text-green-500' : 'text-red-500'} font-black uppercase tracking-tighter">${tx.status}</p></div>
+        </div>
+    `).join('');
 }
 
-function switchView(view) {
-    document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active-view'));
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-    document.getElementById(`view-${view}`).classList.add('active-view');
-    document.getElementById(`nav-${view}`).classList.add('active');
-}
+function clearHistory() { txHistory = []; localStorage.removeItem('aqua_tx_history'); renderHistory(); }
 
-function showToast(msg, type = 'success') {
-    const t = document.createElement('div');
-    const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation';
-    t.className = `toast show toast-${type}`;
-    t.innerHTML = `<i class="fa-solid ${icon} text-white text-xl"></i><p class="text-white font-bold tracking-tight">${msg}</p>`;
-    document.getElementById('toast-container').appendChild(t);
-    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 400); }, 3000);
-}
+function renderGraph() {
+    const graph = document.getElementById("analyticsGraph");
+    graph.innerHTML = "";
 
-function toggleTheme() { document.body.classList.toggle('light-mode'); }
-window.onload = () => { renderHistory(); renderAnalytics(); };
+    const txs = txHistory
+        .filter(tx => tx.status === "Success")
+        .slice(0, 12);
+
+    if (txs.length === 0) {
+        graph.innerHTML = `<p class="text-xs opacity-40 font-bold">No purchases yet</p>`;
+        return;
+    }
+
+    const maxAmount = Math.max(...txs.map(t => t.amt));
+
+    txs.reverse().forEach(tx => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "bar-wrapper";
+
+        // Price label (always visible)
+        const label = document.createElement("div");
+        label.className = "bar-label";
+        label.innerText = `₦${tx.amt}`;
+
+        // Bar
+        const bar = document.createElement("div");
+        bar.className = "bar";
+
+        // 🔥 HEIGHT CALCULATION
+        const percent = (tx.amt / maxAmount) * 100;
+        const height = Math.max(percent, 12); // minimum 12%
+
+        bar.style.height = `${height}%`;
+
+        // Fancy tap
+        bar.onclick = () => fancyAlert(
+            `Service: ${tx.type}\nAmount: ₦${tx.amt}\nTime: ${tx.date}`
+        );
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(bar);
+        graph.appendChild(wrapper);
+    });
+}
+function fancyAlert(text) {
+    const modal = document.createElement("div");
+    modal.className = "fixed inset-0 bg-black/80 z-[999] flex items-center justify-center";
+
+    modal.innerHTML = `
+        <div class="bg-[#131b29] rounded-2xl p-6 max-w-xs w-full text-center border border-blue-500/20">
+            <h3 class="font-black text-lg text-blue-400 mb-3">Transaction Details</h3>
+            <pre class="text-sm whitespace-pre-line opacity-80">${text}</pre>
+            <button class="mt-5 w-full py-3 rounded-xl bg-blue-600 font-black"
+                onclick="this.closest('.fixed').remove()">Close</button>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+function closeModal() { document.getElementById("modal").classList.add("hidden"); }
 </script>
 </body>
 </html>
-<!--  -->
