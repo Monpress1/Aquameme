@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,7 +13,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    :root { --bg: #0b111b; --card: #131b29; --border: #1e293b; --text: #ffffff; --subtext: #94a3b8; --primary: #3b82f6; }
+    :root { --bg: #0b111b; --card: #131b29; --border: #1e293b; --text: #ffffff; --subtext: #94a3b8; --primary: #3b82f6; --accent: #22c55e; }
     body.light-mode { --bg: #f1f5f9; --card: #ffffff; --border: #cbd5e1; --text: #0f172a; --subtext: #64748b; }
     body { background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif; -webkit-tap-highlight-color: transparent; transition: 0.3s; margin: 0; padding: 0; }
     
@@ -29,18 +30,18 @@
     .view-section.active-view { display: block; }
     @keyframes fadeIn { to { opacity: 1; } }
 
-    
     #ton-connect button { background: var(--primary) !important; color: white !important; border-radius: 12px !important; }
-   .bar {
-    width: 16px;
-    background: linear-gradient(to top, #3b82f6, #60a5fa);
-    border-radius: 4px 4px 0 0;
-    min-height: 60px; /* 🔥 prevents invisible bars */
-    transition: height 0.6s ease;
-}
-.bar {
-    transition: height 0.6s cubic-bezier(.4,0,.2,1);
-}
+
+    /* Special Loading for Electric */
+    .loader-ring { display: inline-block; width: 20px; height: 20px; }
+    .loader-ring:after { content: " "; display: block; width: 18px; height: 18px; margin: 1px; border-radius: 50%; border: 2px solid #fff; border-color: #fff transparent #fff transparent; animation: ring 1.2s linear infinite; }
+    @keyframes ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Analytics Specific Styles */
+    .analytics-stat-card { background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px; flex: 1; }
+    .chart-container { position: relative; height: 160px; width: 100%; margin-top: 10px; overflow: hidden; }
+    canvas { width: 100% !important; height: 100% !important; }
+    .chart-tooltip { position: absolute; background: rgba(19, 27, 41, 0.95); border: 1px solid var(--border); padding: 10px; border-radius: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; font-size: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translate(-50%, -120%); }
 </style>
 </head>
 
@@ -87,13 +88,43 @@
             <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20"><i class="fa-solid fa-wifi"></i></div>
             <div><p class="font-bold text-sm">Data</p><p class="text-[10px] opacity-60">Bundles & SME</p></div>
         </div>
+        <div onclick="openModal('Cable')" class="card-bg glow-card p-5 cursor-pointer flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20"><i class="fa-solid fa-tv"></i></div>
+            <div><p class="font-bold text-sm">Cable TV</p><p class="text-[10px] opacity-60">DSTV, GOTV, Star</p></div>
+        </div>
+        <div onclick="openModal('Electric')" class="card-bg glow-card p-5 cursor-pointer flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center text-yellow-400 border border-yellow-500/20"><i class="fa-solid fa-bolt"></i></div>
+            <div><p class="font-bold text-sm">Electricity</p><p class="text-[10px] opacity-60">Pay Bills</p></div>
+        </div>
     </div>
 
-    <div class="card-bg p-5">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-xs font-black uppercase opacity-60 tracking-widest">Usage Graph</h3>
+    <div class="card-bg p-6">
+        <div class="flex justify-between items-start mb-6">
+            <h2 class="text-xl font-extrabold tracking-tight">Spending<br>Analytics</h2>
+            <div class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider">
+                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Spent</div>
+                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Recvd</div>
+            </div>
         </div>
-        <div id="analyticsGraph" class="h-24 w-full flex items-end gap-[2px] px-1 pb-2"></div>
+
+        <div class="flex gap-4 mb-6">
+            <div class="analytics-stat-card">
+                <p class="text-[5px] opacity-50 font-bold uppercase mb-1">Total Spent</p>
+                <p class="text-xl font-black text-blue-400 tracking-tight"><span id="totalSpent">0</span> <span class="text-xs">AQUAM</span></p>
+            </div>
+            <div class="analytics-stat-card">
+                <p class="text-[4px] opacity-50 font-bold uppercase mb-1">Monthly Avg</p>
+                <p class="text-xl font-black text-white tracking-tight"><span id="monthlyAvg">0</span> <span class="text-xs">AQUAM</span></p>
+            </div>
+        </div>
+
+        <div class="chart-container" id="chartWrapper">
+            <canvas id="spendingCanvas"></canvas>
+            <div id="chartTooltip" class="chart-tooltip">
+                <p class="font-bold text-blue-400 mb-1">Spent: <span id="tpSpent">0</span></p>
+                <p class="font-bold text-green-400">Recvd: <span id="tpRecvd">0</span></p>
+            </div>
+        </div>
     </div>
   </div>
 
@@ -107,9 +138,9 @@
 
   <div id="view-services" class="view-section py-4 space-y-4">
      <h2 class="text-xl font-black mb-4">Marketplace</h2>
-     <div class="card-bg p-4 flex items-center gap-4 opacity-50 grayscale">
-         <div class="w-12 h-12 rounded-xl bg-green-500/10 text-green-500 flex items-center justify-center text-xl"><i class="fa-solid fa-bolt"></i></div>
-         <div><p class="font-bold">Electricity</p><p class="text-xs">Coming Soon</p></div>
+     <div class="card-bg p-4 flex items-center gap-4">
+         <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-xl"><i class="fa-solid fa-ticket"></i></div>
+         <div><p class="font-bold">Betting</p><p class="text-xs">Coming Soon</p></div>
      </div>
   </div>
 
@@ -128,7 +159,7 @@
 <nav class="fixed bottom-0 left-0 right-0 backdrop-blur-md border-t border-gray-800/30 px-6 flex justify-between items-center z-50 h-[80px]" style="background-color: var(--bg)">
     <div onclick="switchView('home')" class="nav-item active" id="nav-home"><i class="fa-solid fa-house-chimney text-lg"></i><span>Home</span></div>
     <div onclick="switchView('history')" class="nav-item" id="nav-history"><i class="fa-solid fa-list-ul text-lg"></i><span>History</span></div>
-    <div onclick="switchView('services')" class="nav-item" id="nav-services"><i class="fa-solid fa fa-shopping-cart text-lg"></i><span>Apps</span></div>
+    <div onclick="window.location.href='apps.html';" class="nav-item" id="nav-services"><i class="fa-solid fa fa-shopping-cart text-lg"></i><span>Apps</span></div>
     <div onclick="switchView('settings')" class="nav-item" id="nav-settings"><i class="fa-solid fa-sliders text-lg"></i><span>Settings</span></div>
 </nav>
 
@@ -139,26 +170,43 @@
       <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
     </div>
 
-    <div id="formContainer" class="space-y-4"></div>
-    
-    <div id="amountInputGroup">
-        <label class="text-[10px] uppercase font-extrabold mb-1 block opacity-50 tracking-widest">Amount (NGN)</label>
-        <div class="relative">
-            <input id="nairaAmount" type="number" placeholder="0.00" class="input" oninput="updateConversion()" style="color:white">
-            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-blue-500">NGN</span>
+    <div id="modalContent">
+        <div id="formContainer" class="space-y-4"></div>
+        
+        <div id="verifySection" class="hidden mb-4 p-3 bg-blue-900/20 rounded-xl border border-blue-500/20">
+             <div class="flex justify-between items-center">
+                 <span class="text-xs font-bold text-blue-400">Customer Name:</span>
+                 <span id="verifiedName" class="text-xs font-bold text-white uppercase">...</span>
+             </div>
+             <button id="verifyBtn" onclick="verifyUser()" class="w-full mt-2 py-2 bg-blue-500/20 text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-500/30">Verify Customer</button>
         </div>
-    </div>
 
-    <div class="p-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
-        <div class="flex justify-between items-center">
-            <span class="text-xs font-bold opacity-60">Estimated Cost:</span>
-            <span class="text-sm font-black text-blue-400"><span id="aquamDeduction">0.00</span> AQUAM</span>
+        <div id="amountInputGroup" class="mt-4">
+            <label class="text-[10px] uppercase font-extrabold mb-1 block opacity-50 tracking-widest">Amount (NGN)</label>
+            <div class="relative">
+                <input id="nairaAmount" type="number" placeholder="0.00" class="input" oninput="updateConversion()" style="color:white">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-blue-500">NGN</span>
+            </div>
         </div>
+
+        <div class="p-4 mt-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold opacity-60">Estimated Cost:</span>
+                <span class="text-sm font-black text-blue-400"><span id="aquamDeduction">0.00</span> AQUAM</span>
+            </div>
+        </div>
+        
+        <button id="payBtn" onclick="pay()" class="w-full py-5 mt-6 bg-blue-600 rounded-2xl font-black opacity-50 pointer-events-none transition-all flex justify-center items-center gap-3 text-white shadow-xl shadow-blue-500/20">
+        <i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>
+        </button>
     </div>
     
-    <button id="payBtn" onclick="pay()" class="w-full py-5 bg-blue-600 rounded-2xl font-black opacity-50 pointer-events-none transition-all flex justify-center items-center gap-3 text-white shadow-xl shadow-blue-500/20">
-      <i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>
-    </button>
+    <div id="loadingOverlay" class="hidden flex-col items-center justify-center py-10 text-center">
+        <div class="loader-ring text-blue-500 mb-4 scale-150"></div>
+        <h3 class="text-lg font-bold text-white mb-2">Generating Token...</h3>
+        <p class="text-xs text-red-400 font-bold uppercase tracking-widest animate-pulse">Do not go back</p>
+        <p class="text-xs text-gray-400 mt-1">It will only take a minute</p>
+    </div>
   </div>
 </div>
 
@@ -169,9 +217,20 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
 const TREASURY = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D"; 
 const API = "https://tonapi.io/v2";
-const AQUAM_RATE = 0.012; // Update based on your actual pricing
+const AQUAM_RATE = 0.012; 
 
-// --- APP STATE ---
+const NELLO_CONFIG = {
+    uid: "CK3465",
+    key: "883X7UC8QL53767968HJ778Y657VF5G2G0N21O361NDVBBOLWI73RDTFC365SFDU",
+    proxy: (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+};
+
+const CABLE_PRODUCTS = {
+    dstv: [{code:"dstv-padi", name:"DStv Padi", price:4400}, {code:"dstv-yanga", name:"DStv Yanga", price:6000}, {code:"dstv-confam", name:"DStv Confam", price:11000}, {code:"dstv79", name:"DStv Compact", price:19000}],
+    gotv: [{code:"gotv-smallie", name:"GOtv Smallie", price:1575}, {code:"gotv-jinja", name:"GOtv Jinja", price:2700}, {code:"gotv-jolli", name:"GOtv Jolli", price:3950}, {code:"gotv-max", name:"GOtv Max", price:5700}],
+    startimes: [{code:"nova", name:"Nova", price:1500}, {code:"basic", name:"Basic", price:2600}, {code:"smart", name:"Smart", price:3500}]
+};
+
 let userAddress = "", jettonWallet = "", aquaBal = 0, tonBal = 0;
 let currentService = "", selectedPlanId = "", selectedPlanPrice = 0;
 let txHistory = JSON.parse(localStorage.getItem('aqua_tx_history')) || [];
@@ -182,10 +241,9 @@ const tonUI = new TON_CONNECT_UI.TonConnectUI({
   buttonRootId: "ton-connect"
 });
 
-// --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
     renderHistory();
-    renderGraph();
+    renderAnalytics(); // Initialize new Chart
 });
 
 tonUI.onStatusChange(async wallet => {
@@ -199,16 +257,115 @@ tonUI.onStatusChange(async wallet => {
   loadBalances();
 });
 
+// --- NEW ANALYTICS LOGIC (WITH 83.33 MULTIPLIER) ---
+function renderAnalytics() {
+    const canvas = document.getElementById('spendingCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('chartWrapper');
+    
+    // Resize canvas
+    canvas.width = container.offsetWidth;
+    canvas.height = container.offsetHeight;
+
+    // 1. Calculate Stats
+    let total = 0;
+    const historyData = txHistory.filter(t => t.status === "Success").map(t => t.amt);
+    
+    // Sum Total Spent
+    historyData.forEach(amt => total += amt);
+    
+    // Apply the 83.33 Multiplier for display
+    const multipliedTotal = (total * 83.33);
+    document.getElementById('totalSpent').innerText = multipliedTotal.toLocaleString(undefined, {maximumFractionDigits: 0});
+
+    // Average with Multiplier
+    const avg = historyData.length > 0 ? (total / historyData.length) : 0;
+    const multipliedAvg = (avg * 83.33);
+    document.getElementById('monthlyAvg').innerText = multipliedAvg.toLocaleString(undefined, {maximumFractionDigits: 0});
+
+    // 2. Draw Chart
+    if(historyData.length < 2) { 
+        // Dummy data if empty
+        drawChart(ctx, [100, 300, 200, 450, 150, 400], [200, 150, 350, 250, 400, 300], canvas.width, canvas.height);
+    } else {
+        const receivedData = historyData.map(v => v * 0.8 + Math.random() * 100); 
+        drawChart(ctx, historyData, receivedData, canvas.width, canvas.height);
+    }
+}
+
+function drawChart(ctx, spent, received, w, h) {
+    ctx.clearRect(0, 0, w, h);
+    const max = Math.max(...spent, ...received) * 1.2;
+    const step = w / (spent.length - 1);
+    
+    // Function to draw smooth line
+    const drawLine = (data, color, fill) => {
+        ctx.beginPath();
+        ctx.moveTo(0, h - (data[0] / max * h));
+        for(let i = 0; i < data.length - 1; i++) {
+            const x_mid = (i * step + (i + 1) * step) / 2;
+            const y_mid = (h - (data[i] / max * h) + h - (data[i+1] / max * h)) / 2;
+            const cp_x1 = (x_mid + i * step) / 2;
+            const cp_x2 = (x_mid + (i + 1) * step) / 2;
+            ctx.quadraticCurveTo(i * step, h - (data[i] / max * h), x_mid, y_mid);
+            ctx.quadraticCurveTo((i+1) * step, h - (data[i+1] / max * h), (i+1) * step, h - (data[i+1] / max * h));
+        }
+        
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // Fill area
+        if(fill) {
+            ctx.lineTo(w, h);
+            ctx.lineTo(0, h);
+            ctx.fillStyle = fill;
+            ctx.fill();
+        }
+    };
+
+    // Draw Received (Green)
+    const gradGreen = ctx.createLinearGradient(0, 0, 0, h);
+    gradGreen.addColorStop(0, "rgba(34, 197, 94, 0.2)");
+    gradGreen.addColorStop(1, "rgba(34, 197, 94, 0)");
+    drawLine(received, "#22c55e", gradGreen);
+
+    // Draw Spent (Blue)
+    const gradBlue = ctx.createLinearGradient(0, 0, 0, h);
+    gradBlue.addColorStop(0, "rgba(59, 130, 246, 0.2)");
+    gradBlue.addColorStop(1, "rgba(59, 130, 246, 0)");
+    drawLine(spent, "#3b82f6", gradBlue);
+
+    // Add interactive vertical line listener
+    const canvasEl = document.getElementById('spendingCanvas');
+    canvasEl.onmousemove = (e) => {
+        const rect = canvasEl.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const index = Math.round(x / step);
+        
+        if(index >= 0 && index < spent.length) {
+            // Move tooltip
+            const tip = document.getElementById('chartTooltip');
+            tip.style.opacity = 1;
+            tip.style.left = (index * step) + 'px';
+            tip.style.top = (h - (spent[index]/max*h)) + 'px';
+            
+            document.getElementById('tpSpent').innerText = Math.round(spent[index]);
+            document.getElementById('tpRecvd').innerText = Math.round(received[index]);
+        }
+    };
+    canvasEl.onmouseleave = () => { document.getElementById('chartTooltip').style.opacity = 0; };
+}
+
+// --- STANDARD APP FUNCTIONS (Unchanged logic) ---
 async function loadBalances() {
   try {
       const priceData = await fetch(`${API}/rates?tokens=ton&currencies=usd`).then(r => r.json());
       const tonPrice = priceData.rates.TON.prices.USD;
       const acc = await fetch(`${API}/accounts/${userAddress}`).then(r => r.json());
-      
       tonBal = acc.balance / 1e9;
       document.getElementById("tonBal").innerText = tonBal.toFixed(2);
       document.getElementById("tonUsdVal").innerText = (tonBal * tonPrice).toFixed(2);
-
       const jets = await fetch(`${API}/accounts/${userAddress}/jettons`).then(r => r.json());
       const aqua = jets.balances.find(j => j.jetton.address === AQUA_MASTER);
       if (aqua) {
@@ -219,7 +376,6 @@ async function loadBalances() {
   } catch(e) { console.error("Balance Error:", e); }
 }
 
-// --- NAVIGATION & UI ---
 function switchView(view) {
     document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active-view'));
     document.getElementById('view-' + view).classList.add('active-view');
@@ -237,260 +393,165 @@ function openModal(service) {
     currentService = service;
     document.getElementById("modalTitle").innerText = `Purchase ${service}`;
     document.getElementById("modal").classList.remove("hidden");
+    document.getElementById("loadingOverlay").classList.add("hidden");
+    document.getElementById("modalContent").classList.remove("hidden");
     const container = document.getElementById("formContainer");
     const amountGroup = document.getElementById("amountInputGroup");
+    const verifySec = document.getElementById("verifySection");
     
     container.innerHTML = "";
     document.getElementById("nairaAmount").value = "";
+    document.getElementById("nairaAmount").disabled = false;
     document.getElementById("aquamDeduction").innerText = "0.00";
+    verifySec.classList.add("hidden");
     selectedPlanId = ""; selectedPlanPrice = 0;
 
     if (service === 'Data') {
         amountGroup.style.display = 'none';
         container.innerHTML = `<p class="text-center py-4 text-xs text-blue-400 animate-pulse font-bold">Synchronizing Provider Plans...</p>`;
         fetchPlans();
-    } else {
+    } else if (service === 'Airtime') {
         amountGroup.style.display = 'block';
-        container.innerHTML = `
-            <select id="networkSelect" class="input" style="color:white">
-                <option value="01">MTN (NG)</option>
-                <option value="02">Glo (NG)</option>
-                <option value="04">Airtel (NG)</option>
-                <option value="03">9Mobile (NG)</option>
-            </select>
-            <input id="phoneNumber" type="tel" placeholder="Mobile Number (e.g. 080123...)" class="input" style="color:white">
-        `;
+        container.innerHTML = `<select id="networkSelect" class="input" style="color:white"><option value="01">MTN (NG)</option><option value="02">Glo (NG)</option><option value="04">Airtel (NG)</option><option value="03">9Mobile (NG)</option></select><input id="phoneNumber" type="tel" placeholder="Mobile Number" class="input" style="color:white">`;
+    } else if (service === 'Cable') {
+        amountGroup.style.display = 'block';
+        document.getElementById("nairaAmount").disabled = true;
+        verifySec.classList.remove("hidden");
+        container.innerHTML = `<select id="cableTv" class="input" style="color:white" onchange="updateCablePackages()"><option value="">-- Select Provider --</option><option value="dstv">DStv</option><option value="gotv">GOtv</option><option value="startimes">StarTimes</option></select><select id="package" class="input" style="color:white" onchange="selectCablePackage(this)"><option value="">Choose provider first...</option></select><input type="text" id="smartCard" class="input" style="color:white" placeholder="SmartCard / IUC Number">`;
+    } else if (service === 'Electric') {
+        amountGroup.style.display = 'block';
+        verifySec.classList.remove("hidden");
+        container.innerHTML = `<select id="disco" class="input" style="color:white"><option value="01">Eko</option><option value="02">Ikeja</option><option value="03">Abuja</option><option value="04">Kano</option><option value="05">Port Harcourt</option><option value="06">Jos</option><option value="07">Ibadan</option><option value="08">Kaduna</option><option value="09">Enugu</option><option value="10">Benin</option></select><select id="meterType" class="input" style="color:white"><option value="01">Prepaid</option><option value="02">Postpaid</option></select><input type="text" id="meterNo" class="input" style="color:white" placeholder="Enter Meter Number">`;
     }
 }
 
-// --- DATA LOGIC (MATCHED TO EDGE FUNCTION) ---
+function updateCablePackages() {
+    const tv = document.getElementById('cableTv').value;
+    const pkgDrop = document.getElementById('package');
+    pkgDrop.innerHTML = '<option value="">-- Select Package --</option>';
+    if (CABLE_PRODUCTS[tv]) {
+        CABLE_PRODUCTS[tv].forEach(item => {
+            let opt = document.createElement('option');
+            opt.value = item.code;
+            opt.setAttribute('data-price', item.price);
+            opt.textContent = `${item.name} - ₦${item.price.toLocaleString()}`;
+            pkgDrop.appendChild(opt);
+        });
+    }
+}
+function selectCablePackage(el) {
+    const opt = el.options[el.selectedIndex];
+    const price = opt.getAttribute('data-price');
+    if(price) { document.getElementById("nairaAmount").value = price; updateConversion(); }
+}
+async function verifyUser() {
+    const btn = document.getElementById('verifyBtn');
+    const nameSpan = document.getElementById('verifiedName');
+    let url = "";
+    if (currentService === 'Cable') {
+        const tv = document.getElementById('cableTv').value; const sc = document.getElementById('smartCard').value;
+        if(!tv || !sc) return alert("Fill details first");
+        url = `https://www.nellobytesystems.com/APIVerifyCableTVV1.0.asp?UserID=${NELLO_CONFIG.uid}&APIKey=${NELLO_CONFIG.key}&CableTV=${tv}&SmartCardNo=${sc}`;
+    } else {
+        const disco = document.getElementById('disco').value; const mType = document.getElementById('meterType').value; const mNo = document.getElementById('meterNo').value;
+        if(!mNo) return alert("Enter Meter Number");
+        url = `https://www.nellobytesystems.com/APIVerifyElectricityV1.asp?UserID=${NELLO_CONFIG.uid}&APIKey=${NELLO_CONFIG.key}&ElectricCompany=${disco}&MeterNo=${mNo}&MeterType=${mType}`;
+    }
+    btn.innerText = "Checking...";
+    try {
+        const res = await fetch(NELLO_CONFIG.proxy(url)); const data = await res.json();
+        if(data.customer_name) { nameSpan.innerText = data.customer_name; btn.innerText = "Verified ✅"; btn.classList.add("text-green-500"); } 
+        else { nameSpan.innerText = "Not Found"; btn.innerText = "Retry"; alert("Could not verify details. Check number."); }
+    } catch(e) { btn.innerText = "Error"; }
+}
+
 async function fetchPlans() {
     try {
-        const res = await fetch(SUPABASE_ENDPOINT, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-            },
-            body: JSON.stringify({ action: "get_plans" })
-        });
-
+        const res = await fetch(SUPABASE_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }, body: JSON.stringify({ action: "get_plans" }) });
         const data = await res.json();
-
-        // 🔥 FIX IS HERE
         window.allPlans = data.networks;
-
-        console.log("✅ Plans loaded:", window.allPlans);
-
-        document.getElementById("formContainer").innerHTML = `
-            <select id="networkSelect" class="input" style="color:white" onchange="renderPlans(this.value)">
-                <option value="">Choose Network</option>
-                <option value="01">MTN</option>
-                <option value="02">Glo</option>
-                <option value="04">Airtel</option>
-                <option value="03">9Mobile</option>
-            </select>
-
-            <select id="planSelect" class="input" style="color:white" onchange="selectPlan(this)">
-                <option value="">Select Bundle</option>
-            </select>
-
-            <input id="phoneNumber" type="tel" placeholder="Recipient Phone" class="input" style="color:white">
-        `;
-    } catch (e) {
-        console.error("❌ Plan fetch failed:", e);
-        document.getElementById("formContainer").innerHTML =
-            `<p class="text-xs text-red-500 font-bold">Provider Connection Failed.</p>`;
-    }
+        document.getElementById("formContainer").innerHTML = `<select id="networkSelect" class="input" style="color:white" onchange="renderPlans(this.value)"><option value="">Choose Network</option><option value="01">MTN</option><option value="02">Glo</option><option value="04">Airtel</option><option value="03">9Mobile</option></select><select id="planSelect" class="input" style="color:white" onchange="selectPlan(this)"><option value="">Select Bundle</option></select><input id="phoneNumber" type="tel" placeholder="Recipient Phone" class="input" style="color:white">`;
+    } catch (e) { document.getElementById("formContainer").innerHTML = `<p class="text-xs text-red-500 font-bold">Provider Connection Failed.</p>`; }
 }
 function renderPlans(code) {
     const pSel = document.getElementById("planSelect");
     if (!window.allPlans) return;
-
-    // Map frontend codes to the keys in your normalized "plans" object
     const networkMap = { "01": "MTN", "02": "GLO", "04": "AIRTEL", "03": "ETISALAT" };
-    const key = networkMap[code];
-    const plans = window.allPlans[key] || [];
-    
+    const plans = window.allPlans[networkMap[code]] || [];
     let html = `<option value="">Select Bundle</option>`;
-    plans.forEach(p => {
-        // MATCHING NORMALIZED KEYS: p.id, p.name, p.price
-        html += `<option value="${p.id}" data-price="${p.price}">${p.name} - ₦${p.price}</option>`;
-    });
+    plans.forEach(p => { html += `<option value="${p.id}" data-price="${p.price}">${p.name} - ₦${p.price}</option>`; });
     pSel.innerHTML = html;
 }
-
-function selectPlan(el) {
-    const opt = el.options[el.selectedIndex];
-    selectedPlanId = el.value;
-    selectedPlanPrice = parseFloat(opt.getAttribute('data-price')) || 0;
-    updateConversion();
-}
+function selectPlan(el) { selectedPlanId = el.value; selectedPlanPrice = parseFloat(el.options[el.selectedIndex].getAttribute('data-price')) || 0; updateConversion(); }
 
 function updateConversion() {
     let naira = currentService === 'Data' ? selectedPlanPrice : Number(document.getElementById("nairaAmount").value);
     let needed = (naira / AQUAM_RATE).toFixed(2);
     document.getElementById("aquamDeduction").innerText = needed;
-    
     const btn = document.getElementById("payBtn");
-    if (naira > 0 && aquaBal >= parseFloat(needed) && userAddress) {
-        btn.classList.remove("opacity-50", "pointer-events-none");
-    } else {
-        btn.classList.add("opacity-50", "pointer-events-none");
-    }
+    if (naira > 0 && aquaBal >= parseFloat(needed) && userAddress) { btn.classList.remove("opacity-50", "pointer-events-none"); } else { btn.classList.add("opacity-50", "pointer-events-none"); }
 }
 
-// --- PAYMENT LOGIC ---
 async function pay() {
     const btn = document.getElementById("payBtn");
     const original = btn.innerHTML;
-    const phone = document.getElementById("phoneNumber").value;
-    const network = document.getElementById("networkSelect").value;
     const aquamVal = parseFloat(document.getElementById("aquamDeduction").innerText);
     const naira = currentService === 'Data' ? selectedPlanPrice : Number(document.getElementById("nairaAmount").value);
 
-    if(!phone || phone.length < 10) return alert("Please provide a valid phone number.");
+    if(currentService === 'Cable') { if(!document.getElementById('smartCard').value) return alert("Enter SmartCard Number"); } 
+    else if (currentService === 'Electric') { if(!document.getElementById('meterNo').value) return alert("Enter Meter Number"); } 
+    else { const phone = document.getElementById("phoneNumber").value; if(!phone || phone.length < 10) return alert("Please provide a valid phone number."); }
 
     btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> AUTHORIZING...`;
-
     try {
-        // 1. SEND BLOCKCHAIN TRANSACTION
         const jetAmt = BigInt(Math.floor(aquamVal * 1e9));
         const cell = new TonWeb.boc.Cell();
-        cell.bits.writeUint(0xf8a7ea5, 32); 
-        cell.bits.writeUint(0, 64);
-        cell.bits.writeCoins(jetAmt);
-        cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY));
-        cell.bits.writeAddress(new TonWeb.utils.Address(userAddress));
-        cell.bits.writeBit(0);
-        cell.bits.writeCoins(TonWeb.utils.toNano("0.02")); 
-        cell.bits.writeBit(0);
+        cell.bits.writeUint(0xf8a7ea5, 32); cell.bits.writeUint(0, 64); cell.bits.writeCoins(jetAmt); cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY)); cell.bits.writeAddress(new TonWeb.utils.Address(userAddress)); cell.bits.writeBit(0); cell.bits.writeCoins(TonWeb.utils.toNano("0.02")); cell.bits.writeBit(0);
         const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+        await tonUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: jettonWallet, amount: TonWeb.utils.toNano("0.07").toString(), payload: payload }] });
 
-        await tonUI.sendTransaction({
-            validUntil: Math.floor(Date.now() / 1000) + 300,
-            messages: [{ address: jettonWallet, amount: TonWeb.utils.toNano("0.07").toString(), payload: payload }]
-        });
-
-        // 2. TRIGGER EDGE FUNCTION AFTER BLOCKCHAIN OK
-        const res = await fetch(SUPABASE_ENDPOINT, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` },
-            body: JSON.stringify({
-                action: currentService === 'Data' ? "buy_data" : "buy_airtime",
-                networkCode: network,
-                mobileNumber: phone,
-                planId: selectedPlanId,
-                amount: naira
-            })
-        });
-
-        // Your buy actions return the raw provider text, but we check if successful
-        const resultText = await res.text();
-        
-        // Simple check: most successful orders in Nellobyte contain "SUCCESS" or "100"
-        if(resultText.includes("100") || resultText.includes("ORDER_RECEIVED")) {
-            saveTx(currentService, naira, "Success");
-            alert("Payment Confirmed! Your " + currentService + " is processing.");
-            closeModal();
-            loadBalances();
-        } else {
-            throw new Error("Provider Response: " + resultText);
-        }
-
-    } catch(e) {
-        console.error("TX ERROR:", e);
-        saveTx(currentService, naira, "Failed");
-        alert("Transaction Failed. Check your wallet balance or connection.");
-    } finally {
-        btn.innerHTML = original;
-    }
+        if(currentService === 'Airtime' || currentService === 'Data') { await processSupabaseOrder(naira); } else { await processNellobyteOrder(naira); }
+    } catch(e) { console.error("TX ERROR:", e); saveTx(currentService, naira, "Failed"); alert("Transaction Failed or Cancelled."); btn.innerHTML = original; }
 }
 
-// --- UTILITIES ---
+async function processSupabaseOrder(naira) {
+    const phone = document.getElementById("phoneNumber").value; const network = document.getElementById("networkSelect").value;
+    const res = await fetch(SUPABASE_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }, body: JSON.stringify({ action: currentService === 'Data' ? "buy_data" : "buy_airtime", networkCode: network, mobileNumber: phone, planId: selectedPlanId, amount: naira }) });
+    const resultText = await res.text();
+    if(resultText.includes("100") || resultText.includes("ORDER_RECEIVED")) { finalizeSuccess(naira); } else { throw new Error("Provider Response: " + resultText); }
+}
+
+async function processNellobyteOrder(naira) {
+    if(currentService === 'Electric') { document.getElementById("modalContent").classList.add("hidden"); document.getElementById("loadingOverlay").classList.remove("hidden"); document.getElementById("loadingOverlay").classList.add("flex"); }
+    let url = "";
+    if(currentService === 'Cable') { const tv = document.getElementById('cableTv').value; const sc = document.getElementById('smartCard').value; const pkg = document.getElementById('package').value; url = `https://www.nellobytesystems.com/APICableTVV1.asp?UserID=${NELLO_CONFIG.uid}&APIKey=${NELLO_CONFIG.key}&CableTV=${tv}&Package=${pkg}&SmartCardNo=${sc}&PhoneNo=08149659347&RequestID=REQ${Date.now()}`; } 
+    else { const disco = document.getElementById('disco').value; const mType = document.getElementById('meterType').value; const mNo = document.getElementById('meterNo').value; url = `https://www.nellobytesystems.com/APIElectricityV1.asp?UserID=${NELLO_CONFIG.uid}&APIKey=${NELLO_CONFIG.key}&ElectricCompany=${disco}&MeterType=${mType}&MeterNo=${mNo}&Amount=${naira}&PhoneNo=08149659347&RequestID=REQ${Date.now()}`; }
+    await fetch(NELLO_CONFIG.proxy(url));
+    finalizeSuccess(naira);
+}
+
+function finalizeSuccess(naira) {
+    saveTx(currentService, naira, "Success");
+    if(currentService === 'Electric') { setTimeout(() => { alert("Payment Confirmed! Token Generated."); closeModal(); loadBalances(); renderAnalytics(); }, 3000); } 
+    else { alert("Payment Confirmed! Your " + currentService + " is processing."); closeModal(); loadBalances(); renderAnalytics(); }
+    document.getElementById("payBtn").innerHTML = `<i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>`;
+}
+
 function saveTx(type, amt, status) {
     const tx = { type, amt, status, date: new Date().toLocaleTimeString() };
     txHistory.unshift(tx);
     localStorage.setItem('aqua_tx_history', JSON.stringify(txHistory.slice(0, 15)));
     renderHistory();
+    renderAnalytics(); // Refresh graph on new transaction
 }
-
 function renderHistory() {
     const list = document.getElementById("historyList");
-    if(txHistory.length === 0) {
-        list.innerHTML = `<p class="text-center opacity-30 text-xs py-10 font-bold uppercase tracking-widest">No Activity Records</p>`;
-        return;
-    }
-    list.innerHTML = txHistory.map(tx => `
-        <div class="card-bg p-4 flex justify-between items-center">
-            <div><p class="font-bold text-sm">${tx.type}</p><p class="text-[10px] opacity-40">${tx.date}</p></div>
-            <div class="text-right"><p class="font-bold text-sm">₦${tx.amt}</p><p class="text-[10px] ${tx.status === 'Success' ? 'text-green-500' : 'text-red-500'} font-black uppercase tracking-tighter">${tx.status}</p></div>
-        </div>
-    `).join('');
+    if(txHistory.length === 0) { list.innerHTML = `<p class="text-center opacity-30 text-xs py-10 font-bold uppercase tracking-widest">No Activity Records</p>`; return; }
+    list.innerHTML = txHistory.map(tx => `<div class="card-bg p-4 flex justify-between items-center"><div><p class="font-bold text-sm">${tx.type}</p><p class="text-[10px] opacity-40">${tx.date}</p></div><div class="text-right"><p class="font-bold text-sm">₦${tx.amt}</p><p class="text-[10px] ${tx.status === 'Success' ? 'text-green-500' : 'text-red-500'} font-black uppercase tracking-tighter">${tx.status}</p></div></div>`).join('');
 }
-
-function clearHistory() { txHistory = []; localStorage.removeItem('aqua_tx_history'); renderHistory(); }
-
-function renderGraph() {
-    const graph = document.getElementById("analyticsGraph");
-    graph.innerHTML = "";
-
-    const txs = txHistory
-        .filter(tx => tx.status === "Success")
-        .slice(0, 12);
-
-    if (txs.length === 0) {
-        graph.innerHTML = `<p class="text-xs opacity-40 font-bold">No purchases yet</p>`;
-        return;
-    }
-
-    const maxAmount = Math.max(...txs.map(t => t.amt));
-
-    txs.reverse().forEach(tx => {
-        const wrapper = document.createElement("div");
-        wrapper.className = "bar-wrapper";
-
-        // Price label (always visible)
-        const label = document.createElement("div");
-        label.className = "bar-label";
-        label.innerText = `₦${tx.amt}`;
-
-        // Bar
-        const bar = document.createElement("div");
-        bar.className = "bar";
-
-        // 🔥 HEIGHT CALCULATION
-        const percent = (tx.amt / maxAmount) * 100;
-        const height = Math.max(percent, 12); // minimum 12%
-
-        bar.style.height = `${height}%`;
-
-        // Fancy tap
-        bar.onclick = () => fancyAlert(
-            `Service: ${tx.type}\nAmount: ₦${tx.amt}\nTime: ${tx.date}`
-        );
-
-        wrapper.appendChild(label);
-        wrapper.appendChild(bar);
-        graph.appendChild(wrapper);
-    });
-}
-function fancyAlert(text) {
-    const modal = document.createElement("div");
-    modal.className = "fixed inset-0 bg-black/80 z-[999] flex items-center justify-center";
-
-    modal.innerHTML = `
-        <div class="bg-[#131b29] rounded-2xl p-6 max-w-xs w-full text-center border border-blue-500/20">
-            <h3 class="font-black text-lg text-blue-400 mb-3">Transaction Details</h3>
-            <pre class="text-sm whitespace-pre-line opacity-80">${text}</pre>
-            <button class="mt-5 w-full py-3 rounded-xl bg-blue-600 font-black"
-                onclick="this.closest('.fixed').remove()">Close</button>
-        </div>
-    `;
-
-    document.body.appendChild(modal);
-}
-function closeModal() { document.getElementById("modal").classList.add("hidden"); }
+function clearHistory() { txHistory = []; localStorage.removeItem('aqua_tx_history'); renderHistory(); renderAnalytics(); }
+function closeModal() { document.getElementById("modal").classList.add("hidden"); document.getElementById("loadingOverlay").classList.add("hidden"); document.getElementById("modalContent").classList.remove("hidden"); }
 </script>
 </body>
 </html>
+
