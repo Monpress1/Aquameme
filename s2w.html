@@ -1,159 +1,558 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Spin2Win | Monpress at Work</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
-    <style>
-        body { 
-            background: #0b111b; 
-            color: white; 
-            font-family: 'Manrope', sans-serif; 
-            margin: 0; 
-            overflow: hidden; 
-            touch-action: none;
-        }
-        canvas { display: block; position: fixed; top: 0; left: 0; z-index: 1; }
-        .work-notice {
-            position: absolute;
-            top: 45%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 10;
-            pointer-events: none;
-        }
-        .permission-btn {
-            pointer-events: auto;
-            z-index: 50;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AquaCoinX | Spin2Win Pro</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    /* --- CSS VARIABLES --- */
+    :root { 
+        --bg: #f1f5f9; --card: #ffffff; --border: #cbd5e1; --text: #0f172a; 
+        --subtext: #64748b; --primary: #3b82f6; --accent: #22c55e; 
+        --wheel-seg-1: #f8fafc; --wheel-seg-2: #ffffff; 
+    }
+    body.dark-mode { 
+        --bg: #0b111b; --card: #131b29; --border: #1e293b; --text: #ffffff; 
+        --subtext: #94a3b8; --wheel-seg-1: #1a2333; --wheel-seg-2: #131b29; 
+    }
+    
+    body { background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif; transition: 0.3s; margin: 0; padding: 0; overflow-x: hidden; }
+    .card-bg { background: var(--card); border: 1px solid var(--border); border-radius: 1.25rem; }
+    
+    /* Wheel Styles */
+    .wheel-container { position: relative; width: 300px; height: 300px; margin: 15px auto; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1)); }
+    .pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 20; color: #ef4444; }
+
+    /* Progress Bar */
+    .progress-track { background: var(--border); border-radius: 10px; height: 8px; width: 100%; overflow: hidden; margin: 8px 0; }
+    .progress-fill { background: #3b82f6; height: 100%; width: 0%; transition: width 0.5s ease; }
+
+    /* Animations */
+    @keyframes walletTransfer {
+        0% { transform: translateY(0) scale(1); opacity: 1; }
+        50% { transform: translateY(-100px) scale(1.5); opacity: 0.8; }
+        100% { transform: translateY(-200px) scale(0); opacity: 0; }
+    }
+    .transfer-anim { position: fixed; font-size: 3rem; z-index: 200; animation: walletTransfer 1.5s forwards ease-in-out; }
+
+    /* Button States */
+    #spinBtn:disabled, #withdrawBtn:disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+
+    /* --- NEW STYLES FOR VOUCHERS --- */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    body.dark-mode .glass-card {
+        background: rgba(20, 20, 20, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Voucher Item Styles in Modal */
+    .voucher-item { position: relative; overflow: hidden; }
+    .voucher-item.used { opacity: 0.6; filter: grayscale(1); }
+    .voucher-item.used::after {
+        content: 'USED';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%) rotate(-15deg);
+        font-size: 1.5rem;
+        font-weight: 900;
+        color: #ef4444;
+        border: 4px solid #ef4444;
+        padding: 5px 10px;
+        border-radius: 8px;
+        opacity: 0.8;
+    }
+</style>
 </head>
-<body>
 
-    <header class="fixed top-0 left-0 right-0 p-5 flex items-center gap-4 z-20 bg-[#0b111b]/80 backdrop-blur-md">
-        <button onclick="location.href='index.html'" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center border border-gray-700">
-            <i class="fa-solid fa-arrow-left text-sm"></i>
-        </button>
-        <h1 class="font-extrabold text-lg tracking-tight">Spin2Win</h1>
-    </header>
+<body class="pb-32"> <header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 backdrop-blur-md" style="background-color: var(--bg)">
+  <div class="flex flex-col">
+    <div class="flex items-center gap-2">
+        <span class="text-[10px] font-black uppercase text-blue-500">Live Balance</span>
+        <div id="ton-connect"></div>
+    </div>
+    <div class="flex gap-3 mt-1">
+        <div class="text-xs font-bold"><span id="aquaBal">0</span> <span class="text-blue-500">AQUAM</span></div>
+        <div class="text-xs font-bold"><span id="tonBal">0.00</span> <span class="text-blue-500">TON</span></div>
+    </div>
+  </div>
 
-    <div class="work-notice w-full px-6">
-        <div class="w-20 h-20 bg-blue-600/20 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl border border-blue-500/30">
-            <i class="fa-solid fa-person-digging animate-bounce"></i>
+  <div class="flex items-center gap-2">
+    <div onclick="openVoucherModal('all')" class="bg-blue-500/10 px-3 py-2 rounded-xl border border-blue-500/20 flex items-center gap-2 cursor-pointer active:scale-95 transition-transform">
+        <i class="fa-solid fa-ticket-simple text-blue-500"></i> <span id="voucherCount" class="font-black text-blue-500 text-xs">0</span>
+    </div>
+    <div class="bg-yellow-500/10 px-3 py-2 rounded-xl border border-yellow-500/20 flex items-center gap-2">
+        <i class="fa-solid fa-ticket text-yellow-500"></i> <span id="ticketCount" class="font-black text-yellow-500 text-xs">0</span>
+    </div>
+  </div>
+</header>
+
+<main class="p-5 flex flex-col items-center">
+    <div class="w-full max-w-xs mb-6 p-4 card-bg">
+        <div class="flex justify-between text-[10px] font-bold mb-1 uppercase">
+            <span>Withdraw Progress</span>
+            <span id="progPercent">0%</span>
         </div>
-        <h2 class="text-3xl font-black mb-2 ">Monpress <br> is at  work</h2>
-        <p class="text-blue-400 font-bold text-xs uppercase tracking-widest opacity-80 mb-4">Physics Engine Active • Tilt your phone</p>
-        
-        <button id="requestTilt" class="permission-btn hidden px-4 py-2 bg-blue-600 text-white rounded-lg font-bold text-xs uppercase transition-all active:scale-95">
-            Enable Tilt Sensors
-        </button>
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <div class="flex justify-between items-center mt-2">
+            <p class="text-[10px] opacity-60">Win Balance: <span id="winBalDisplay">0</span> AQUAM</p>
+            <button id="withdrawBtn" onclick="handleWithdraw()" class="bg-green-600 text-white text-[10px] px-3 py-1 rounded-lg font-bold" disabled>WITHDRAW</button>
+        </div>
     </div>
 
-    <script>
-        const { Engine, Render, Runner, Bodies, Composite, Mouse, MouseConstraint } = Matter;
+    <p id="timerDisplay" class="text-[10px] font-bold opacity-50 uppercase tracking-widest mb-2">Syncing...</p>
 
-        const engine = Engine.create();
-        const world = engine.world;
+    <div class="wheel-container">
+        <div class="pointer text-4xl"><i class="fa-solid fa-caret-down"></i></div>
+        <canvas id="wheelCanvas" width="600" height="600" style="width: 100%; height: 100%;"></canvas>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white border-4 border-gray-200 rounded-full flex items-center justify-center z-10">
+            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-black text-xs">A</div>
+        </div>
+    </div>
 
-        const render = Render.create({
-            element: document.body,
-            engine: engine,
-            options: {
-                width: window.innerWidth,
-                height: window.innerHeight,
-                wireframes: false,
-                background: 'transparent'
-            }
-        });
+    <button id="spinBtn" onclick="startSpin()" class="w-full max-w-xs py-4 mt-4 bg-blue-600 rounded-2xl font-black text-white text-lg shadow-xl shadow-blue-500/30 active:scale-95 transition-all">
+        SPIN NOW
+    </button>
+    
+    <button onclick="buySpin()" class="mt-3 text-[10px] font-bold text-blue-500 uppercase border-b border-blue-500">Buy 1 Spin (10,000 AQUAM)</button>
 
-        Render.run(render);
-        const runner = Runner.create();
-        Runner.run(runner, engine);
+    <div class="w-full mt-8 space-y-4">
+        <div class="flex justify-between items-center px-1">
+            <h2 class="text-sm font-black uppercase tracking-widest">Spin History</h2>
+            <button onclick="clearHistory()" class="text-[10px] font-bold text-red-500">CLEAR</button>
+        </div>
+        <div id="historyList" class="space-y-2"></div>
+    </div>
 
-        // --- DYNAMIC BOUNDARIES ---
-        let ground, leftWall, rightWall, ceiling;
-        function updateBoundaries() {
-            if (ground) Composite.remove(world, [ground, leftWall, rightWall, ceiling]);
+    <div class="w-full mt-8">
+        <h2 class="text-sm font-black uppercase tracking-widest px-1 mb-4">My Assets</h2>
+        <div class="grid grid-cols-2 gap-3">
+            <div onclick="openVoucherModal('airtime')" class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-pink-500/20 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl"></div>
+                <i class="fa-solid fa-mobile-screen-button text-2xl text-pink-500"></i>
+                <div class="text-center">
+                    <span id="airtimeCount" class="text-xl font-black block">0</span>
+                    <span class="text-[10px] font-bold opacity-60 uppercase">Airtime</span>
+                </div>
+            </div>
+
+            <div onclick="openVoucherModal('data')" class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-cyan-500/20 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl"></div>
+                <i class="fa-solid fa-wifi text-2xl text-cyan-500"></i>
+                <div class="text-center">
+                    <span id="dataCount" class="text-xl font-black block">0</span>
+                    <span class="text-[10px] font-bold opacity-60 uppercase">Data</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div id="resultModal" class="fixed inset-0 hidden bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+    <div class="card-bg w-full max-w-sm p-8 text-center relative shadow-2xl">
+        <div id="winIcon" class="text-6xl mb-4"></div>
+        <h2 id="winTitle" class="text-2xl font-black mb-1"></h2>
+        <p id="winSub" class="text-sm opacity-60 mb-6"></p>
+        <button onclick="closeModal()" class="w-full py-4 bg-blue-600 text-white font-black rounded-xl">GOT IT</button>
+    </div>
+</div>
+
+<div id="vouchersModal" class="fixed inset-0 hidden bg-black/80 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center">
+    <div class="card-bg w-full max-w-sm h-[80vh] sm:h-auto rounded-t-3xl sm:rounded-3xl p-6 flex flex-col shadow-2xl transform transition-transform duration-300">
+        <div class="flex justify-between items-center mb-6">
+            <div>
+                <h2 class="text-xl font-black uppercase">My Vouchers</h2>
+                <p id="voucherModalType" class="text-xs opacity-60">All Collected Rewards</p>
+            </div>
+            <button onclick="closeVoucherModal()" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div id="voucherListContainer" class="flex-1 overflow-y-auto space-y-3 pr-1 pb-4">
+            <div class="text-center opacity-40 mt-10">
+                <i class="fa-solid fa-ghost text-4xl mb-2"></i>
+                <p class="text-xs font-bold">No vouchers found</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<nav class="fixed bottom-0 left-0 right-0 backdrop-blur-md border-t border-gray-300/30 px-6 flex justify-between items-center z-50 h-[80px]" style="background-color: var(--bg)">
+    <div class="flex flex-col items-center gap-1 text-gray-400"><i class="fa-solid fa-house"></i><span class="text-[10px] font-bold">Home</span></div>
+    <div class="flex flex-col items-center gap-1 text-blue-500"><i class="fa-solid fa-circle-dot"></i><span class="text-[10px] font-bold">Spin</span></div>
+    <div onclick="toggleTheme()" class="flex flex-col items-center gap-1 text-gray-400"><i class="fa-solid fa-circle-half-stroke"></i><span class="text-[10px] font-bold">Theme</span></div>
+</nav>
+
+<script>
+const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
+const WITHDRAW_LIMIT = 1110583; 
+
+// --- UPDATED SEGMENTS & WEIGHTS ---
+// Total Weight approx 100 for easier probability calculation
+const segments = [
+    // EASIEST
+    { label: "TRY AGAIN", unit: "+1 Ticket", type: "ticket", weight: 30, color: "#eab308", val: 1 },
+    { label: "NOTHING", unit: "Next time", type: "nothing", weight: 30, color: "#94a3b8", val: 0 },
+    { label: "11,000", unit: "AQUAM", type: "aquam", weight: 20, color: "#3b82f6", val: 11000 },
+
+    // HARDER
+    { label: "100₦", unit: "AIRTIME", type: "voucher", subtype: 'airtime', weight: 4, color: "#f43f5e", val: 100 },
+    { label: "100MB", unit: "DATA", type: "voucher", subtype: 'data', weight: 3, color: "#a855f7", val: 100 },
+    
+    // RARE / CRYPTO
+    { label: "0.01", unit: "TON", type: "ton", weight: 2, color: "#22c55e", val: 0.01 },
+    { label: "0.05", unit: "TON", type: "ton", weight: 1, color: "#10b981", val: 0.05 },
+
+    // VERY VERY HARD (LEGENDARY)
+    { label: "500MB", unit: "DATA", type: "voucher", subtype: 'data', weight: 0.3, color: "#06b6d4", val: 500 }, 
+];
+
+// State Variables
+let tickets = 0;
+let winBal = 0;
+let myVouchers = []; // Stores the actual voucher objects
+let isSpinning = false;
+let currentRotation = 0;
+let txHistory = JSON.parse(localStorage.getItem('spin_history_pro')) || [];
+
+const tonUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json",
+    buttonRootId: "ton-connect"
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    initWheel();
+    renderHistory();
+    loadState();
+    // if(tonUI.wallet) loadBalances(tonUI.wallet.account.address); // Connect to real API if needed
+});
+
+// --- STATE MANAGEMENT ---
+function loadState() {
+    const lastReset = localStorage.getItem('spin_last_reset') || Date.now();
+    const now = Date.now();
+    
+    // Daily Reset Logic for Tickets
+    if (now - lastReset > 86400000) {
+        tickets = 2; // Daily free tickets
+        localStorage.setItem('spin_last_reset', now);
+    } else {
+        tickets = parseInt(localStorage.getItem('spin_tickets')) || 0;
+    }
+    
+    winBal = parseInt(localStorage.getItem('win_bal')) || 0;
+    
+    // Load Vouchers List
+    const storedVouchers = localStorage.getItem('my_vouchers');
+    myVouchers = storedVouchers ? JSON.parse(storedVouchers) : [];
+
+    updateUI();
+    startRefillTimer(parseInt(lastReset) + 86400000);
+}
+
+function updateUI() {
+    // Save State
+    localStorage.setItem('spin_tickets', tickets);
+    localStorage.setItem('win_bal', winBal);
+    localStorage.setItem('my_vouchers', JSON.stringify(myVouchers));
+    
+    // Update Text
+    document.getElementById('ticketCount').innerText = tickets;
+    document.getElementById('winBalDisplay').innerText = winBal.toLocaleString();
+    
+    // Update Total Voucher Badge (Header)
+    const totalActiveVouchers = myVouchers.filter(v => !v.used).length;
+    document.getElementById('voucherCount').innerText = totalActiveVouchers;
+
+    // Update Glass Cards (Dashboard)
+    const airtimeActive = myVouchers.filter(v => v.subtype === 'airtime' && !v.used).length;
+    const dataActive = myVouchers.filter(v => v.subtype === 'data' && !v.used).length;
+
+    document.getElementById('airtimeCount').innerText = airtimeActive;
+    document.getElementById('dataCount').innerText = dataActive;
+    
+    // Update Progress Bar
+    const progress = Math.min((winBal / WITHDRAW_LIMIT) * 100, 100);
+    document.getElementById('progressFill').style.width = progress + '%';
+    document.getElementById('progPercent').innerText = Math.floor(progress) + '%';
+    
+    // Button States
+    document.getElementById('withdrawBtn').disabled = winBal < WITHDRAW_LIMIT;
+    document.getElementById('spinBtn').disabled = (tickets <= 0 || isSpinning);
+}
+
+function startRefillTimer(target) {
+    const el = document.getElementById('timerDisplay');
+    const update = () => {
+        const diff = target - Date.now();
+        if(diff < 0) { el.innerText = "Tickets Refilled!"; tickets = 2; updateUI(); return; }
+        const h = Math.floor(diff/3600000);
+        const m = Math.floor((diff%3600000)/60000);
+        const s = Math.floor((diff%60000)/1000);
+        el.innerText = `Refill in ${h}h ${m}m ${s}s`;
+    };
+    update();
+    setInterval(update, 1000);
+}
+
+// --- VOUCHER MODAL & USAGE LOGIC ---
+
+function openVoucherModal(filterType) {
+    const modal = document.getElementById('vouchersModal');
+    const listContainer = document.getElementById('voucherListContainer');
+    const titleType = document.getElementById('voucherModalType');
+    
+    modal.classList.remove('hidden');
+    
+    // Filter list based on what card was clicked
+    let displayList = myVouchers;
+    if (filterType === 'airtime') {
+        displayList = myVouchers.filter(v => v.subtype === 'airtime');
+        titleType.innerText = "Airtime History";
+    } else if (filterType === 'data') {
+        displayList = myVouchers.filter(v => v.subtype === 'data');
+        titleType.innerText = "Data History";
+    } else {
+        titleType.innerText = "All Collected Rewards";
+    }
+
+    // Sort: Unused first, then by date
+    displayList.sort((a, b) => (a.used === b.used) ? 0 : a.used ? 1 : -1);
+
+    // Render HTML
+    if (displayList.length === 0) {
+        listContainer.innerHTML = `
+            <div class="text-center opacity-40 mt-10">
+                <i class="fa-solid fa-ghost text-4xl mb-2"></i>
+                <p class="text-xs font-bold">No vouchers found</p>
+            </div>`;
+    } else {
+        listContainer.innerHTML = displayList.map(v => {
+            const icon = v.subtype === 'airtime' ? 'fa-mobile-screen-button' : 'fa-wifi';
+            const color = v.subtype === 'airtime' ? 'text-pink-500' : 'text-cyan-500';
+            const btnState = v.used 
+                ? `<button disabled class="px-4 py-2 bg-gray-200 text-gray-400 rounded-lg text-xs font-bold cursor-not-allowed">USED</button>`
+                : `<button onclick="useVoucher('${v.id}')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/30 active:scale-95">USE</button>`;
             
-            const t = 100; // thickness
-            ground = Bodies.rectangle(window.innerWidth/2, window.innerHeight + t/2, window.innerWidth, t, { isStatic: true });
-            leftWall = Bodies.rectangle(-t/2, window.innerHeight/2, t, window.innerHeight, { isStatic: true });
-            rightWall = Bodies.rectangle(window.innerWidth + t/2, window.innerHeight/2, t, window.innerHeight, { isStatic: true });
-            ceiling = Bodies.rectangle(window.innerWidth/2, -t/2, window.innerWidth, t, { isStatic: true });
+            return `
+            <div class="card-bg p-4 flex items-center justify-between voucher-item ${v.used ? 'used' : ''}">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center ${color}">
+                        <i class="fa-solid ${icon} text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="font-black text-sm">${v.label}</p>
+                        <p class="text-[10px] opacity-50">${v.date}</p>
+                    </div>
+                </div>
+                ${btnState}
+            </div>`;
+        }).join('');
+    }
+}
+
+function useVoucher(id) {
+    const voucherIndex = myVouchers.findIndex(v => v.id == id);
+    if (voucherIndex !== -1) {
+        // Mark as used
+        myVouchers[voucherIndex].used = true;
+        updateUI(); // Save to local storage
+        
+        // Refresh the modal to show "USED" stamp
+        const currentFilter = document.getElementById('voucherModalType').innerText.includes('Airtime') ? 'airtime' : 
+                              document.getElementById('voucherModalType').innerText.includes('Data') ? 'data' : 'all';
+        openVoucherModal(currentFilter);
+
+        // Redirect logic
+        setTimeout(() => {
+            alert(`Redirecting to redeem ${myVouchers[voucherIndex].label}...`);
+            // REPLACE THIS WITH YOUR ACTUAL REDIRECT
+            // window.location.href = "index.html#redeem"; 
+        }, 300);
+    }
+}
+
+function closeVoucherModal() {
+    document.getElementById('vouchersModal').classList.add('hidden');
+}
+
+// --- SPIN & GAME LOGIC ---
+
+function buySpin() {
+    if(confirm("Purchase 1 Spin for 10,000 AQUAM?")) {
+        // Here you would deduct balance logic
+        tickets++;
+        updateUI();
+    }
+}
+
+function handleWithdraw() {
+    const icon = document.createElement('div');
+    icon.className = 'transfer-anim';
+    icon.innerHTML = "💧";
+    icon.style.left = "45%";
+    icon.style.top = "70%";
+    document.body.appendChild(icon);
+    
+    setTimeout(() => {
+        icon.remove();
+        alert(`Successfully withdrawn ${winBal} AQUAM to your wallet!`);
+        winBal = 0;
+        updateUI();
+    }, 1500);
+}
+
+function initWheel() {
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const arc = (Math.PI * 2) / segments.length;
+
+    window.drawWheel = () => {
+        ctx.clearRect(0, 0, 600, 600);
+        ctx.save();
+        ctx.translate(300, 300);
+        ctx.rotate(currentRotation);
+        segments.forEach((s, i) => {
+            const angle = i * arc;
+            ctx.beginPath();
+            ctx.fillStyle = i % 2 === 0 ? getComputedStyle(document.body).getPropertyValue('--wheel-seg-1') : getComputedStyle(document.body).getPropertyValue('--wheel-seg-2');
+            ctx.moveTo(0, 0); ctx.arc(0, 0, 280, angle, angle + arc); ctx.fill();
+            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--border'); ctx.stroke();
             
-            Composite.add(world, [ground, leftWall, rightWall, ceiling]);
-        }
-        updateBoundaries();
-
-        // --- CREATE 30 AQUAM BALLS ---
-        const colors = ['#3b82f6', '#2563eb', '#1d4ed8', '#60a5fa', '#93c5fd'];
-        for (let i = 0; i < 240; i++) {
-            const radius = Math.random() * 15 + 12;
-            const ball = Bodies.circle(
-                Math.random() * window.innerWidth, 
-                Math.random() * -200, 
-                radius, 
-                {
-                    restitution: 0.6,
-                    friction: 0.1,
-                    render: {
-                        fillStyle: colors[Math.floor(Math.random() * colors.length)],
-                        strokeStyle: '#ffffff33',
-                        lineWidth: 2
-                    }
-                }
-            );
-            Composite.add(world, ball);
-        }
-
-        // --- TOUCH INTERACTION ---
-        const mouse = Mouse.create(render.canvas);
-        const mouseConstraint = MouseConstraint.create(engine, {
-            mouse: mouse,
-            constraint: { stiffness: 0.2, render: { visible: false } }
+            ctx.save();
+            ctx.translate(Math.cos(angle + arc/2) * 200, Math.sin(angle + arc/2) * 200);
+            ctx.rotate(angle + arc/2 + Math.PI/2);
+            ctx.textAlign = "center";
+            
+            // Icon Selection
+            ctx.fillStyle = s.color; ctx.font = "bold 40px Manrope";
+            let icon = "💀";
+            if(s.type === 'ton') icon = "💎";
+            else if(s.type === 'aquam') icon = "💧";
+            else if(s.type === 'voucher' && s.subtype === 'airtime') icon = "📱";
+            else if(s.type === 'voucher' && s.subtype === 'data') icon = "📶";
+            else if(s.type === 'ticket') icon = "🎫";
+            
+            ctx.fillText(icon, 0, 0);
+            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text'); ctx.font = "bold 14px Manrope"; // Smaller font for labels
+            ctx.fillText(s.label, 0, 35);
+            ctx.restore();
         });
-        Composite.add(world, mouseConstraint);
+        ctx.restore();
+    };
+    window.drawWheel();
+}
 
-        // --- TILT LOGIC + PERMISSION HANDLING ---
-        function handleOrientation(event) {
-            const gravity = engine.gravity;
-            if (event.gamma !== null && event.beta !== null) {
-                // Adjust sensitivity: divide by 30 for smoother movement
-                gravity.x = Matter.Common.clamp(event.gamma / 30, -1, 1);
-                gravity.y = Matter.Common.clamp(event.beta / 30, -1, 1);
-            }
-        }
+function startSpin() {
+    if(isSpinning || tickets <= 0) return;
+    tickets--;
+    isSpinning = true;
+    updateUI();
 
-        const tiltBtn = document.getElementById('requestTilt');
+    // Weighted Random Logic
+    const totalWeight = segments.reduce((a, b) => a + b.weight, 0);
+    let random = Math.random() * totalWeight;
+    let winnerIdx = segments.findIndex(s => (random -= s.weight) < 0);
+    const winner = segments[winnerIdx];
 
-        if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-            // iOS 13+ requires explicit permission
-            tiltBtn.classList.remove('hidden');
-            tiltBtn.addEventListener('click', () => {
-                DeviceOrientationEvent.requestPermission()
-                    .then(response => {
-                        if (response === 'granted') {
-                            window.addEventListener('deviceorientation', handleOrientation);
-                            tiltBtn.classList.add('hidden');
-                        }
-                    })
-                    .catch(console.error);
-            });
-        } else {
-            // Android and older iOS
-            window.addEventListener('deviceorientation', handleOrientation);
-        }
+    // Animation Calc
+    const arc = (Math.PI * 2) / segments.length;
+    const stopAngle = (Math.PI * 1.5) - (winnerIdx * arc) - (arc/2);
+    const target = currentRotation + (Math.PI * 10) + (stopAngle - (currentRotation % (Math.PI * 2))); // 10 spins
 
-        window.addEventListener('resize', () => {
-            render.canvas.width = window.innerWidth;
-            render.canvas.height = window.innerHeight;
-            updateBoundaries();
-        });
-    </script>
-</body>
-</html>
+    const start = performance.now();
+    function animate(now) {
+        const elapsed = now - start;
+        const progress = Math.min(elapsed / 4000, 1); // 4 seconds spin
+        const ease = 1 - Math.pow(1 - progress, 4); // Ease Out Quart
+        currentRotation = target * ease;
+        window.drawWheel();
+        if(progress < 1) requestAnimationFrame(animate);
+        else finalizeSpin(winner);
+    }
+    requestAnimationFrame(animate);
+}
+
+function finalizeSpin(winner) {
+    isSpinning = false;
+    
+    // Process Prize
+    if(winner.type === 'aquam') winBal += winner.val;
+    if(winner.type === 'ticket') tickets += winner.val;
+    
+    // NEW: Handle Voucher Storage
+    if(winner.type === 'voucher') {
+        const newVoucher = {
+            id: Date.now(),
+            label: `${winner.label} ${winner.unit}`,
+            type: 'voucher',
+            subtype: winner.subtype, // 'airtime' or 'data'
+            val: winner.val,
+            used: false,
+            date: new Date().toLocaleDateString()
+        };
+        myVouchers.unshift(newVoucher);
+    }
+    
+    updateUI();
+    
+    // Show Modal
+    const resultModal = document.getElementById('resultModal');
+    let winEmoji = "💀";
+    if(winner.type === 'ton') winEmoji = "💎";
+    else if(winner.type === 'aquam') winEmoji = "💧";
+    else if(winner.type === 'voucher') winEmoji = "🎁";
+    
+    document.getElementById('winIcon').innerText = winEmoji;
+    document.getElementById('winTitle').innerText = winner.type === 'nothing' ? "Unlucky!" : `WON ${winner.label}`;
+    document.getElementById('winSub').innerText = winner.type === 'nothing' ? "Try again next time" : winner.unit;
+    resultModal.classList.remove('hidden');
+
+    // Add to History list
+    const historyTitle = winner.type === 'nothing' ? "Nothing" : `${winner.label} ${winner.unit}`;
+    txHistory.unshift({ icon: winEmoji, title: historyTitle, date: new Date().toLocaleTimeString() });
+    localStorage.setItem('spin_history_pro', JSON.stringify(txHistory.slice(0, 10)));
+    renderHistory();
+}
+
+function renderHistory() {
+    const list = document.getElementById('historyList');
+    if(!txHistory.length) { list.innerHTML = `<div class="p-8 text-center opacity-30 font-bold text-xs">NO SPINS YET</div>`; return; }
+    list.innerHTML = txHistory.map(h => `
+        <div class="card-bg p-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="text-xl">${h.icon}</div>
+                <div><p class="font-bold text-[10px] uppercase">${h.title}</p><p class="text-[8px] opacity-50">${h.date}</p></div>
+            </div>
+            <div class="text-[8px] font-black text-green-500">PROCESSED</div>
+        </div>
+    `).join('');
+}
+
+function toggleTheme() { document.body.classList.toggle('dark-mode'); window.drawWheel(); }
+function closeModal() { document.getElementById('resultModal').classList.add('hidden'); }
+function clearHistory() { txHistory = []; localStorage.removeItem('spin_history_pro'); renderHistory(); }
+
+// Helper to close modal if clicked outside
+window.onclick = function(event) {
+    const vModal = document.getElementById('vouchersModal');
+    if (event.target == vModal) {
+        closeVoucherModal();
+    }
+}
+</script>
+
+
