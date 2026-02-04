@@ -425,19 +425,39 @@ function calculateAquam() {
 }
 
 function loadState() {
-    const lastReset = localStorage.getItem('spin_last_reset') || Date.now();
+    let lastReset = localStorage.getItem('spin_last_reset');
     const now = Date.now();
+
+    // 1. Anchor the time: If it's the user's first time, save 'now' immediately
+    if (!lastReset) {
+        lastReset = now;
+        localStorage.setItem('spin_last_reset', lastReset);
+        tickets = 2; // Give initial free tickets
+        localStorage.setItem('spin_tickets', tickets);
+    } else {
+        lastReset = parseInt(lastReset);
+    }
+
+    // 2. Check if 24 hours (86,400,000 ms) have passed since the last reset
     if (now - lastReset > 86400000) {
         tickets = 2;
-        localStorage.setItem('spin_last_reset', now);
+        lastReset = now; // Reset the anchor to now
+        localStorage.setItem('spin_last_reset', lastReset);
+        localStorage.setItem('spin_tickets', tickets);
     } else {
+        // Otherwise, just load what they have
         tickets = parseInt(localStorage.getItem('spin_tickets')) || 0;
     }
+
     winBal = parseInt(localStorage.getItem('win_bal')) || 0;
     myVouchers = JSON.parse(localStorage.getItem('my_vouchers')) || [];
+    
     updateUI();
-    startRefillTimer(parseInt(lastReset) + 86400000);
+    
+    // 3. Start timer based on the anchored lastReset + 24 hours
+    startRefillTimer(lastReset + 86400000);
 }
+
 
 function updateUI() {
     localStorage.setItem('spin_tickets', tickets);
@@ -595,32 +615,37 @@ function finalizeSpin(winner) {
 
 
 // THE SINGLE BEAUTIFY FUNCTION (Pure JS)
-function showPopup(title, msg, icon, isConfirm = false, onConfirm = null) {
-    const div = document.createElement("div");
-    Object.assign(div.style, {
-        position: "fixed", inset: "0", background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)",
-        display: "flex", alignItems: "center", justifyContent: "center", zIndex: "10000", padding: "20px"
+function showPopup(title, msg, icon) {
+    // Create overlay
+    const overlay = document.createElement("div");
+    Object.assign(overlay.style, {
+        position: "fixed", inset: "0", background: "rgba(0,0,0,0.8)", 
+        backdropFilter: "blur(12px)", webkitBackdropFilter: "blur(12px)",
+        display: "flex", alignItems: "center", justifyContent: "center", 
+        zIndex: "10000", padding: "20px", transition: "opacity 0.3s ease"
     });
 
-    div.innerHTML = `
-        <div style="background:#131b29; border:1px solid #1e293b; border-radius:24px; padding:30px; width:100%; max-width:320px; text-align:center; color:white">
-            <div style="font-size:40px; margin-bottom:10px">${icon}</div>
-            <h3 style="margin:0; font-weight:900; text-transform:uppercase">${title}</h3>
-            <p style="font-size:13px; opacity:0.6; margin:10px 0 25px">${msg}</p>
-            <div style="display:flex; gap:10px">
-                ${isConfirm ? `<button id="popNo" style="flex:1; padding:12px; background:#1e293b; color:white; border-radius:12px; font-weight:bold; border:none">No</button>` : ''}
-                <button id="popYes" style="flex:1; padding:12px; background:#3b82f6; color:white; border-radius:12px; font-weight:900; border:none">${isConfirm ? 'Yes' : 'Got it'}</button>
+    overlay.innerHTML = `
+        <div style="background:#131b29; border:1px solid rgba(59, 130, 246, 0.3); border-radius:28px; padding:32px; width:100%; max-width:340px; text-align:center; color:white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+            <div style="font-size:50px; margin-bottom:15px; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))">${icon}</div>
+            <h3 style="margin:0; font-size:18px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#3b82f6">${title}</h3>
+            <div style="font-size:14px; opacity:0.8; margin:15px 0 25px; line-height:1.5; font-family:'Manrope', sans-serif">
+                ${msg}
             </div>
+            <button id="closePopBtn" style="width:100%; padding:14px; background:#3b82f6; color:white; border-radius:16px; font-weight:900; border:none; cursor:pointer; active:scale-95; transition:0.2s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4)">
+                GOT IT
+            </button>
         </div>
     `;
 
-    document.body.appendChild(div);
+    document.body.appendChild(overlay);
 
-    const close = () => div.remove();
-    if(isConfirm) document.getElementById("popNo").onclick = close;
-    document.getElementById("popYes").onclick = () => { close(); if(onConfirm) onConfirm(); };
+    // Close logic
+    document.getElementById("closePopBtn").onclick = () => {
+        overlay.style.opacity = "0";
+        setTimeout(() => overlay.remove(), 300);
+    };
 }
-
 
 // --- UI HELPERS ---
 
