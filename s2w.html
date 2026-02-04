@@ -26,15 +26,12 @@
     body { background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif; transition: 0.3s; margin: 0; padding: 0; overflow-x: hidden; }
     .card-bg { background: var(--card); border: 1px solid var(--border); border-radius: 1.25rem; }
     
-    /* Wheel Styles */
-    .wheel-container { position: relative; width: 300px; height: 300px; margin: 15px auto; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1)); }
+    .wheel-container { position: relative; width: 330px; height: 330px; margin: 15px auto; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.1)); }
     .pointer { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 20; color: #ef4444; }
 
-    /* Progress Bar */
     .progress-track { background: var(--border); border-radius: 10px; height: 8px; width: 100%; overflow: hidden; margin: 8px 0; }
     .progress-fill { background: #3b82f6; height: 100%; width: 0%; transition: width 0.5s ease; }
 
-    /* Animations */
     @keyframes walletTransfer {
         0% { transform: translateY(0) scale(1); opacity: 1; }
         50% { transform: translateY(-100px) scale(1.5); opacity: 0.8; }
@@ -42,10 +39,8 @@
     }
     .transfer-anim { position: fixed; font-size: 3rem; z-index: 200; animation: walletTransfer 1.5s forwards ease-in-out; }
 
-    /* Button States */
     #spinBtn:disabled, #withdrawBtn:disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
 
-    /* --- NEW STYLES FOR VOUCHERS --- */
     .glass-card {
         background: rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(10px);
@@ -58,7 +53,6 @@
         border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    /* Voucher Item Styles in Modal */
     .voucher-item { position: relative; overflow: hidden; }
     .voucher-item.used { opacity: 0.6; filter: grayscale(1); }
     .voucher-item.used::after {
@@ -74,10 +68,13 @@
         border-radius: 8px;
         opacity: 0.8;
     }
+    
+    input { background: transparent; border: 1px solid var(--border); border-radius: 8px; padding: 8px; color: var(--text); width: 100%; outline: none; }
 </style>
 </head>
 
-<body class="pb-32"> <header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 backdrop-blur-md" style="background-color: var(--bg)">
+<body class="pb-32 dark-mode"> 
+<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 backdrop-blur-md" style="background-color: var(--bg)">
   <div class="flex flex-col">
     <div class="flex items-center gap-2">
         <span class="text-[10px] font-black uppercase text-blue-500">Live Balance</span>
@@ -85,7 +82,7 @@
     </div>
     <div class="flex gap-3 mt-1">
         <div class="text-xs font-bold"><span id="aquaBal">0</span> <span class="text-blue-500">AQUAM</span></div>
-        <div class="text-xs font-bold"><span id="tonBal">0.00</span> <span class="text-blue-500">TON</span></div>
+        <div class="text-xs font-bold"><span id="tonBalDisplay">0.00</span> <span class="text-blue-500">TON</span></div>
     </div>
   </div>
 
@@ -140,7 +137,6 @@
         <h2 class="text-sm font-black uppercase tracking-widest px-1 mb-4">My Assets</h2>
         <div class="grid grid-cols-2 gap-3">
             <div onclick="openVoucherModal('airtime')" class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-16 h-16 bg-pink-500/20 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl"></div>
                 <i class="fa-solid fa-mobile-screen-button text-2xl text-pink-500"></i>
                 <div class="text-center">
                     <span id="airtimeCount" class="text-xl font-black block">0</span>
@@ -149,12 +145,26 @@
             </div>
 
             <div onclick="openVoucherModal('data')" class="glass-card p-4 rounded-2xl flex flex-col items-center justify-center gap-2 cursor-pointer active:scale-95 transition-transform relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-16 h-16 bg-cyan-500/20 rounded-full -translate-y-1/2 translate-x-1/2 blur-xl"></div>
                 <i class="fa-solid fa-wifi text-2xl text-cyan-500"></i>
                 <div class="text-center">
                     <span id="dataCount" class="text-xl font-black block">0</span>
                     <span class="text-[10px] font-bold opacity-60 uppercase">Data</span>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full mt-8 p-5 card-bg">
+        <h2 class="text-sm font-black uppercase tracking-widest mb-4">Market Value</h2>
+        <div class="space-y-4">
+            <div>
+                <label class="text-[10px] font-bold opacity-50 uppercase">Current AQUAM Price</label>
+                <div id="priceNgn" class="text-lg font-black text-green-500">₦0.00</div>
+            </div>
+            <div class="p-4 bg-blue-500/5 border border-blue-500/10 rounded-xl">
+                <p class="text-[10px] font-bold opacity-70 mb-2 uppercase">NGN to AQUAM Converter</p>
+                <input type="number" id="nairaInput" placeholder="Enter Naira amount" oninput="calculateAquam()">
+                <div class="mt-2 text-xs font-bold text-blue-400">Result: <span id="calcResult">0 AQUAM</span></div>
             </div>
         </div>
     </div>
@@ -169,315 +179,329 @@
     </div>
 </div>
 
-<div id="vouchersModal" class="fixed inset-0 hidden bg-black/80 backdrop-blur-sm z-[100] flex items-end sm:items-center justify-center">
-    <div class="card-bg w-full max-w-sm h-[80vh] sm:h-auto rounded-t-3xl sm:rounded-3xl p-6 flex flex-col shadow-2xl transform transition-transform duration-300">
+<div id="vouchersModal" class="fixed inset-0 hidden bg-black/80 backdrop-blur-sm z-[100] flex items-end justify-center">
+    <div class="bg-[#131b29] w-full max-w-sm h-[70vh] rounded-t-3xl p-6 flex flex-col shadow-2xl">
         <div class="flex justify-between items-center mb-6">
-            <div>
-                <h2 class="text-xl font-black uppercase">My Vouchers</h2>
-                <p id="voucherModalType" class="text-xs opacity-60">All Collected Rewards</p>
-            </div>
-            <button onclick="closeVoucherModal()" class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
+            <h2 class="text-xl font-black uppercase">My Rewards</h2>
+            <button onclick="closeVoucherModal()" class="text-xl">✕</button>
         </div>
-
-        <div id="voucherListContainer" class="flex-1 overflow-y-auto space-y-3 pr-1 pb-4">
-            <div class="text-center opacity-40 mt-10">
-                <i class="fa-solid fa-ghost text-4xl mb-2"></i>
-                <p class="text-xs font-bold">No vouchers found</p>
-            </div>
-        </div>
+        <div id="voucherListContainer" class="flex-1 overflow-y-auto space-y-3"></div>
     </div>
 </div>
 
+<div id="redemptionModal" class="fixed inset-0 hidden bg-black/80 backdrop-blur-sm z-[110] flex items-end">
+  <div class="bg-[#131b29] w-full p-6 rounded-t-3xl space-y-4 border-t border-blue-500/30">
+    <div class="flex justify-between items-center">
+      <h2 id="redeemTitle" class="font-black text-xl text-blue-500">Redeem Prize</h2>
+      <button onclick="closeRedeemModal()" class="text-gray-400">✕</button>
+    </div>
+
+    <div class="space-y-4">
+        <div>
+            <label class="text-[10px] font-bold opacity-50 uppercase ml-1">Select Network</label>
+            <select id="redeemNetwork" class="input mt-1 w-full bg-[#1e293b] p-4 rounded-xl border border-gray-700 text-white" onchange="handleNetworkChange(this.value)">
+                <option value="">-- Choose Network --</option>
+                <option value="01">MTN</option>
+                <option value="02">GLO</option>
+                <option value="04">AIRTEL</option>
+                <option value="03">9MOBILE</option>
+            </select>
+        </div>
+
+        <div id="dynamicRedeemField"></div>
+
+        <div>
+            <label class="text-[10px] font-bold opacity-50 uppercase ml-1">Phone Number</label>
+            <input id="redeemPhone" type="tel" class="input mt-1 w-full bg-[#1e293b] p-4 rounded-xl border border-gray-700 text-white" placeholder="08012345678">
+        </div>
+    </div>
+
+    <button id="finalConfirmBtn" class="w-full bg-blue-600 p-4 rounded-2xl font-black text-white mt-4 shadow-lg active:scale-95 transition-all">
+        CLAIM NOW
+    </button>
+  </div>
+</div>
+
 <nav class="fixed bottom-0 left-0 right-0 backdrop-blur-md border-t border-gray-300/30 px-6 flex justify-between items-center z-50 h-[80px]" style="background-color: var(--bg)">
-    <div class="flex flex-col items-center gap-1 text-gray-400"><i class="fa-solid fa-house"></i><span class="text-[10px] font-bold">Home</span></div>
+ <a href="index.html">  <div class="flex flex-col items-center gap-1 text-gray-400"><i class="fa-solid fa-house"></i><span class="text-[10px] font-bold">Home</span></div></a>
     <div class="flex flex-col items-center gap-1 text-blue-500"><i class="fa-solid fa-circle-dot"></i><span class="text-[10px] font-bold">Spin</span></div>
     <div onclick="toggleTheme()" class="flex flex-col items-center gap-1 text-gray-400"><i class="fa-solid fa-circle-half-stroke"></i><span class="text-[10px] font-bold">Theme</span></div>
 </nav>
 
 <script>
-const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
-const WITHDRAW_LIMIT = 1110583; 
+    const TREASURY = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D"; // Replace with your actual wallet
+let userJettonWallet = ""; // Global variable to store the user's AQUAM wallet address
 
-// --- UPDATED SEGMENTS & WEIGHTS ---
-// Total Weight approx 100 for easier probability calculation
-const segments = [
-    // EASIEST
-    { label: "TRY AGAIN", unit: "+1 Ticket", type: "ticket", weight: 30, color: "#eab308", val: 1 },
-    { label: "NOTHING", unit: "Next time", type: "nothing", weight: 30, color: "#94a3b8", val: 0 },
-    { label: "11,000", unit: "AQUAM", type: "aquam", weight: 20, color: "#3b82f6", val: 11000 },
-
-    // HARDER
-    { label: "100₦", unit: "AIRTIME", type: "voucher", subtype: 'airtime', weight: 4, color: "#f43f5e", val: 100 },
-    { label: "100MB", unit: "DATA", type: "voucher", subtype: 'data', weight: 3, color: "#a855f7", val: 100 },
     
-    // RARE / CRYPTO
-    { label: "0.01", unit: "TON", type: "ton", weight: 2, color: "#22c55e", val: 0.01 },
-    { label: "0.05", unit: "TON", type: "ton", weight: 1, color: "#10b981", val: 0.05 },
+    /* ================= CONFIGURATION ================= */
+// This is the URL to your specific Edge Function
+const SUPABASE_ENDPOINT = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/proxy-bills";
 
-    // VERY VERY HARD (LEGENDARY)
-    { label: "500MB", unit: "DATA", type: "voucher", subtype: 'data', weight: 0.3, color: "#06b6d4", val: 500 }, 
+// This is your public key (the one you shared earlier)
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+
+/* ================================================= */
+
+// --- CONSTANTS ---
+const AQUA_MASTER = "EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d";
+const WITHDRAW_LIMIT = 1110583; 
+const TON_API = "https://tonapi.io/v2";
+
+const segments = [
+    { label: "TRY AGAIN", unit: "You will win some other time", type: "nothing", weight: 40, color: "#94a3b8", val: 0 },
+    { label: "$10 JACKPOT", unit: "Claim Now", type: "jackpot", weight: 0.4, color: "#3b82f6", val: 10 },
+    { label: "1,000 Aquam", unit: "AQUAM", type: "aquam", weight: 10, color: "#eab308", val: 1000 },
+    { label: "₦500 airtime", unit: "AIRTIME", type: "voucher", weight: 5, color: "#94a3b8", val: 0 },
+    { label: "₦100 Airtime", unit: "AIRTIME", type: "voucher", subtype: 'airtime', weight: 4, color: "#f43f5e", val: 100 },
+    { label: "0.01 Ton", unit: "TON", type: "ton", weight: 3, color: "#22c55e", val: 0.01 },
+    { label: "500MB voucher", unit: "DATA", type: "voucher", subtype: 'data', weight: 2, color: "#06b6d4", val: 500 },
+    { label: "0.05 Ton", unit: "TON", type: "ton", weight: 1, color: "#10b981", val: 0.05 }
 ];
 
-// State Variables
+
+// --- STATE ---
 let tickets = 0;
 let winBal = 0;
-let myVouchers = []; // Stores the actual voucher objects
+let myVouchers = [];
 let isSpinning = false;
 let currentRotation = 0;
 let txHistory = JSON.parse(localStorage.getItem('spin_history_pro')) || [];
+let currentPriceNgn = 0;
+let currentPriceUsd = 0;
+let userAquaBalance = 0;
+let userAddress = "";
 
 const tonUI = new TON_CONNECT_UI.TonConnectUI({
     manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json",
     buttonRootId: "ton-connect"
 });
-
 document.addEventListener('DOMContentLoaded', () => {
+    // 1. Check if user previously picked a theme
+    const savedTheme = localStorage.getItem('theme-pref');
+    
+    // 2. Apply it immediately
+    if (savedTheme === 'light') {
+        document.body.classList.remove('dark-mode');
+    } else {
+        document.body.classList.add('dark-mode');
+    }
+
+    // 3. Now load the rest of the game
     initWheel();
     renderHistory();
     loadState();
-    // if(tonUI.wallet) loadBalances(tonUI.wallet.account.address); // Connect to real API if needed
+    updateMarketData();
 });
 
-// --- STATE MANAGEMENT ---
+
+tonUI.onStatusChange(async wallet => {
+  if (!wallet) {
+    userAddress = "";
+    userAquaBalance = 0;
+    updateUI();
+    return;
+  }
+  userAddress = wallet.account.address;
+  loadBalances();
+});
+
+// --- CORE FUNCTIONS ---
+
+
+async function loadBalances() {
+  if (!userAddress) return;
+  try {
+      const acc = await fetch(`${TON_API}/accounts/${userAddress}`).then(r => r.json());
+      document.getElementById("tonBalDisplay").innerText = (acc.balance / 1e9).toFixed(2);
+
+      const jets = await fetch(`${TON_API}/accounts/${userAddress}/jettons`).then(r => r.json());
+      
+      // We look for the AQUAM master contract
+      const targetMaster = new TonWeb.utils.Address(AQUA_MASTER).toString(true, true, true);
+
+      const aqua = jets.balances.find(j => 
+          new TonWeb.utils.Address(j.jetton.address).toString(true, true, true) === targetMaster
+      );
+
+      if (aqua) {
+        userAquaBalance = Number(aqua.balance) / 1e9;
+        // This is the CRITICAL variable for the transfer
+        jettonWallet = new TonWeb.utils.Address(aqua.wallet_address.address).toString(true, true, true);
+        document.getElementById("aquaBal").innerText = Math.floor(userAquaBalance).toLocaleString();
+      }
+      updateUI();
+  } catch(e) { console.error("Balance Error:", e); }
+}
+
+
+async function buySpin() {
+    const SPIN_COST = 10000;
+    
+    // 1. Basic Checks
+    if (!userAddress) return alert("Please connect your wallet first.");
+    if (!jettonWallet) return alert("AQUAM Wallet not found. Please wait a moment for sync.");
+    if (userAquaBalance < SPIN_COST) return alert("Insufficient AQUAM balance!");
+
+    // 2. Identify the button to show loading state
+    const btn = document.querySelector("button[onclick='buySpin()']");
+    const originalText = btn ? btn.innerText : "Buy 1 Spin";
+
+    try {
+        if(btn) btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> AUTHORIZING...`;
+
+        // 3. Construct Payload (Matches your Terminal code exactly)
+        const jetAmt = BigInt(SPIN_COST * 1e9); 
+        const cell = new TonWeb.boc.Cell();
+        
+        cell.bits.writeUint(0xf8a7ea5, 32); // OpCode
+        cell.bits.writeUint(0, 64);         // QueryId
+        cell.bits.writeCoins(jetAmt);       // 10,000 AQUAM
+        cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY)); 
+        cell.bits.writeAddress(new TonWeb.utils.Address(userAddress)); 
+        cell.bits.writeBit(0); 
+        cell.bits.writeCoins(TonWeb.utils.toNano("0.02")); // Forward amount
+        cell.bits.writeBit(0); 
+
+        const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+
+        // 4. Send Transaction (Using 0.07 TON for gas as in your Terminal)
+        await tonUI.sendTransaction({
+            validUntil: Math.floor(Date.now() / 1000) + 300,
+            messages: [
+                {
+                    address: jettonWallet, // Send to your personal jetton wallet
+                    amount: TonWeb.utils.toNano("0.07").toString(), // TON Gas Fee
+                    payload: payload
+                }
+            ]
+        });
+
+        // 5. Success Logic
+        tickets += 1; // Give the user their ticket
+        updateUI();
+        
+        // Save to history (Matches your Wheel's history system)
+        const tx = { icon: "🎫", title: "Bought 1 Spin", date: new Date().toLocaleTimeString() };
+        txHistory.unshift(tx);
+        localStorage.setItem('spin_history_pro', JSON.stringify(txHistory.slice(0, 10)));
+        renderHistory();
+
+        alert("Success! 1 Spin added to your balance.");
+
+    } catch (e) {
+        console.error("Purchase Error:", e);
+        if (!String(e).includes("User rejected")) {
+            alert("Transaction Failed. Ensure you have at least 0.1 TON for gas fees.");
+        }
+    } finally {
+        if(btn) btn.innerText = originalText;
+    }
+}
+
+
+
+async function updateMarketData() {
+    try {
+        const stonRes = await fetch(`https://api.ston.fi/v1/assets/${AQUA_MASTER}`);
+        const stonData = await stonRes.json();
+        currentPriceUsd = parseFloat(stonData.asset.dex_usd_price);
+
+        const exRes = await fetch("https://open.er-api.com/v6/latest/USD");
+        const exData = await exRes.json();
+        const usdNgnRate = exData.rates.NGN;
+        currentPriceNgn = currentPriceUsd * usdNgnRate;
+
+        document.getElementById("priceNgn").innerText = `₦${currentPriceNgn.toLocaleString(undefined, {maximumFractionDigits: 2})}`;
+    } catch (e) { console.error("Market Data Error", e); }
+}
+
+function calculateAquam() {
+  const nairaAmount = document.getElementById("nairaInput").value;
+  const resultDiv = document.getElementById("calcResult");
+  if (nairaAmount > 0 && currentPriceNgn > 0) {
+    const amount = nairaAmount / currentPriceNgn;
+    resultDiv.innerText = `${amount.toLocaleString(undefined, {maximumFractionDigits: 2})} AQUAM`;
+  } else { resultDiv.innerText = "0 AQUAM"; }
+}
+
 function loadState() {
     const lastReset = localStorage.getItem('spin_last_reset') || Date.now();
     const now = Date.now();
-    
-    // Daily Reset Logic for Tickets
     if (now - lastReset > 86400000) {
-        tickets = 2; // Daily free tickets
+        tickets = 2;
         localStorage.setItem('spin_last_reset', now);
     } else {
         tickets = parseInt(localStorage.getItem('spin_tickets')) || 0;
     }
-    
     winBal = parseInt(localStorage.getItem('win_bal')) || 0;
-    
-    // Load Vouchers List
-    const storedVouchers = localStorage.getItem('my_vouchers');
-    myVouchers = storedVouchers ? JSON.parse(storedVouchers) : [];
-
+    myVouchers = JSON.parse(localStorage.getItem('my_vouchers')) || [];
     updateUI();
     startRefillTimer(parseInt(lastReset) + 86400000);
 }
 
 function updateUI() {
-    // Save State
     localStorage.setItem('spin_tickets', tickets);
     localStorage.setItem('win_bal', winBal);
     localStorage.setItem('my_vouchers', JSON.stringify(myVouchers));
     
-    // Update Text
     document.getElementById('ticketCount').innerText = tickets;
     document.getElementById('winBalDisplay').innerText = winBal.toLocaleString();
+    document.getElementById('voucherCount').innerText = myVouchers.filter(v => !v.used).length;
+    document.getElementById('airtimeCount').innerText = myVouchers.filter(v => v.subtype === 'airtime' && !v.used).length;
+    document.getElementById('dataCount').innerText = myVouchers.filter(v => v.subtype === 'data' && !v.used).length;
     
-    // Update Total Voucher Badge (Header)
-    const totalActiveVouchers = myVouchers.filter(v => !v.used).length;
-    document.getElementById('voucherCount').innerText = totalActiveVouchers;
-
-    // Update Glass Cards (Dashboard)
-    const airtimeActive = myVouchers.filter(v => v.subtype === 'airtime' && !v.used).length;
-    const dataActive = myVouchers.filter(v => v.subtype === 'data' && !v.used).length;
-
-    document.getElementById('airtimeCount').innerText = airtimeActive;
-    document.getElementById('dataCount').innerText = dataActive;
-    
-    // Update Progress Bar
     const progress = Math.min((winBal / WITHDRAW_LIMIT) * 100, 100);
     document.getElementById('progressFill').style.width = progress + '%';
     document.getElementById('progPercent').innerText = Math.floor(progress) + '%';
     
-    // Button States
     document.getElementById('withdrawBtn').disabled = winBal < WITHDRAW_LIMIT;
     document.getElementById('spinBtn').disabled = (tickets <= 0 || isSpinning);
 }
 
-function startRefillTimer(target) {
-    const el = document.getElementById('timerDisplay');
-    const update = () => {
-        const diff = target - Date.now();
-        if(diff < 0) { el.innerText = "Tickets Refilled!"; tickets = 2; updateUI(); return; }
-        const h = Math.floor(diff/3600000);
-        const m = Math.floor((diff%3600000)/60000);
-        const s = Math.floor((diff%60000)/1000);
-        el.innerText = `Refill in ${h}h ${m}m ${s}s`;
-    };
-    update();
-    setInterval(update, 1000);
-}
-
-// --- VOUCHER MODAL & USAGE LOGIC ---
-
-function openVoucherModal(filterType) {
-    const modal = document.getElementById('vouchersModal');
-    const listContainer = document.getElementById('voucherListContainer');
-    const titleType = document.getElementById('voucherModalType');
-    
-    modal.classList.remove('hidden');
-    
-    // Filter list based on what card was clicked
-    let displayList = myVouchers;
-    if (filterType === 'airtime') {
-        displayList = myVouchers.filter(v => v.subtype === 'airtime');
-        titleType.innerText = "Airtime History";
-    } else if (filterType === 'data') {
-        displayList = myVouchers.filter(v => v.subtype === 'data');
-        titleType.innerText = "Data History";
-    } else {
-        titleType.innerText = "All Collected Rewards";
-    }
-
-    // Sort: Unused first, then by date
-    displayList.sort((a, b) => (a.used === b.used) ? 0 : a.used ? 1 : -1);
-
-    // Render HTML
-    if (displayList.length === 0) {
-        listContainer.innerHTML = `
-            <div class="text-center opacity-40 mt-10">
-                <i class="fa-solid fa-ghost text-4xl mb-2"></i>
-                <p class="text-xs font-bold">No vouchers found</p>
-            </div>`;
-    } else {
-        listContainer.innerHTML = displayList.map(v => {
-            const icon = v.subtype === 'airtime' ? 'fa-mobile-screen-button' : 'fa-wifi';
-            const color = v.subtype === 'airtime' ? 'text-pink-500' : 'text-cyan-500';
-            const btnState = v.used 
-                ? `<button disabled class="px-4 py-2 bg-gray-200 text-gray-400 rounded-lg text-xs font-bold cursor-not-allowed">USED</button>`
-                : `<button onclick="useVoucher('${v.id}')" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-blue-500/30 active:scale-95">USE</button>`;
-            
-            return `
-            <div class="card-bg p-4 flex items-center justify-between voucher-item ${v.used ? 'used' : ''}">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center ${color}">
-                        <i class="fa-solid ${icon} text-lg"></i>
-                    </div>
-                    <div>
-                        <p class="font-black text-sm">${v.label}</p>
-                        <p class="text-[10px] opacity-50">${v.date}</p>
-                    </div>
-                </div>
-                ${btnState}
-            </div>`;
-        }).join('');
-    }
-}
-
-function useVoucher(id) {
-    const voucherIndex = myVouchers.findIndex(v => v.id == id);
-    if (voucherIndex !== -1) {
-        // Mark as used
-        myVouchers[voucherIndex].used = true;
-        updateUI(); // Save to local storage
-        
-        // Refresh the modal to show "USED" stamp
-        const currentFilter = document.getElementById('voucherModalType').innerText.includes('Airtime') ? 'airtime' : 
-                              document.getElementById('voucherModalType').innerText.includes('Data') ? 'data' : 'all';
-        openVoucherModal(currentFilter);
-
-        // Redirect logic
-        setTimeout(() => {
-            alert(`Redirecting to redeem ${myVouchers[voucherIndex].label}...`);
-            // REPLACE THIS WITH YOUR ACTUAL REDIRECT
-            // window.location.href = "index.html#redeem"; 
-        }, 300);
-    }
-}
-
-function closeVoucherModal() {
-    document.getElementById('vouchersModal').classList.add('hidden');
-}
-
-// --- SPIN & GAME LOGIC ---
-
-function buySpin() {
-    if(confirm("Purchase 1 Spin for 10,000 AQUAM?")) {
-        // Here you would deduct balance logic
-        tickets++;
-        updateUI();
-    }
-}
-
-function handleWithdraw() {
-    const icon = document.createElement('div');
-    icon.className = 'transfer-anim';
-    icon.innerHTML = "💧";
-    icon.style.left = "45%";
-    icon.style.top = "70%";
-    document.body.appendChild(icon);
-    
-    setTimeout(() => {
-        icon.remove();
-        alert(`Successfully withdrawn ${winBal} AQUAM to your wallet!`);
-        winBal = 0;
-        updateUI();
-    }, 1500);
-}
-
-function initWheel() {
-    const canvas = document.getElementById('wheelCanvas');
-    const ctx = canvas.getContext('2d');
-    const arc = (Math.PI * 2) / segments.length;
-
-    window.drawWheel = () => {
-        ctx.clearRect(0, 0, 600, 600);
-        ctx.save();
-        ctx.translate(300, 300);
-        ctx.rotate(currentRotation);
-        segments.forEach((s, i) => {
-            const angle = i * arc;
-            ctx.beginPath();
-            ctx.fillStyle = i % 2 === 0 ? getComputedStyle(document.body).getPropertyValue('--wheel-seg-1') : getComputedStyle(document.body).getPropertyValue('--wheel-seg-2');
-            ctx.moveTo(0, 0); ctx.arc(0, 0, 280, angle, angle + arc); ctx.fill();
-            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--border'); ctx.stroke();
-            
-            ctx.save();
-            ctx.translate(Math.cos(angle + arc/2) * 200, Math.sin(angle + arc/2) * 200);
-            ctx.rotate(angle + arc/2 + Math.PI/2);
-            ctx.textAlign = "center";
-            
-            // Icon Selection
-            ctx.fillStyle = s.color; ctx.font = "bold 40px Manrope";
-            let icon = "💀";
-            if(s.type === 'ton') icon = "💎";
-            else if(s.type === 'aquam') icon = "💧";
-            else if(s.type === 'voucher' && s.subtype === 'airtime') icon = "📱";
-            else if(s.type === 'voucher' && s.subtype === 'data') icon = "📶";
-            else if(s.type === 'ticket') icon = "🎫";
-            
-            ctx.fillText(icon, 0, 0);
-            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text'); ctx.font = "bold 14px Manrope"; // Smaller font for labels
-            ctx.fillText(s.label, 0, 35);
-            ctx.restore();
-        });
-        ctx.restore();
-    };
-    window.drawWheel();
-}
+// --- GAMEPLAY ---
 
 function startSpin() {
     if(isSpinning || tickets <= 0) return;
+
+   // --- Inside startSpin() ---
+const minHoldValue = 10.0; // Change $10 to $0.01 to test easily
+const currentHoldValue = userAquaBalance * currentPriceUsd;
+
+if (!userAddress) {
+    customAlert("Wallet Error", "Please connect your wallet first!", "🔌");
+    return;
+}
+
+// If userAquaBalance is 0 because the loader failed, this triggers.
+if (currentHoldValue < minHoldValue) {
+    customAlert(
+        "Access Denied", 
+        `Hold at least $${minHoldValue} of AQUAM. (You have: $${currentHoldValue.toFixed(2)})`, 
+        "🔒"
+    );
+    return;
+}
+
+
+
     tickets--;
     isSpinning = true;
     updateUI();
 
-    // Weighted Random Logic
     const totalWeight = segments.reduce((a, b) => a + b.weight, 0);
     let random = Math.random() * totalWeight;
     let winnerIdx = segments.findIndex(s => (random -= s.weight) < 0);
     const winner = segments[winnerIdx];
 
-    // Animation Calc
     const arc = (Math.PI * 2) / segments.length;
     const stopAngle = (Math.PI * 1.5) - (winnerIdx * arc) - (arc/2);
-    const target = currentRotation + (Math.PI * 10) + (stopAngle - (currentRotation % (Math.PI * 2))); // 10 spins
+    const target = currentRotation + (Math.PI * 10) + (stopAngle - (currentRotation % (Math.PI * 2)));
 
     const start = performance.now();
     function animate(now) {
         const elapsed = now - start;
-        const progress = Math.min(elapsed / 4000, 1); // 4 seconds spin
-        const ease = 1 - Math.pow(1 - progress, 4); // Ease Out Quart
+        const progress = Math.min(elapsed / 4000, 1);
+        const ease = 1 - Math.pow(1 - progress, 4);
         currentRotation = target * ease;
         window.drawWheel();
         if(progress < 1) requestAnimationFrame(animate);
@@ -489,70 +513,401 @@ function startSpin() {
 function finalizeSpin(winner) {
     isSpinning = false;
     
-    // Process Prize
-    if(winner.type === 'aquam') winBal += winner.val;
-    if(winner.type === 'ticket') tickets += winner.val;
-    
-    // NEW: Handle Voucher Storage
-    if(winner.type === 'voucher') {
-        const newVoucher = {
-            id: Date.now(),
-            label: `${winner.label} ${winner.unit}`,
-            type: 'voucher',
-            subtype: winner.subtype, // 'airtime' or 'data'
-            val: winner.val,
-            used: false,
-            date: new Date().toLocaleDateString()
-        };
-        myVouchers.unshift(newVoucher);
-    }
-    
-    updateUI();
-    
-    // Show Modal
-    const resultModal = document.getElementById('resultModal');
-    let winEmoji = "💀";
-    if(winner.type === 'ton') winEmoji = "💎";
-    else if(winner.type === 'aquam') winEmoji = "💧";
-    else if(winner.type === 'voucher') winEmoji = "🎁";
-    
-    document.getElementById('winIcon').innerText = winEmoji;
-    document.getElementById('winTitle').innerText = winner.type === 'nothing' ? "Unlucky!" : `WON ${winner.label}`;
-    document.getElementById('winSub').innerText = winner.type === 'nothing' ? "Try again next time" : winner.unit;
-    resultModal.classList.remove('hidden');
-
-    // Add to History list
-    const historyTitle = winner.type === 'nothing' ? "Nothing" : `${winner.label} ${winner.unit}`;
-    txHistory.unshift({ icon: winEmoji, title: historyTitle, date: new Date().toLocaleTimeString() });
+    // 1. UPDATE HISTORY (Keeps track of all spins)
+    txHistory.unshift({ 
+        icon: winner.type === 'jackpot' ? "💰" : (winner.type === 'ticket' ? "🎫" : (winner.type === 'ton' ? "💎" : "🎡")), 
+        title: winner.label, 
+        date: new Date().toLocaleTimeString() 
+    });
     localStorage.setItem('spin_history_pro', JSON.stringify(txHistory.slice(0, 10)));
     renderHistory();
+
+    // 2. JACKPOT REDIRECT (The $10 Win)
+    if (winner.type === 'jackpot') {
+        winBal = 1110583; // Exact withdrawal limit
+        localStorage.setItem('win_bal', winBal);
+        
+        document.getElementById('winIcon').innerText = "💰";
+        document.getElementById('winTitle').innerText = "JACKPOT!";
+        document.getElementById('winSub').innerText = "Redirecting to Treasury...";
+        document.getElementById('resultModal').classList.remove('hidden');
+        
+        setTimeout(() => { 
+            window.location.href = "Withdraw.html"; 
+        }, 2500);
+        return; 
+    }
+
+    // 3. TICKET LOGIC (The "Try Again" / +1 Ticket fix)
+    if (winner.type === 'ticket') {
+        tickets += winner.val;
+    }
+
+    // 4. AQUAM LOGIC
+    if (winner.type === 'aquam') {
+        winBal += winner.val;
+    }
+
+    // 5. TON PRIZE LOGIC (Added this missing piece)
+    if (winner.type === 'ton') {
+        // You can choose to add this to a 'ton_win_bal' or just alert for now
+        console.log(`User won ${winner.val} TON`);
+    }
+
+    // 6. VOUCHER LOGIC (Airtime/Data)
+    if (winner.type === 'voucher') {
+        myVouchers.unshift({ 
+            id: Date.now(), 
+            label: `${winner.label} ${winner.unit}`, 
+            subtype: winner.subtype, 
+            used: false, 
+            date: new Date().toLocaleDateString() 
+        });
+        // Save vouchers immediately to prevent loss on refresh
+        localStorage.setItem('my_vouchers', JSON.stringify(myVouchers));
+    }
+    
+    // 7. SYNC EVERYTHING TO LOCALSTORAGE & REFRESH UI
+    localStorage.setItem('spin_tickets', tickets);
+    localStorage.setItem('win_bal', winBal);
+    updateUI(); 
+    
+    // 8. SHOW FINAL MODAL TO USER
+    let icon = "🎁";
+    let title = `WON ${winner.label}`;
+    let sub = winner.unit;
+
+    if (winner.type === 'ticket') {
+        icon = "🎫";
+        title = "FREE SPIN!";
+        sub = "You got your ticket back!";
+    } else if (winner.type === 'ton') {
+        icon = "💎";
+        title = "TON REWARD!";
+        sub = "Check history for details";
+    }
+
+    document.getElementById('winIcon').innerText = icon;
+    document.getElementById('winTitle').innerText = title;
+    document.getElementById('winSub').innerText = sub;
+    document.getElementById('resultModal').classList.remove('hidden');
 }
+
+
+// THE SINGLE BEAUTIFY FUNCTION (Pure JS)
+function showPopup(title, msg, icon, isConfirm = false, onConfirm = null) {
+    const div = document.createElement("div");
+    Object.assign(div.style, {
+        position: "fixed", inset: "0", background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)",
+        display: "flex", alignItems: "center", justifyContent: "center", zIndex: "10000", padding: "20px"
+    });
+
+    div.innerHTML = `
+        <div style="background:#131b29; border:1px solid #1e293b; border-radius:24px; padding:30px; width:100%; max-width:320px; text-align:center; color:white">
+            <div style="font-size:40px; margin-bottom:10px">${icon}</div>
+            <h3 style="margin:0; font-weight:900; text-transform:uppercase">${title}</h3>
+            <p style="font-size:13px; opacity:0.6; margin:10px 0 25px">${msg}</p>
+            <div style="display:flex; gap:10px">
+                ${isConfirm ? `<button id="popNo" style="flex:1; padding:12px; background:#1e293b; color:white; border-radius:12px; font-weight:bold; border:none">No</button>` : ''}
+                <button id="popYes" style="flex:1; padding:12px; background:#3b82f6; color:white; border-radius:12px; font-weight:900; border:none">${isConfirm ? 'Yes' : 'Got it'}</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(div);
+
+    const close = () => div.remove();
+    if(isConfirm) document.getElementById("popNo").onclick = close;
+    document.getElementById("popYes").onclick = () => { close(); if(onConfirm) onConfirm(); };
+}
+
+
+// --- UI HELPERS ---
+
+function initWheel() {
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    const arc = (Math.PI * 2) / segments.length;
+    window.drawWheel = () => {
+        ctx.clearRect(0, 0, 600, 600);
+        ctx.save(); ctx.translate(300, 300); ctx.rotate(currentRotation);
+        segments.forEach((s, i) => {
+            const angle = i * arc;
+            ctx.beginPath();
+            ctx.fillStyle = i % 2 === 0 ? getComputedStyle(document.body).getPropertyValue('--wheel-seg-1') : getComputedStyle(document.body).getPropertyValue('--wheel-seg-2');
+            ctx.moveTo(0, 0); ctx.arc(0, 0, 280, angle, angle + arc); ctx.fill();
+            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--border'); ctx.stroke();
+            ctx.save();
+            ctx.translate(Math.cos(angle + arc/2) * 200, Math.sin(angle + arc/2) * 200);
+            ctx.rotate(angle + arc/2 + Math.PI/2);
+            
+ctx.textAlign = "center";
+ctx.fillStyle = s.color; 
+
+// 1. Set the font to Font Awesome. 
+// Use 900 for "Solid" icons (fa-solid)
+ctx.font = "900 30px 'Font Awesome 6 Free'";
+
+let wheelIcon;
+
+if (s.type === 'ton') {
+    wheelIcon = "\uf3a5"; // Gem/Diamond
+} else if (s.type === 'aquam') {
+    wheelIcon = "\uf043"; // Droplet
+} else if (s.type === 'jackpot') {
+    wheelIcon = "\uf155"; // Dollar Sign
+} else if (s.subtype === 'data') {
+    wheelIcon = "\uf012"; // Signal/Wifi
+} else if (s.subtype === 'airtime') {
+    wheelIcon = "\uf3cd"; // Mobile Phone
+} else {
+    wheelIcon = "\uf06b"; // Gift
+}
+
+ctx.fillText(wheelIcon, 0, 0);
+
+// 2. IMPORTANT: Reset the font back to Manrope for the labels below it
+ctx.font = "bold 14px Manrope";
+
+            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text'); ctx.font = "bold 14px Manrope";
+            ctx.fillText(s.label, 0, 35);
+            ctx.restore();
+        });
+        ctx.restore();
+    };
+    window.drawWheel();
+}
+
+function startRefillTimer(target) {
+    const el = document.getElementById('timerDisplay');
+    setInterval(() => {
+        const diff = target - Date.now();
+        if(diff < 0) { el.innerText = "Tickets Refilled!"; return; }
+        const h = Math.floor(diff/3600000), m = Math.floor((diff%3600000)/60000), s = Math.floor((diff%60000)/1000);
+        el.innerText = `Free Ticket in ${h}h ${m}m ${s}s`;
+    }, 1000);
+}
+
+function openVoucherModal(filterType) {
+    const container = document.getElementById('voucherListContainer');
+    document.getElementById('vouchersModal').classList.remove('hidden');
+    let list = myVouchers;
+    if(filterType !== 'all') list = myVouchers.filter(v => v.subtype === filterType);
+    
+    if(list.length === 0) {
+        container.innerHTML = `<p class="text-center opacity-40 mt-10">No rewards found</p>`;
+    } else {
+        container.innerHTML = list.map(v => `
+            <div class="card-bg p-4 flex items-center justify-between voucher-item ${v.used ? 'used' : ''}">
+                <div><p class="font-bold text-sm">${v.label}</p><p class="text-[10px] opacity-50">${v.date}</p></div>
+                <button ${v.used ? 'disabled' : `onclick="useVoucher('${v.id}')"`} class="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold">${v.used ? 'USED' : 'USE'}</button>
+            </div>
+        `).join('');
+    }
+}
+
+
+/* ================= REDEMPTION LOGIC (FULL SMART VERSION) ================= */
+let activeVoucher = null; 
+let fetchedPlans = {}; 
+
+// 1. Helper: Extracts numeric MB from strings like "110MB", "1GB", or "100 MB"
+function parseMB(string) {
+    if (!string) return 0;
+    const match = string.match(/(\d+)\s*(MB|GB)/i);
+    if (!match) return 0;
+    let value = parseInt(match[1]);
+    let unit = match[2].toUpperCase();
+    return unit === "GB" ? value * 1024 : value; // Converts 1GB to 1024MB
+}
+
+// 2. Main Entry Point: Triggered when "USE" is clicked on a voucher
+async function useVoucher(id) {
+    activeVoucher = myVouchers.find(v => v.id == id);
+    if (!activeVoucher || activeVoucher.used) return;
+
+    // UI: Open redemption modal & hide list
+    document.getElementById("redeemTitle").innerText = `Claim ${activeVoucher.label}`;
+    document.getElementById("vouchersModal").classList.add("hidden");
+    document.getElementById("redemptionModal").classList.remove("hidden");
+    
+    // UI: Reset form fields
+    document.getElementById("redeemNetwork").value = "";
+    document.getElementById("redeemPhone").value = "";
+    document.getElementById("finalConfirmBtn").onclick = () => processRedemption();
+
+    const dynamicField = document.getElementById("dynamicRedeemField");
+    
+    if (activeVoucher.subtype === 'data') {
+        dynamicField.innerHTML = `<p class="text-[10px] text-blue-400 animate-pulse">Fetching available data plans...</p>`;
+        await fetchRedeemPlans();
+    } else {
+        dynamicField.innerHTML = ""; // No plan selection needed for Airtime
+    }
+}
+
+// 3. API Call: Fetches the plan list from your Supabase Proxy
+async function fetchRedeemPlans() {
+    try {
+        const res = await fetch(SUPABASE_ENDPOINT, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "apikey": SUPABASE_ANON_KEY, 
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}` 
+            },
+            body: JSON.stringify({ action: "get_plans" })
+        });
+        const data = await res.json();
+        fetchedPlans = data.networks;
+        renderRedeemPlans(document.getElementById("redeemNetwork").value);
+    } catch (e) {
+        console.error("Plan fetch failed", e);
+    }
+}
+
+// 4. UI Update: Runs when user picks a network (MTN, GLO, etc)
+function handleNetworkChange(code) {
+    if (activeVoucher && activeVoucher.subtype === 'data') {
+        renderRedeemPlans(code);
+    }
+}
+
+// 5. Logic: Filters the plan list to match the win size exactly
+function renderRedeemPlans(code) {
+    if (!code || !activeVoucher) return;
+
+    const map = { "01": "MTN", "02": "GLO", "04": "AIRTEL", "03": "ETISALAT" };
+    const networkName = map[code];
+    const list = fetchedPlans[networkName] || [];
+    const container = document.getElementById("dynamicRedeemField");
+
+    const winMB = parseMB(activeVoucher.label);
+
+    // Filter plans that are >= win size, but not excessively larger
+    // This allows a 110MB plan to satisfy a 100MB win
+    const validPlans = list
+        .filter(p => {
+            const planMB = parseMB(p.name);
+            return planMB >= winMB && planMB <= (winMB + 50); 
+        })
+        .sort((a, b) => a.price - b.price); // Order by cheapest price
+
+    if (validPlans.length > 0) {
+        const bestMatch = validPlans[0]; // Auto-pick the cheapest valid match
+        
+        container.innerHTML = `
+            <label class="text-[10px] font-bold opacity-50 uppercase ml-1">Assigned Plan (Locked)</label>
+            <select id="redeemPlan" class="input mt-1 w-full bg-[#0b111b] p-4 rounded-xl border border-blue-500/50 text-blue-400 font-bold" disabled>
+                <option value="${bestMatch.id}" selected>${bestMatch.name}</option>
+            </select>
+            <p class="text-[9px] text-green-500 mt-1 ml-1">✓ Plan successfully matched to your win</p>
+        `;
+    } else {
+        container.innerHTML = `
+            <div class="p-3 bg-red-500/10 border border-red-500/20 rounded-xl">
+                <p class="text-[10px] font-bold text-red-400 uppercase">Size Not Found</p>
+                <p class="text-[10px] opacity-70">Could not find a match for ${winMB}MB on ${networkName}.</p>
+            </div>
+        `;
+    }
+}
+
+// 6. Final Execution: Sends the request to your Edge Function
+async function processRedemption() {
+    const phone = document.getElementById("redeemPhone").value;
+    const network = document.getElementById("redeemNetwork").value;
+    const planId = document.getElementById("redeemPlan")?.value;
+
+    if (!phone || !network) return alert("Please enter phone number and network");
+    if (activeVoucher.subtype === "data" && !planId) return alert("No valid plan matched for this network");
+
+    const btn = document.getElementById("finalConfirmBtn");
+    btn.innerText = "SENDING PRIZE...";
+    btn.disabled = true;
+
+    const body = activeVoucher.subtype === "airtime" 
+        ? { action: "buy_airtime", networkCode: network, mobileNumber: phone, amount: "100" }
+        : { action: "buy_data", networkCode: network, mobileNumber: phone, planId: planId };
+
+    try {
+        const res = await fetch(SUPABASE_ENDPOINT, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json", 
+                "apikey": SUPABASE_ANON_KEY, 
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}` 
+            },
+            body: JSON.stringify(body)
+        });
+
+        const result = await res.json();
+        
+        // Nellobyte usually returns "ORDER_RECEIVED"
+        if (result.status === "ORDER_RECEIVED" || result.status === "ORDER_COMPLETED") {
+            activeVoucher.used = true;
+            updateUI();
+            alert(`🎉 Success! ${activeVoucher.label} sent to ${phone}`);
+            closeRedeemModal();
+        } else {
+            alert("Provider Error: " + (result.status || "Check Balance"));
+        }
+    } catch (e) {
+        alert("Network Error. Please try again.");
+    } finally {
+        btn.innerText = "CLAIM NOW";
+        btn.disabled = false;
+    }
+}
+
+function closeRedeemModal() { 
+    document.getElementById("redemptionModal").classList.add("hidden"); 
+}
+
+
 
 function renderHistory() {
     const list = document.getElementById('historyList');
-    if(!txHistory.length) { list.innerHTML = `<div class="p-8 text-center opacity-30 font-bold text-xs">NO SPINS YET</div>`; return; }
+    if(!txHistory.length) { list.innerHTML = `<div class="p-4 text-center opacity-30 text-xs">NO SPINS YET</div>`; return; }
     list.innerHTML = txHistory.map(h => `
-        <div class="card-bg p-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="text-xl">${h.icon}</div>
-                <div><p class="font-bold text-[10px] uppercase">${h.title}</p><p class="text-[8px] opacity-50">${h.date}</p></div>
-            </div>
+        <div class="card-bg p-3 flex items-center justify-between">
+            <div class="flex items-center gap-3"><span>${h.icon}</span><div><p class="font-bold text-[10px]">${h.title}</p><p class="text-[8px] opacity-50">${h.date}</p></div></div>
             <div class="text-[8px] font-black text-green-500">PROCESSED</div>
         </div>
     `).join('');
 }
 
-function toggleTheme() { document.body.classList.toggle('dark-mode'); window.drawWheel(); }
-function closeModal() { document.getElementById('resultModal').classList.add('hidden'); }
-function clearHistory() { txHistory = []; localStorage.removeItem('spin_history_pro'); renderHistory(); }
-
-// Helper to close modal if clicked outside
-window.onclick = function(event) {
-    const vModal = document.getElementById('vouchersModal');
-    if (event.target == vModal) {
-        closeVoucherModal();
+function handleWithdraw() {
+    // 1. Check if they actually reached the limit (Extra safety)
+    if (winBal < WITHDRAW_LIMIT) {
+        return alert("You haven't reached the withdrawal limit yet!");
     }
+
+    // 2. Reset the local balance variable
+    winBal = 0;
+
+    // 3. Sync to LocalStorage and update the visual UI (Progress bar/text)
+    updateUI();
+
+    // 4. Add a tiny delay so the user sees the progress bar empty before redirecting
+    // This provides a much better "feeling" of the transaction happening
+    setTimeout(() => {
+        window.location.href = "Withdraw.html";
+    }, 800);
 }
+
+
+
+function toggleTheme() { 
+    const isDark = document.body.classList.toggle('dark-mode'); 
+    localStorage.setItem('theme-pref', isDark ? 'dark' : 'light'); 
+    window.drawWheel(); 
+}
+
+
+function closeModal() { document.getElementById('resultModal').classList.add('hidden'); }
+function closeVoucherModal() { document.getElementById('vouchersModal').classList.add('hidden'); }
+function clearHistory() { txHistory = []; localStorage.removeItem('spin_history_pro'); renderHistory(); }
 </script>
-
-
+</body>
+</html>

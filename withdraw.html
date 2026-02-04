@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AquaCoinX | Treasury Payout</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Oxanium:wght@300;500;800&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root { --bg: #0b111b; --card: #131b29; --border: #1e293b; --primary: #3b82f6; }
+        body { background: var(--bg); color: white; font-family: 'Oxanium', sans-serif; margin: 0; overflow: hidden; }
+        .glass { background: var(--card); border: 1px solid var(--border); border-radius: 32px; }
+        
+        .dot-loader { display: flex; justify-content: space-between; width: 80px; }
+        .dot { width: 6px; height: 6px; background: var(--primary); border-radius: 50%; opacity: 0.1; }
+        .animating .dot { animation: flow 1.2s infinite ease-in-out; }
+        
+        @keyframes flow {
+            0%, 100% { opacity: 0.1; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); background: #60a5fa; box-shadow: 0 0 15px var(--primary); }
+        }
+
+        .wallet-node { width: 120px; padding: 15px; border-radius: 24px; text-align: center; border: 1px solid var(--border); transition: 0.3s; }
+        .active-node { border-color: rgba(59, 130, 246, 0.5); background: rgba(59, 130, 246, 0.05); }
+        
+        /* Italic slant for the logo */
+        .logo-font { font-style: italic; font-weight: 800; letter-spacing: -0.05em; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-6">
+
+    <div class="w-full max-w-md space-y-6">
+        <div class="text-center">
+            <h1 class="text-3xl logo-font text-blue-500">AQUAMEME<span class="text-white"></span></h1>
+            <p class="text-[10px] text-gray-400 uppercase tracking-[0.4em] font-bold mt-1">Quick Withdraw</p>
+        </div>
+
+        <div class="glass p-8 flex items-center justify-between shadow-2xl relative">
+            <div class="wallet-node active-node">
+                <div class="w-10 h-10 bg-blue-600/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fa fa-vault text-blue-500 text-sm"></i>
+                </div>
+                <p class="text-[8px] font-bold opacity-40 uppercase">Treasury</p>
+                <p class="text-[10px] font-mono font-bold text-blue-400">VAULT</p>
+            </div>
+
+            <div id="loader" class="dot-loader">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+
+            <div id="userBox" class="wallet-node">
+                <div class="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <i class="fa fa-wallet text-gray-500 text-sm"></i>
+                </div>
+                <p class="text-[8px] font-bold opacity-40 uppercase">Recipient</p>
+                <p id="userAddr" class="text-[10px] font-mono font-bold">Waiting...</p>
+            </div>
+        </div>
+
+        <div class="glass p-6 space-y-4">
+            <div class="flex justify-between items-center text-xs">
+                <span class="opacity-40 font-bold uppercase tracking-wider text-[10px]">Reward Value </span>
+                <span class="text-green-400 font-bold">$10.00 USD</span>
+            </div>
+            
+            <div class="flex justify-between items-center text-xs">
+                <span class="opacity-40 font-bold uppercase tracking-wider text-[10px]">Current Rate</span>
+                <span id="aquamRate" class="text-blue-400 font-bold text-[10px]">Syncing...</span>
+            </div>
+
+            <div class="flex justify-between items-center text-xs bg-blue-500/10 p-3 rounded-xl border border-blue-500/20">
+                <span class="text-blue-200 font-bold uppercase tracking-wider text-[10px]">You Receive</span>
+                <span id="tokenAmountDisplay" class="text-white font-black text-sm">--- AQUAM</span>
+            </div>
+
+            <div id="statusMsg" class="pt-4 border-t border-white/5 text-center text-[10px] text-gray-400 italic">
+                Awaiting Handshake...
+            </div>
+        </div>
+
+        <div id="ton-connect" class="hidden"></div>
+
+        <button id="startBtn" onclick="processWithdrawal()" disabled class="w-full bg-blue-600 disabled:bg-gray-800 disabled:text-gray-500 py-5 rounded-[24px] font-bold text-white shadow-xl shadow-blue-900/20 transition-all active:scale-95 uppercase tracking-widest text-xs">
+            Connect Wallet
+        </button>
+        
+        <button onclick="window.location.href='s2w.html'" class="w-full text-[10px] font-bold opacity-30 uppercase tracking-widest text-center">Back to Game</button>
+    </div>
+
+<script>
+// CONFIG
+const SUPABASE_ENDPOINT = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/Pay";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+const TREASURY_USD_VALUE = 10.0; 
+
+// STATE
+let userWallet = null; // This will store the UQ... address
+let currentPrice = 0;
+let calculatedTokenAmount = 0;
+
+// Initialize TonConnect
+const tonUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json",
+  buttonRootId: "ton-connect" 
+});
+
+// --- HELPER: CONVERT RAW (0:...) TO USER-FRIENDLY (UQ...) ---
+function formatAddress(rawAddr) {
+    // strict: true, isTestOnly: false, isBounceable: false (FALSE = UQ start)
+    const addr = new TonWeb.utils.Address(rawAddr);
+    return addr.toString(true, true, false); 
+}
+
+tonUI.onStatusChange(wallet => {
+    const btn = document.getElementById('startBtn');
+    const status = document.getElementById('statusMsg');
+
+    if (wallet) {
+        // 1. GET RAW ADDRESS
+        const rawAddress = wallet.account.address;
+        
+        // 2. CONVERT TO 'UQ...' (Non-Bounceable)
+        // This is crucial. 'UQ' ensures money lands even if wallet is empty/new.
+        userWallet = formatAddress(rawAddress);
+        
+        // 3. DISPLAY THE PRETTY ADDRESS
+        const shortAddr = userWallet.slice(0, 4) + '...' + userWallet.slice(-4);
+        document.getElementById('userAddr').innerText = shortAddr; // Shows "UQ12...A8sZ"
+        document.getElementById('userBox').classList.add('active-node');
+        
+        btn.innerText = "Confirm Payout";
+        btn.onclick = processWithdrawal;
+        btn.disabled = false;
+        
+        status.innerText = "Wallet Connected. Ready.";
+        status.classList.add("text-blue-400");
+    } else {
+        userWallet = null;
+        document.getElementById('userAddr').innerText = "OFFLINE";
+        document.getElementById('userBox').classList.remove('active-node');
+        
+        btn.innerText = "Connect Wallet";
+        btn.onclick = () => tonUI.openModal();
+        btn.disabled = false;
+        
+        status.innerText = "Please connect wallet to receive funds.";
+        status.classList.remove("text-blue-400");
+    }
+});
+
+async function fetchPrice() {
+    try {
+        const res = await fetch(`https://api.ston.fi/v1/assets/EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d`);
+        const data = await res.json();
+        currentPrice = parseFloat(data.asset.dex_usd_price);
+        document.getElementById('aquamRate').innerText = `1 AQUA = $${currentPrice.toFixed(6)}`;
+
+        if (currentPrice > 0) {
+            calculatedTokenAmount = (TREASURY_USD_VALUE / currentPrice).toFixed(2);
+            document.getElementById('tokenAmountDisplay').innerText = `${calculatedTokenAmount} AQUAM`;
+        }
+    } catch (e) {
+        document.getElementById('aquamRate').innerText = "Offline";
+    }
+}
+
+async function processWithdrawal() {
+    if (!userWallet) { tonUI.openModal(); return; }
+
+    const btn = document.getElementById('startBtn');
+    const loader = document.getElementById('loader');
+    const status = document.getElementById('statusMsg');
+
+    loader.classList.add('animating');
+    btn.disabled = true;
+    btn.innerText = "SENDING FUNDS...";
+    
+    try {
+        // We are now sending the 'UQ...' address to the backend
+        const response = await fetch(SUPABASE_ENDPOINT, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "apikey": SUPABASE_ANON_KEY,
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({
+                action: "withdraw_aquam",
+                amount: calculatedTokenAmount, 
+                recipient: userWallet // Sending the safe UQ address
+            })
+        });
+
+        const result = await response.json();
+        loader.classList.remove('animating');
+
+        if (response.ok && result.success) {
+            status.innerHTML = `<span class="text-green-400 font-bold">SENT! Check wallet in 10s.</span>`;
+            btn.innerText = "PAYOUT SUCCESSFUL";
+            btn.style.background = "#10b981";
+            setTimeout(() => window.location.href = 'index.html', 3000);
+        } else {
+            throw new Error(result.error || "Transaction Failed");
+        }
+    } catch (err) {
+        loader.classList.remove('animating');
+        status.innerText = "Error: " + err.message;
+        btn.disabled = false;
+        btn.innerText = "RETRY";
+        btn.style.background = "#ef4444";
+    }
+}
+
+fetchPrice();
+</script>
+
+</body>
+</html>

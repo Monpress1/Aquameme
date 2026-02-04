@@ -30,6 +30,132 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .bot-link { color: #3b82f6; text-decoration: underline; font-weight: bold; }
     </style>
+    <style>
+/* ================================
+   ACTIVITY SLIDER – PREMIUM STYLE
+================================ */
+
+.activity-slider {
+    position: fixed;
+    bottom: 100px;
+    left: 20px;
+    width: calc(100% - 40px);
+    max-width: 460px;
+    height: 65px; /* ⬆ bigger height */
+    overflow: hidden;
+    background: linear-gradient(180deg, #141c2e, #0e1524);
+    border: 1px solid rgba(59,130,246,0.35);
+    border-radius: 22px;
+    z-index: 90;
+    box-shadow:
+        0 25px 60px rgba(0,0,0,0.55),
+        inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+
+/* sliding track */
+#activityTrack {
+    display: flex;
+    flex-direction: column;
+}
+
+/* single item */
+.activity-item {
+    height: 82px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 0 18px;
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.4;
+    white-space: nowrap;
+}
+
+/* icon container */
+.activity-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+    box-shadow:
+        0 8px 18px rgba(0,0,0,0.35),
+        inset 0 0 0 1px rgba(255,255,255,0.05);
+}
+
+/* slide animation */
+.slide-up {
+    animation: slideUp 0.45s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(0); }
+    to { transform: translateY(-82px); }
+}
+
+/* ================================
+   COLOR THEMES PER ACTIVITY
+   (Applied dynamically)
+================================ */
+
+/* transfers */
+.activity-transfer .activity-icon {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+    color: #dbeafe;
+}
+
+/* wallet funding */
+.activity-fund .activity-icon {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    color: #dcfce7;
+}
+
+/* airtime */
+.activity-airtime .activity-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fffbeb;
+}
+
+/* data */
+.activity-data .activity-icon {
+    background: linear-gradient(135deg, #eab308, #ca8a04);
+    color: #fefce8;
+}
+
+/* TV subscriptions */
+.activity-dstv .activity-icon,
+.activity-gotv .activity-icon {
+    background: linear-gradient(135deg, #9333ea, #7e22ce);
+    color: #f5f3ff;
+}
+
+/* electricity */
+.activity-electricity .activity-icon {
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: #fff7ed;
+}
+
+/* spin aquam */
+.activity-spin_aquam .activity-icon {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+    color: #e0f2fe;
+}
+
+/* spin ton */
+.activity-spin_ton .activity-icon {
+    background: linear-gradient(135deg, #22d3ee, #06b6d4);
+    color: #ecfeff;
+}
+
+/* vouchers */
+.activity-voucher .activity-icon {
+    background: linear-gradient(135deg, #ec4899, #db2777);
+    color: #fdf2f8;
+}
+</style>
 </head>
 <body class="p-5 pb-28">
 
@@ -83,7 +209,7 @@
         </div>
         <div onclick="showAlert()" class="card-bg p-5 flex flex-col gap-3 active:scale-95 transition cursor-pointer">
             <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 border border-green-500/20"><i class="fa-solid fa-share-nodes"></i></div>
-            <div><p class="font-bold text-sm">Referral</p><p class="text-[10px] opacity-50">Earn 5% Bonus</p></div>
+            <div><p class="font-bold text-sm">Referral</p><p class="text-[10px] opacity-50">Earn  Bonus</p></div>
         </div>
         <div onclick="showAlert()" class="card-bg p-5 flex flex-col gap-3 active:scale-95 transition col-span-2 cursor-pointer">
             <div class="flex items-center justify-between">
@@ -94,7 +220,10 @@
                 <i class="fa-solid fa-chevron-right text-xs opacity-30"></i>
             </div>
         </div>
-    </div>
+    </div><br><br>
+<div class="activity-slider">
+  <div id="activityTrack"></div>
+</div>
 
     <div class="bot-trigger" onclick="openChat()">
         <div class="chat-hint">Need help?</div>
@@ -203,5 +332,116 @@
             input.value = "";
         }
     </script>
+    <script>
+/* ---------- Helpers ---------- */
+const rand = arr => arr[Math.floor(Math.random() * arr.length)];
+const int = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+
+function wallet() {
+    const c = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz123456789";
+    let t = "";
+    for (let i=0;i<4;i++) t += c[Math.floor(Math.random()*c.length)];
+    return `UQ${t}.....${t}`;
+}
+
+/* ---------- Data Pools ---------- */
+const actions = [
+    "transfer","fund","airtime","data","dstv","gotv","electricity",
+    "spin_aquam","spin_ton","voucher"
+];
+
+const airtime = [100,200,500,1000];
+const data = ["100MB","500MB","1GB","2GB"];
+const power = [500,1000,2000,5000];
+const aquam = [500,1000,5000,10000,50000];
+const ton = [0.5,1,2,5];
+const vouchers = ["₦100","₦200","₦500"];
+const dstv = ["DSTV Compact","DSTV Premium"];
+const gotv = ["GOTV Smallie","GOTV Max"];
+
+/* ---------- Generator ---------- */
+function generateItem() {
+    const from = wallet();
+    const to = wallet();
+    const a = rand(actions);
+
+    if (a === "transfer") return {
+        icon:"fa-arrow-right-arrow-left",
+        text:`${from} sent <span class="text-blue-400">${rand(aquam).toLocaleString()} AQUAM</span> to ${to}`
+    };
+
+    if (a === "fund") return {
+        icon:"fa-wallet",
+        text:`${from} funded wallet with <span class="text-green-400">${rand(aquam).toLocaleString()} AQUAM</span>`
+    };
+
+    if (a === "airtime") return {
+        icon:"fa-phone",
+        text:`${from} bought <span class="text-yellow-400">₦${rand(airtime)} airtime</span>`
+    };
+
+    if (a === "data") return {
+        icon:"fa-wifi",
+        text:`${from} purchased <span class="text-yellow-400">${rand(data)} data</span>`
+    };
+
+    if (a === "dstv") return {
+        icon:"fa-tv",
+        text:`${from} paid for <span class="text-purple-400">${rand(dstv)}</span>`
+    };
+
+    if (a === "gotv") return {
+        icon:"fa-tv",
+        text:`${from} subscribed to <span class="text-purple-400">${rand(gotv)}</span>`
+    };
+
+    if (a === "electricity") return {
+        icon:"fa-bolt",
+        text:`${from} paid <span class="text-orange-400">₦${rand(power)}</span> electricity bill`
+    };
+
+    if (a === "spin_aquam") return {
+        icon:"fa-coins",
+        text:`${from} won <span class="text-blue-400">${rand(aquam).toLocaleString()} AQUAM</span> on Spin2Win`
+    };
+
+    if (a === "spin_ton") return {
+        icon:"fa-gem",
+        text:`${from} won <span class="text-cyan-400">${rand(ton)} TON</span> on Spin2Win`
+    };
+
+    return {
+        icon:"fa-ticket",
+        text:`${from} won <span class="text-pink-400">${rand(vouchers)} voucher</span> on Spin2Win`
+    };
+}
+
+/* ---------- Slider Engine ---------- */
+const track = document.getElementById("activityTrack");
+
+function pushActivity() {
+    const a = generateItem();
+    const div = document.createElement("div");
+    div.className = `activity-item activity-${a.type}`;
+    div.innerHTML = `
+        <div class="activity-icon"><i class="fa-solid ${a.icon}"></i></div>
+        <div>${a.text}</div>
+    `;
+    track.appendChild(div);
+
+    if (track.children.length > 1) {
+        track.classList.add("slide-up");
+
+        setTimeout(() => {
+            track.classList.remove("slide-up");
+            track.removeChild(track.children[0]);
+        }, 450);
+    }
+}
+
+/* ---------- Start ---------- */
+pushActivity();
+setInterval(pushActivity, 5000);
+</script>
 </body>
 </html>

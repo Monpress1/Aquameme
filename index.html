@@ -537,6 +537,7 @@ function finalizeSuccess(naira) {
     document.getElementById("payBtn").innerHTML = `<i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>`;
 }
 
+
 function saveTx(type, amt, status) {
     const tx = { type, amt, status, date: new Date().toLocaleTimeString() };
     txHistory.unshift(tx);
