@@ -122,9 +122,16 @@
     <button id="spinBtn" onclick="startSpin()" class="w-full max-w-xs py-4 mt-4 bg-blue-600 rounded-2xl font-black text-white text-lg shadow-xl shadow-blue-500/30 active:scale-95 transition-all">
         SPIN NOW
     </button>
-    
-    <button onclick="buySpin()" class="mt-3 text-[10px] font-bold text-blue-500 uppercase border-b border-blue-500">Buy 1 Spin (10,000 AQUAM)</button>
+    <div class="flex flex-wrap justify-center gap-2 mt-4">
+    <div class="flex flex-wrap justify-center gap-2 mt-4">
+    <button onclick="buySpin(0.1, 1)" class="text-[10px] font-bold text-blue-500 uppercase border border-blue-500 px-3 py-1 rounded-lg hover:bg-blue-500/10">1 Spin ($0.1)</button>
+    <button onclick="buySpin(0.3, 3)" class="text-[10px] font-bold text-blue-500 uppercase border border-blue-500 px-3 py-1 rounded-lg hover:bg-blue-500/10">3 Spins ($0.3)</button>
+    <button onclick="buySpin(0.5, 6)" class="text-[10px] font-bold text-blue-500 uppercase border border-blue-500 px-3 py-1 rounded-lg hover:bg-blue-500/10">6 Spins ($0.5)</button>
+    <button onclick="buySpin(1.0, 15)" class="text-[10px] font-bold text-blue-500 uppercase border border-blue-500 px-3 py-1 rounded-lg hover:bg-blue-500/10">15 Spins ($1)</button>
+</div>
 
+
+    
     <div class="w-full mt-8 space-y-4">
         <div class="flex justify-between items-center px-1">
             <h2 class="text-sm font-black uppercase tracking-widest">Spin History</h2>
@@ -248,14 +255,14 @@ const WITHDRAW_LIMIT = 1110583;
 const TON_API = "https://tonapi.io/v2";
 
 const segments = [
-    { label: "TRY AGAIN", unit: "You will win some other time", type: "nothing", weight: 30, color: "#94a3b8", val: 0 },
+    { label: "TRY AGAIN", unit: "You will win some other time", type: "nothing", weight: 40, color: "#94a3b8", val: 0 },
     { label: "$10 JACKPOT", unit: "Claim Now", type: "jackpot", weight: 0.4, color: "#3b82f6", val: 10 },
     { label: "1,000 Aquam", unit: "AQUAM", type: "aquam", weight: 10, color: "#eab308", val: 1000 },
     { label: "₦500 airtime", unit: "AIRTIME", type: "voucher", weight: 5, color: "#94a3b8", val: 0 },
     { label: "₦100 Airtime", unit: "AIRTIME", type: "voucher", subtype: 'airtime', weight: 4, color: "#f43f5e", val: 100 },
     { label: "0.01 Ton", unit: "TON", type: "ton", weight: 3, color: "#22c55e", val: 0.01 },
     { label: "500MB voucher", unit: "DATA", type: "voucher", subtype: 'data', weight: 2, color: "#06b6d4", val: 500 },
-    { label: "0.05 Ton", unit: "TON", type: "ton", weight: 1, color: "#10b981", val: 4.0}
+    { label: "0.05 Ton", unit: "TON", type: "ton", weight: 1, color: "#10b981", val: 0.05 }
 ];
 
 
@@ -334,71 +341,79 @@ async function loadBalances() {
 }
 
 
-async function buySpin() {
-    const SPIN_COST = 10000;
-    
-    // 1. Basic Checks
-    if (!userAddress) return alert("Please connect your wallet first.");
-    if (!jettonWallet) return alert("AQUAM Wallet not found. Please wait a moment for sync.");
-    if (userAquaBalance < SPIN_COST) return alert("Insufficient AQUAM balance!");
+async function buySpin(usdAmount, ticketAmount) {
+    // 1. Safety check: Ensure market price is loaded
+    if (!currentPriceUsd || currentPriceUsd <= 0) {
+        return alert("Market price syncing... Please try again in 2 seconds.");
+    }
 
-    // 2. Identify the button to show loading state
-    const btn = document.querySelector("button[onclick='buySpin()']");
-    const originalText = btn ? btn.innerText : "Buy 1 Spin";
+    // 2. Calculate AQUAM needed: (USD Cost / Current Price of 1 AQUAM)
+    const requiredAquam = Math.ceil(usdAmount / currentPriceUsd);
+    
+    // 3. Validation Checks
+    if (!userAddress) return alert("Please connect your wallet first.");
+    if (!jettonWallet) return alert("AQUAM Wallet sync incomplete. Please wait.");
+    if (userAquaBalance < requiredAquam) {
+        return alert(`Insufficient AQUAM! You need approx ${requiredAquam.toLocaleString()} AQUAM for this purchase.`);
+    }
+
+    const btn = event.currentTarget;
+    const originalText = btn.innerText;
 
     try {
-        if(btn) btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> AUTHORIZING...`;
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i>`;
 
-        // 3. Construct Payload (Matches your Terminal code exactly)
-        const jetAmt = BigInt(SPIN_COST * 1e9); 
+        // 4. Construct Payload (Using the calculated requiredAquam)
+        const jetAmt = BigInt(requiredAquam * 1e9); 
         const cell = new TonWeb.boc.Cell();
         
-        cell.bits.writeUint(0xf8a7ea5, 32); // OpCode
-        cell.bits.writeUint(0, 64);         // QueryId
-        cell.bits.writeCoins(jetAmt);       // 10,000 AQUAM
+        cell.bits.writeUint(0xf8a7ea5, 32); 
+        cell.bits.writeUint(0, 64);         
+        cell.bits.writeCoins(jetAmt);       
         cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY)); 
         cell.bits.writeAddress(new TonWeb.utils.Address(userAddress)); 
         cell.bits.writeBit(0); 
-        cell.bits.writeCoins(TonWeb.utils.toNano("0.02")); // Forward amount
+        cell.bits.writeCoins(TonWeb.utils.toNano("0.02")); 
         cell.bits.writeBit(0); 
 
         const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
 
-        // 4. Send Transaction (Using 0.07 TON for gas as in your Terminal)
+        // 5. Send Transaction
         await tonUI.sendTransaction({
             validUntil: Math.floor(Date.now() / 1000) + 300,
-            messages: [
-                {
-                    address: jettonWallet, // Send to your personal jetton wallet
-                    amount: TonWeb.utils.toNano("0.07").toString(), // TON Gas Fee
-                    payload: payload
-                }
-            ]
+            messages: [{
+                address: jettonWallet,
+                amount: TonWeb.utils.toNano("0.07").toString(),
+                payload: payload
+            }]
         });
 
-        // 5. Success Logic
-        tickets += 1; // Give the user their ticket
+        // 6. Update State
+        tickets += ticketAmount;
         updateUI();
         
-        // Save to history (Matches your Wheel's history system)
-        const tx = { icon: "🎫", title: "Bought 1 Spin", date: new Date().toLocaleTimeString() };
+        const tx = { 
+            icon: "🎫", 
+            title: `Purchased ${ticketAmount} Spins`, 
+            date: new Date().toLocaleTimeString() 
+        };
         txHistory.unshift(tx);
         localStorage.setItem('spin_history_pro', JSON.stringify(txHistory.slice(0, 10)));
         renderHistory();
 
-        alert("Success! 1 Spin added to your balance.");
+        alert(`Transaction Sent! ${ticketAmount} spins will be added shortly.`);
 
     } catch (e) {
         console.error("Purchase Error:", e);
         if (!String(e).includes("User rejected")) {
-            alert("Transaction Failed. Ensure you have at least 0.1 TON for gas fees.");
+            alert("Transaction failed. Check your TON gas balance.");
         }
     } finally {
-        if(btn) btn.innerText = originalText;
+        btn.disabled = false;
+        btn.innerText = originalText;
     }
 }
-
-
 
 async function updateMarketData() {
     try {
@@ -481,29 +496,36 @@ function updateUI() {
 // --- GAMEPLAY ---
 
 function startSpin() {
-    if(isSpinning || tickets <= 0) return;
+    if(isSpinning) return;
 
-   // --- Inside startSpin() ---
-const minHoldValue = 10.0; // Change $10 to $0.01 to test easily
-const currentHoldValue = userAquaBalance * currentPriceUsd;
+    // --- Access Control Logic ---
+    const minHoldValue = 10; // The $10 threshold
+    const currentHoldValue = userAquaBalance * currentPriceUsd;
 
-if (!userAddress) {
-    customAlert("Wallet Error", "Please connect your wallet first!", "🔌");
-    return;
-}
+    // 1. Check if Wallet is connected
+    if (!userAddress) {
+        showPopup("Connection Required", "Please connect your TON wallet to start spinning.", "🔌");
+        return;
+    }
 
-// If userAquaBalance is 0 because the loader failed, this triggers.
-if (currentHoldValue < minHoldValue) {
-    customAlert(
-        "Access Denied", 
-        `Hold at least $${minHoldValue} of AQUAM. (You have: $${currentHoldValue.toFixed(2)})`, 
-        "🔒"
-    );
-    return;
-}
+    // 2. Check if balance is sufficient
+    if (currentHoldValue < minHoldValue) {
+        const needed = (minHoldValue - currentHoldValue).toFixed(2);
+        showPopup(
+            "Access Denied", 
+            `You need at least $${minHoldValue} worth of AQUAM to spin.<br><br>Your current balance: $${currentHoldValue.toFixed(2)}<br>Shortfall: $${needed}`, 
+            "🔒"
+        );
+        return;
+    }
 
+    // 3. Check for tickets
+    if (tickets <= 0) {
+        showPopup("No Spins Left", "You've used all your tickets. Buy more or wait for the daily refill!", "🎫");
+        return;
+    }
 
-
+    // --- Proceed with Spin if checks pass ---
     tickets--;
     isSpinning = true;
     updateUI();
@@ -529,6 +551,7 @@ if (currentHoldValue < minHoldValue) {
     }
     requestAnimationFrame(animate);
 }
+
 
 function finalizeSpin(winner) {
     isSpinning = false;
@@ -614,22 +637,24 @@ function finalizeSpin(winner) {
 }
 
 
-// THE SINGLE BEAUTIFY FUNCTION (Pure JS)
 function showPopup(title, msg, icon) {
-    // Create overlay
     const overlay = document.createElement("div");
     Object.assign(overlay.style, {
-        position: "fixed", inset: "0", background: "rgba(0,0,0,0.8)", 
+        position: "fixed", inset: "0", background: "rgba(0,0,0,0.85)", 
         backdropFilter: "blur(12px)", webkitBackdropFilter: "blur(12px)",
         display: "flex", alignItems: "center", justifyContent: "center", 
-        zIndex: "10000", padding: "20px", transition: "opacity 0.3s ease"
+        zIndex: "10000", padding: "20px", transition: "all 0.3s ease"
     });
 
     overlay.innerHTML = `
-        <div style="background:#131b29; border:1px solid rgba(59, 130, 246, 0.3); border-radius:28px; padding:32px; width:100%; max-width:340px; text-align:center; color:white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+        <div style="background:#131b29; border:1px solid rgba(59, 130, 246, 0.3); border-radius:28px; padding:32px; width:100%; max-width:340px; text-align:center; color:white; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); transform: scale(0.9); animation: popIn 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+            <style>
+                @keyframes popIn { to { transform: scale(1); } }
+                b { color: #3b82f6; }
+            </style>
             <div style="font-size:50px; margin-bottom:15px; filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5))">${icon}</div>
             <h3 style="margin:0; font-size:18px; font-weight:900; text-transform:uppercase; letter-spacing:1px; color:#3b82f6">${title}</h3>
-            <div style="font-size:14px; opacity:0.8; margin:15px 0 25px; line-height:1.5; font-family:'Manrope', sans-serif">
+            <div style="font-size:14px; opacity:0.9; margin:15px 0 25px; line-height:1.6; font-family:'Manrope', sans-serif">
                 ${msg}
             </div>
             <button id="closePopBtn" style="width:100%; padding:14px; background:#3b82f6; color:white; border-radius:16px; font-weight:900; border:none; cursor:pointer; active:scale-95; transition:0.2s; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4)">
@@ -640,12 +665,12 @@ function showPopup(title, msg, icon) {
 
     document.body.appendChild(overlay);
 
-    // Close logic
     document.getElementById("closePopBtn").onclick = () => {
         overlay.style.opacity = "0";
         setTimeout(() => overlay.remove(), 300);
     };
 }
+
 
 // --- UI HELPERS ---
 
@@ -936,3 +961,4 @@ function clearHistory() { txHistory = []; localStorage.removeItem('spin_history_
 </script>
 </body>
 </html>
+
