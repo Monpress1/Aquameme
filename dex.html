@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Swap | AquaCoinX</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root { --bg: #0b111b; --card: #131b29; --border: #1e293b; --text: #ffffff; --subtext: #94a3b8; --primary: #3b82f6; }
+    
+    html, body { 
+        width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; 
+        overscroll-behavior: none; touch-action: none; background: var(--bg); 
+        color: var(--text); font-family: 'Manrope', sans-serif;
+    }
+
+    .app-wrapper { display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; }
+
+    /* Wiggle Animation: Fast-Fast-Slow-Pause */
+    @keyframes wiggle-pro {
+        0%, 20%, 40%, 100% { transform: rotate(0); }
+        5% { transform: rotate(20deg); }
+        10% { transform: rotate(-20deg); }
+        15% { transform: rotate(20deg); }
+        25% { transform: rotate(8deg); }
+        35% { transform: rotate(-8deg); }
+    }
+    .wiggle-icon { animation: wiggle-pro 3.5s infinite ease-in-out; display: inline-block; }
+
+    /* Merge Loader Animation */
+    .merge-box { position: relative; display: flex; align-items: center; justify-content: center; height: 100px; width: 100%; }
+    .word { position: absolute; font-weight: 900; letter-spacing: 2px; transition: all 0.8s cubic-bezier(0.7, 0, 0.3, 1); font-size: 1.2rem; }
+    #word-left { transform: translateX(-60px); opacity: 1; color: var(--primary); }
+    #word-right { transform: translateX(60px); opacity: 1; color: #ffffff; }
+    
+    .merging #word-left { transform: translateX(0); opacity: 0; scale: 0.5; filter: blur(10px); }
+    .merging #word-right { transform: translateX(0); opacity: 0; scale: 0.5; filter: blur(10px); }
+
+    #lock-icon { opacity: 0; transform: scale(0.5); transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: absolute; }
+    .merging #lock-icon { opacity: 1; transform: scale(1.2); }
+
+    .lock-glow { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8)); color: var(--primary); }
+
+    /* Layout Elements */
+    header { height: 70px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid rgba(30, 41, 59, 0.5); z-index: 60; }
+    main { flex-grow: 1; position: relative; width: 100%; }
+    .iframe-container { width: 100%; height: 100%; }
+    iframe { width: 100%; height: 100%; border: none; touch-action: auto; }
+
+    nav { height: 85px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; background: rgba(11, 17, 27, 0.98); backdrop-blur: 15px; border-top: 1px solid rgba(30, 41, 59, 0.8); z-index: 60; }
+    .nav-item { color: var(--subtext); display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; gap: 5px; font-weight: 600; cursor: pointer; }
+    .nav-item.active { color: var(--primary); }
+
+    .loading-screen { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+</style>
+</head>
+
+<body>
+
+<div class="app-wrapper">
+    <header>
+      <div class="flex items-center gap-4">
+        <a href="index.html" class="text-gray-400"><i class="fa-solid fa-chevron-left text-lg"></i></a>
+        <h1 class="font-extrabold text-lg tracking-tight">Aquameme</h1>
+      </div>
+      
+      <div onclick="openModal()" class="cursor-pointer">
+          <i class="fa-solid fa-clipboard-question text-2xl text-blue-500 wiggle-icon"></i>
+      </div>
+    </header>
+
+    <main>
+        <div id="loader" class="loading-screen">
+            <div class="merge-box" id="mergeContainer">
+                <span id="word-left" class="word uppercase tracking-widest">AQUAM</span>
+             +   <span id="word-right" class="word uppercase tracking-widest">STON.fi</span>
+                <i id="lock-icon" class="fa-solid fa-lock text-4xl lock-glow"></i>
+            </div>
+        </div>
+        
+        <div class="iframe-container">
+            <iframe id="stonfiFrame" allow="clipboard-read; clipboard-write"></iframe>
+        </div>
+    </main>
+
+    <nav>
+        <div onclick="window.location.href='index.html'" class="nav-item"><i class="fa-solid fa-house-chimney"></i><span>Home</span></div>
+        <div onclick="window.location.href='s2w.html'" class="nav-item"><i class="fa-solid fa-dice"></i><span>Spin2Win</span></div>
+        <div class="nav-item active"><i class="fa-solid fa-right-left"></i><span>Swap</span></div>
+        <div onclick="window.location.href='p2p.html'" class="nav-item"><i class="fa-solid fa-handshake"></i><span>P2P</span></div>
+        <div onclick="window.location.href='market.html'" class="nav-item"><i class="fa-solid fa-shopping-cart"></i><span>Market</span></div>
+    </nav>
+</div>
+
+<div id="helpModal" class="fixed inset-0 z-[200] hidden items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+    <div class="bg-[#131b29] border border-gray-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl">
+        <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 mb-4">
+            <i class="fa-solid fa-lightbulb"></i>
+        </div>
+        <h3 class="font-bold text-lg mb-4">How to Swap</h3>
+        <ul class="space-y-4 text-sm text-gray-400 font-medium">
+            <li class="flex gap-3"><span class="text-blue-500 font-bold">1.</span> Connect wallet </li>
+            <li class="flex gap-3"><span class="text-blue-500 font-bold">2.</span> Click "Select Asset" on the bottom field.</li>
+            <li class="flex gap-3"><span class="text-blue-500 font-bold">3.</span> Search and select AQUAM.</li>
+            <li class="flex gap-3"><span class="text-blue-500 font-bold">4.</span> Input the amount you want to convert.</li>
+        </ul>
+        <button onclick="closeModal()" class="w-full mt-6 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 active:scale-95 transition-all">GOT IT</button>
+    </div>
+</div>
+
+<script>
+    const AQUAM_ADDRESS = "EQA71L6_7UY_aENYSZ_cfbFyUz8SsunxTWyN5Ac80BV_Hg5Z"; 
+
+    // Modal logic
+    function openModal() { document.getElementById('helpModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('helpModal').style.display = 'none'; }
+
+    // Merge & Load logic
+    function initTerminal() {
+        const frame = document.getElementById("stonfiFrame");
+        const loader = document.getElementById("loader");
+        const container = document.getElementById("mergeContainer");
+        
+        const url = `https://app.ston.fi/swap?chartVisible=false&ft=TON&tt=${AQUAM_ADDRESS}&theme=dark`;
+        frame.src = url;
+
+        frame.onload = () => {
+            // Trigger the "Merge" animation
+            setTimeout(() => {
+                container.classList.add('merging');
+
+                // Fade out the entire loading screen after merge
+                setTimeout(() => {
+                    loader.style.transition = "opacity 0.8s ease";
+                    loader.style.opacity = "0";
+                    setTimeout(() => loader.style.display = "none", 800);
+                }, 1800);
+            }, 1200);
+        };
+    }
+
+    // Scroll Lock
+    document.addEventListener('touchmove', e => { if (!e.target.closest('iframe')) e.preventDefault(); }, { passive: false });
+
+    window.onload = initTerminal;
+</script>
+
+</body>
+</html>
