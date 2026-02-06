@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aqua P2P Market | Secure Escrow</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+
+    <style>
+        :root { --primary: #3b82f6; }
+        .chat-bubble { max-width: 85%; padding: 12px; border-radius: 16px; margin-bottom: 8px; font-size: 14px; line-height: 1.4; }
+        .chat-me { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-them { background: #f3f4f6; color: #1f2937; align-self: flex-start; border-bottom-left-radius: 4px; }
+        .system-msg { text-align: center; font-size: 11px; color: #9ca3af; margin: 15px 0; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
+        .loader { border: 2px solid #f3f3f3; border-top: 2px solid var(--primary); border-radius: 50%; width: 18px; height: 18px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans mb-20">
+
+    <header class="bg-white border-b sticky top-0 z-40 p-4">
+        <div class="max-w-lg mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="font-black text-2xl tracking-tighter text-blue-600">AQUA<span class="text-gray-900">P2P</span></h1>
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Secure Escrow Terminal</p>
+            </div>
+            <div class="text-right">
+                <div id="aquamRate" class="text-sm font-black text-green-600">$0.0000</div>
+                <div class="text-[10px] font-bold text-gray-400">1 USD ≈ 1,650 NGN</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-lg mx-auto p-4">
+        <div class="flex bg-gray-200/50 p-1 rounded-xl mb-6">
+            <button onclick="switchTab('market')" id="tab-market" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-white shadow-sm text-blue-600">Marketplace</button>
+            <button onclick="switchTab('my-trades')" id="tab-my-trades" class="flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-500 transition-all">My Trades</button>
+        </div>
+
+        <div id="view-market" class="space-y-3">
+            <div id="marketList" class="space-y-3"></div>
+        </div>
+
+        <div id="view-my-trades" class="hidden space-y-3">
+            <div id="myTradesList" class="space-y-3"></div>
+        </div>
+    </main>
+
+    <button onclick="openSellModal()" class="fixed bottom-6 right-6 bg-blue-600 text-white w-14 h-14 rounded-2xl shadow-2xl shadow-blue-500/40 flex items-center justify-center text-xl hover:scale-105 active:scale-95 transition-all z-30">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <div id="sellModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl p-6 animate-slide-up">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black">Create Sell Offer</h2>
+                <button onclick="closeModal('sellModal')" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center"><i class="fa-solid fa-xmark text-gray-400"></i></button>
+            </div>
+            
+            <form id="sellForm" onsubmit="handleCreateOffer(event)" class="space-y-4">
+                <div class="grid grid-cols-1 gap-3">
+                    <input type="text" id="sellerName" placeholder="Account Name" required class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-500 font-semibold">
+                    <input type="text" id="bankName" placeholder="Bank Name" required class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-500 font-semibold">
+                    <input type="number" id="accountNum" placeholder="Account Number" required class="w-full p-4 bg-gray-50 border border-gray-100 rounded-xl outline-none focus:border-blue-500 font-semibold">
+                </div>
+
+                <div class="bg-blue-600 p-5 rounded-2xl text-white">
+                    <label class="block text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">Amount to Sell (AQUA)</label>
+                    <input type="number" id="sellAmount" oninput="calculateFiat()" placeholder="0.00" required class="w-full bg-transparent text-4xl font-black outline-none placeholder:text-blue-400">
+                    <p class="mt-4 text-sm font-bold opacity-90 text-right">≈ ₦<span id="calcFiat">0.00</span></p>
+                </div>
+
+                <button type="submit" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-lg shadow-xl">List Offer</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="tradeModal" class="fixed inset-0 bg-white hidden z-[60] flex flex-col">
+        <header class="p-4 border-b flex justify-between items-center">
+            <button onclick="closeModal('tradeModal')" class="p-2"><i class="fa-solid fa-chevron-left text-xl"></i></button>
+            <div class="text-center">
+                <p id="tradeIdDisplay" class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Trade ID: ---</p>
+                <div id="tradeStatusBadge" class="text-xs font-black px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 uppercase">Checking...</div>
+            </div>
+            <div class="w-10"></div>
+        </header>
+
+        <div id="chatContainer" class="flex-1 overflow-y-auto bg-gray-50 p-4">
+            <div id="ton-connect-container" class="hidden mb-4 flex justify-center"></div>
+
+            <div id="tradeDetailsCard" class="space-y-3 mb-6"></div>
+            <div id="messagesList" class="flex flex-col"></div>
+        </div>
+
+        <div class="p-4 bg-white border-t flex items-center gap-3">
+            <button onclick="document.getElementById('fileInput').click()" class="text-gray-400 hover:text-blue-500"><i class="fa-solid fa-paperclip text-xl"></i></button>
+            <input type="file" id="fileInput" class="hidden" onchange="handleImageUpload(this)">
+            <input type="text" id="messageInput" placeholder="Type message..." class="flex-1 bg-gray-100 rounded-2xl px-4 py-3 outline-none font-medium">
+            <button onclick="sendMessage()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const SUPABASE_URL = "https://ptllbgdixhesptlkqrqa.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+        const EDGE_FUNC_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/P2p";
+        const TREASURY = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D"; 
+        const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
+        const NGN_RATE = 1650;
+
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json",
+            buttonRootId: "ton-connect-container"
+        });
+
+        let currentUser = null;
+        let activeTradeId = null;
+        let currentPriceUSD = 0;
+
+        // --- INIT ---
+        window.onload = async () => {
+            const { data: { session } } = await sb.auth.getSession();
+            if (!session) {
+                const { data } = await sb.auth.signInAnonymously();
+                currentUser = data.user;
+            } else {
+                currentUser = session.user;
+            }
+            
+            await fetchPrice();
+            loadMarketplace();
+            
+            const saved = JSON.parse(localStorage.getItem('seller_profile') || '{}');
+            if(saved.name) {
+                document.getElementById('sellerName').value = saved.name;
+                document.getElementById('bankName').value = saved.bank;
+                document.getElementById('accountNum').value = saved.account;
+            }
+        };
+
+        async function fetchPrice() {
+            try {
+                const res = await fetch(`https://api.ston.fi/v1/assets/EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d`);
+                const data = await res.json();
+                currentPriceUSD = parseFloat(data.asset.dex_usd_price);
+                document.getElementById('aquamRate').innerText = `1 AQUA = $${currentPriceUSD.toFixed(6)}`;
+            } catch (e) { document.getElementById('aquamRate').innerText = "Price Offline"; }
+        }
+
+        // --- MARKET LOGIC ---
+        async function loadMarketplace() {
+            const list = document.getElementById('marketList');
+            list.innerHTML = '<div class="py-10 flex justify-center"><div class="loader"></div></div>';
+
+            const { data: offers } = await sb.from('trades').select('*').is('buyer_id', null).eq('status', 'AWAITING_DEPOSIT').order('created_at', { ascending: false });
+            
+            list.innerHTML = '';
+            if(!offers || offers.length === 0) return list.innerHTML = '<p class="text-center text-gray-400 py-10 font-bold">No offers available</p>';
+
+            offers.forEach(offer => {
+                const div = document.createElement('div');
+                div.className = "bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center";
+                div.innerHTML = `
+                    <div>
+                        <p class="text-2xl font-black">${offer.amount_token.toLocaleString()} <span class="text-xs text-blue-500">AQUA</span></p>
+                        <p class="text-sm font-bold text-gray-500">₦${parseInt(offer.amount_fiat).toLocaleString()}</p>
+                        <p class="text-[10px] text-gray-400 mt-1 uppercase font-black"><i class="fa-solid fa-bank"></i> ${offer.bank_details.bank}</p>
+                    </div>
+                    <button onclick="buyNow('${offer.id}')" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-sm">BUY</button>
+                `;
+                list.appendChild(div);
+            });
+        }
+// --- MARKET LOGIC ---
+async function loadMarketplace() {
+    const list = document.getElementById('marketList');
+    list.innerHTML = '<div class="py-10 flex justify-center"><div class="loader"></div></div>';
+
+    // FIX: Use .in() to fetch trades that are AWAITING_DEPOSIT or ESCROW_LOCKED
+    // This ensures your funded trade shows up for other users.
+    const { data: offers, error } = await sb.from('trades')
+        .select('*')
+        .is('buyer_id', null)
+        .in('status', ['AWAITING_DEPOSIT', 'ESCROW_LOCKED'])
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error("Marketplace Load Error:", error);
+        return list.innerHTML = '<p class="text-center text-red-400 py-10 font-bold">Failed to load marketplace</p>';
+    }
+    
+    list.innerHTML = '';
+    
+    // Check if there are offers and filter out the current user's own offers 
+    // (Optional: sellers usually shouldn't buy their own ads)
+    const availableOffers = offers ? offers.filter(o => o.seller_id !== currentUser?.id) : [];
+
+    if(availableOffers.length === 0) {
+        return list.innerHTML = '<p class="text-center text-gray-400 py-10 font-bold">No offers available</p>';
+    }
+
+    availableOffers.forEach(offer => {
+        const div = document.createElement('div');
+        div.className = "bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center";
+        
+        // Visual indicator if the trade is already locked/secured
+        const isLocked = offer.status === 'ESCROW_LOCKED';
+        const badge = isLocked ? 
+            `<span class="text-[9px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full ml-2">SECURED</span>` : 
+            `<span class="text-[9px] bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-full ml-2">UNFUNDED</span>`;
+
+        div.innerHTML = `
+            <div>
+                <p class="text-2xl font-black">
+                    ${offer.amount_token.toLocaleString()} 
+                    <span class="text-xs text-blue-500">AQUA</span>
+                    ${badge}
+                </p>
+                <p class="text-sm font-bold text-gray-500">₦${parseInt(offer.amount_fiat).toLocaleString()}</p>
+                <p class="text-[10px] text-gray-400 mt-1 uppercase font-black">
+                    <i class="fa-solid fa-bank"></i> ${offer.bank_details.bank}
+                </p>
+            </div>
+            <button onclick="buyNow('${offer.id}')" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-sm hover:bg-blue-700 transition-colors">
+                BUY
+            </button>
+        `;
+        list.appendChild(div);
+    });
+}
+
+        async function handleCreateOffer(e) {
+    e.preventDefault();
+    const amount = parseFloat(document.getElementById('sellAmount').value);
+    const fiat = amount * currentPriceUSD * NGN_RATE;
+    
+    const profile = {
+        name: document.getElementById('sellerName').value,
+        bank: document.getElementById('bankName').value,
+        account: document.getElementById('accountNum').value
+    };
+    localStorage.setItem('seller_profile', JSON.stringify(profile));
+
+    // Log the data we are sending to debug
+    console.log("Sending to Supabase:", {
+        seller_id: currentUser.id,
+        amount_token: amount,
+        amount_fiat: fiat,
+        bank_details: profile,
+        status: 'AWAITING_DEPOSIT'
+    });
+
+    const { data, error } = await sb.from('trades').insert({
+        seller_id: currentUser.id,
+        amount_token: amount,
+        amount_fiat: fiat,
+        bank_details: profile,
+        status: 'AWAITING_DEPOSIT'
+        // Notice: buyer_wallet_address is omitted here so it stays null
+    }).select();
+
+    if (error) {
+        console.error("Supabase Error:", error);
+        alert(`Error: ${error.message}\nHint: ${error.hint || 'Check console'}`);
+    } else {
+        closeModal('sellModal');
+        openTradeModal(data[0].id);
+    }
+}
+
+
+        async function buyNow(tradeId) {
+            const walletAddr = prompt("Enter your TON Wallet Address to receive AQUA:");
+            if(!walletAddr) return;
+
+            const { error } = await sb.from('trades').update({ 
+                buyer_id: currentUser.id,
+                buyer_wallet_address: walletAddr 
+            }).eq('id', tradeId);
+
+            if(!error) openTradeModal(tradeId);
+        }
+
+        // --- TRADE & ESCROW UI ---
+        async function openTradeModal(tradeId) {
+            activeTradeId = tradeId;
+            document.getElementById('tradeModal').classList.remove('hidden');
+            document.getElementById('tradeIdDisplay').innerText = `ID: ${tradeId.split('-')[0]}`;
+            
+            subscribeToTrade(tradeId);
+            refreshTradeData();
+        }
+
+        async function refreshTradeData() {
+            const { data: trade } = await sb.from('trades').select('*').eq('id', activeTradeId).single();
+            if(!trade) return;
+            renderTradeUI(trade);
+            loadChatMessages(trade.id);
+        }
+
+        function renderTradeUI(trade) {
+            const isSeller = trade.seller_id === currentUser.id;
+            const isBuyer = trade.buyer_id === currentUser.id;
+            const container = document.getElementById('tradeDetailsCard');
+            const badge = document.getElementById('tradeStatusBadge');
+            const tonContainer = document.getElementById('ton-connect-container');
+
+            badge.innerText = trade.status.replace(/_/g, ' ');
+            
+            let html = `<div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-gray-400 font-bold">Total Amount</span>
+                    <span class="font-black text-blue-600">${trade.amount_token} AQUA</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                    <span class="text-gray-400 font-bold">Fiat to Pay</span>
+                    <span class="font-black">₦${parseInt(trade.amount_fiat).toLocaleString()}</span>
+                </div>
+            </div>`;
+
+            // Logic per status
+            if (trade.status === 'AWAITING_DEPOSIT') {
+                if (isSeller) {
+                    tonContainer.classList.remove('hidden');
+                    html += `<div class="mt-4 p-4 bg-yellow-50 rounded-2xl border border-yellow-100 text-yellow-800 text-sm">
+                        <p class="font-black mb-2 uppercase text-[10px]">Action Required</p>
+                        <p class="font-bold">Connect your wallet and deposit AQUA to lock the trade in escrow.</p>
+                        <button id="depositBtn" onclick="depositToEscrow(${trade.amount_token}, '${trade.id}')" class="w-full mt-4 bg-yellow-500 text-white py-4 rounded-xl font-black shadow-lg">DEPOSIT & LOCK</button>
+                    </div>`;
+                } else {
+                    tonContainer.classList.add('hidden');
+                    html += `<p class="text-center text-xs text-gray-400 font-bold mt-4 uppercase">Waiting for seller to deposit...</p>`;
+                }
+            } 
+            else if (trade.status === 'ESCROW_LOCKED') {
+                tonContainer.classList.add('hidden');
+                if (isBuyer) {
+                    html += `<div class="mt-4 p-4 bg-blue-50 rounded-2xl border border-blue-100 text-blue-800 text-sm">
+                        <p class="font-black mb-2 uppercase text-[10px]">Safe to Pay</p>
+                        <p class="mb-1"><b>Bank:</b> ${trade.bank_details.bank}</p>
+                        <p class="mb-1"><b>Number:</b> ${trade.bank_details.account}</p>
+                        <p class="mb-3"><b>Name:</b> ${trade.bank_details.name}</p>
+                        <button onclick="markAsPaid()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black shadow-lg">I HAVE PAID</button>
+                    </div>`;
+                } else {
+                    html += `<p class="text-center text-xs text-gray-400 font-bold mt-4 uppercase">Waiting for buyer to pay ₦${parseInt(trade.amount_fiat).toLocaleString()}...</p>`;
+                }
+            }
+            else if (trade.status === 'PAID_AWAITING_RELEASE') {
+                if (isSeller) {
+                    html += `<div class="mt-4 p-4 bg-green-50 rounded-2xl border border-green-100 text-green-800 text-sm">
+                        <p class="font-black mb-1">Buyer has paid!</p>
+                        <p class="mb-3">Confirm receipt in your bank and release coins.</p>
+                        <button onclick="releaseFunds()" class="w-full bg-green-600 text-white py-4 rounded-xl font-black shadow-lg">RELEASE CRYPTO</button>
+                    </div>`;
+                } else {
+                    html += `<p class="text-center text-xs text-gray-400 font-bold mt-4 uppercase">Waiting for seller to release coins...</p>`;
+                }
+            }
+            else if (trade.status === 'COMPLETED') {
+                html += `<div class="mt-4 p-6 bg-green-600 text-white rounded-2xl text-center font-black">TRADE COMPLETED</div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // --- BLOCKCHAIN LOGIC ---
+        async function depositToEscrow(amount, tradeId) {
+    const wallet = tonConnectUI.account;
+    if(!wallet) return alert("Connect Wallet first!");
+    const btn = document.getElementById('depositBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = `<div class="loader mx-auto"></div>`;
+
+    try {
+        // 1. Get Seller's Jettons
+        const res = await fetch(`https://tonapi.io/v2/accounts/${wallet.address}/jettons`);
+        const data = await res.json();
+        
+        // 2. Find AQUAM Jetton Wallet
+        const aqua = data.balances.find(j => j.jetton.address.includes("3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1"));
+        
+        if(!aqua) throw new Error("No AQUA tokens found in this wallet.");
+
+        // --- THE CRITICAL FIX ---
+        // Convert the raw "0:xxxx" address to a User-Friendly Base64 string
+        const sellerJettonWalletAddress = new TonWeb.utils.Address(aqua.wallet_address.address).toString(true, true, true);
+
+        const jetAmt = BigInt(Math.floor(amount * 1e9));
+        const cell = new TonWeb.boc.Cell();
+        cell.bits.writeUint(0xf8a7ea5, 32); // op::transfer
+        cell.bits.writeUint(0, 64); // query_id
+        cell.bits.writeCoins(jetAmt);
+        cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY));
+        cell.bits.writeAddress(new TonWeb.utils.Address(wallet.address));
+        cell.bits.writeBit(0); // no custom_payload
+        cell.bits.writeCoins(TonWeb.utils.toNano("0.05")); // forward_ton_amount
+        cell.bits.writeBit(0); // no forward_payload
+
+        const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+        
+        // 3. Send Transaction
+        const result = await tonConnectUI.sendTransaction({
+            validUntil: Math.floor(Date.now()/1000) + 300,
+            messages: [{ 
+                address: sellerJettonWalletAddress, // Now in correct format
+                amount: TonWeb.utils.toNano("0.1").toString(), 
+                payload: payload 
+            }]
+        });
+
+        if(result) {
+            // Update Supabase
+            await sb.from('trades').update({ 
+                status: 'ESCROW_LOCKED', 
+                tx_hash_deposit: result.boc 
+            }).eq('id', tradeId);
+            
+            // Log to chat
+            await sb.from('chat_messages').insert({ 
+                trade_id: tradeId, 
+                sender_id: currentUser.id, 
+                message_text: "System: Seller has locked AQUA in Escrow.", 
+                is_system_message: true 
+            });
+            
+            alert("Escrow Locked Successfully!");
+        }
+    } catch(e) { 
+        console.error(e);
+        alert("Transaction Failed: " + e.message); 
+        btn.innerHTML = originalText; 
+    }
+}
+
+        async function markAsPaid() {
+            await sb.from('trades').update({ status: 'PAID_AWAITING_RELEASE' }).eq('id', activeTradeId);
+            await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: currentUser.id, message_text: "System: Buyer marked as Paid. Check your bank.", is_system_message: true });
+        }
+
+        async function releaseFunds() {
+            if(!confirm("Release crypto? This is irreversible.")) return;
+            const res = await fetch(EDGE_FUNC_URL, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "release_funds", trade_id: activeTradeId })
+            });
+            const result = await res.json();
+            if(result.success) alert("Released!"); else alert(result.error);
+        }
+
+        // --- CHAT & REALTIME ---
+        function subscribeToTrade(tradeId) {
+            sb.channel(`trade-${tradeId}`)
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'trades', filter: `id=eq.${tradeId}` }, p => renderTradeUI(p.new))
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `trade_id=eq.${tradeId}` }, p => {
+                    appendMessage(p.new);
+                    document.getElementById('chatContainer').scrollTop = 999999;
+                })
+                .subscribe();
+        }
+
+        async function loadChatMessages(tradeId) {
+            const { data } = await sb.from('chat_messages').select('*').eq('trade_id', tradeId).order('created_at', { ascending: true });
+            const list = document.getElementById('messagesList');
+            list.innerHTML = '';
+            if(data) data.forEach(appendMessage);
+            document.getElementById('chatContainer').scrollTop = 999999;
+        }
+
+        function appendMessage(msg) {
+            const list = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            if(msg.is_system_message) {
+                div.className = "system-msg";
+                div.innerText = msg.message_text;
+            } else {
+                const isMe = msg.sender_id === currentUser.id;
+                div.className = `chat-bubble ${isMe ? 'chat-me' : 'chat-them'}`;
+                if(msg.image_url) div.innerHTML = `<img src="${msg.image_url}" class="rounded-xl mb-2 max-w-full">`;
+                div.innerHTML += `<span>${msg.message_text}</span>`;
+            }
+            list.appendChild(div);
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if(!text) return;
+            input.value = '';
+            await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: currentUser.id, message_text: text });
+        }
+
+        // --- UTILS ---
+        function calculateFiat() {
+            const val = parseFloat(document.getElementById('sellAmount').value) || 0;
+            document.getElementById('calcFiat').innerText = (val * currentPriceUSD * NGN_RATE).toLocaleString(undefined, {minimumFractionDigits: 2});
+        }
+
+        function switchTab(tab) {
+            document.getElementById('view-market').classList.toggle('hidden', tab !== 'market');
+            document.getElementById('view-my-trades').classList.toggle('hidden', tab !== 'my-trades');
+            document.getElementById('tab-market').className = tab === 'market' ? "flex-1 py-2.5 rounded-lg text-sm font-bold bg-white shadow-sm text-blue-600" : "flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-500";
+            document.getElementById('tab-my-trades').className = tab === 'my-trades' ? "flex-1 py-2.5 rounded-lg text-sm font-bold bg-white shadow-sm text-blue-600" : "flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-500";
+            if(tab === 'my-trades') loadMyTrades();
+        }
+
+        async function loadMyTrades() {
+            const list = document.getElementById('myTradesList');
+            list.innerHTML = '<div class="loader mx-auto"></div>';
+            const { data } = await sb.from('trades').select('*').or(`seller_id.eq.${currentUser.id},buyer_id.eq.${currentUser.id}`).order('created_at', {ascending: false});
+            list.innerHTML = '';
+            if(!data || data.length === 0) return list.innerHTML = '<p class="text-center text-gray-400 py-10">No trades found</p>';
+            data.forEach(t => {
+                const div = document.createElement('div');
+                div.onclick = () => openTradeModal(t.id);
+                div.className = "bg-white p-4 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer";
+                div.innerHTML = `<div><p class="font-black">${t.amount_token} AQUA</p><p class="text-[10px] text-gray-400 uppercase font-black">${t.status}</p></div><i class="fa-solid fa-chevron-right text-gray-300"></i>`;
+                list.appendChild(div);
+            });
+        }
+
+        function openSellModal() { document.getElementById('sellModal').classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); if(id==='tradeModal') sb.removeAllChannels(); }
+    </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>P2P Transfer | AquaCoinX</title>
+<title>Wallet | Aquam</title>
 
 <script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -12,140 +12,282 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-    :root { --bg: #0b111b; --card: #131b29; --border: #1e293b; --text: #ffffff; --subtext: #94a3b8; --primary: #3b82f6; --accent: #22c55e; }
-    body.light-mode { --bg: #f1f5f9; --card: #ffffff; --border: #cbd5e1; --text: #0f172a; --subtext: #64748b; }
-    body { background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif; -webkit-tap-highlight-color: transparent; transition: 0.3s; margin: 0; padding: 0; }
+    :root { 
+        --bg: #0b111b; 
+        --card: #131b29; 
+        --border: #1e293b; 
+        --text: #ffffff; 
+        --subtext: #94a3b8; 
+        --primary: #3b82f6; 
+    }
     
-    .card-bg { background: var(--card); border: 1px solid var(--border); border-radius: 1.25rem; position: relative; overflow: hidden; transition: 0.2s; }
+    body { 
+        background: var(--bg); 
+        color: var(--text); 
+        font-family: 'Manrope', sans-serif; 
+        -webkit-tap-highlight-color: transparent; 
+        margin: 0; 
+        padding-bottom: 120px; /* Extra space for nav */
+    }
+
+    .card-bg { 
+        background: var(--card); 
+        border: 1px solid var(--border); 
+        border-radius: 1.25rem; 
+    }
+
+    .action-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 16px;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+        transition: 0.2s;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
+    .action-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.08); border-color: var(--border); }
+    .action-btn i { font-size: 1.4rem; color: var(--text); }
+    .action-btn span { font-size: 0.7rem; font-weight: 600; color: var(--subtext); text-align: center; line-height: 1.1; }
+
+    /* Modal Styling */
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+        z-index: 100;
+        display: flex; align-items: flex-end;
+        opacity: 0; pointer-events: none; transition: 0.3s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: auto; }
     
-    .input { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; width: 100%; color: var(--text); outline: none; font-weight: 600; appearance: none; }
+    .modal-content {
+        width: 100%;
+        background: var(--bg);
+        border-top: 1px solid var(--border);
+        border-radius: 24px 24px 0 0;
+        padding: 24px;
+        transform: translateY(100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        max-height: 90vh; overflow-y: auto;
+    }
+    .modal-overlay.open .modal-content { transform: translateY(0); }
+
+    .input { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; width: 100%; color: var(--text); outline: none; font-weight: 600; }
     .input:focus { border-color: var(--primary); }
-    
-    .nav-item { color: var(--subtext); display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; gap: 6px; font-weight: 600; cursor: pointer; }
-    .nav-item.active { color: var(--primary); }
 
-    #ton-connect button { background: var(--primary) !important; color: white !important; border-radius: 12px !important; }
-
-    /* Custom Toggle Switch */
-    .p2p-toggle { background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 4px; display: flex; }
-    .p2p-tab { flex: 1; text-align: center; padding: 10px; font-size: 13px; font-weight: 800; border-radius: 8px; cursor: pointer; transition: 0.3s; color: var(--subtext); }
-    .p2p-tab.active-tab { background: var(--card); color: var(--text); box-shadow: 0 4px 12px rgba(0,0,0,0.2); border: 1px solid var(--border); }
-
-    /* Asset Selector */
-    .asset-pill { padding: 8px 16px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; font-weight: 700; cursor: pointer; opacity: 0.5; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+    .asset-pill { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 11px; font-weight: 700; cursor: pointer; opacity: 0.5; display: flex; align-items: center; gap: 6px; }
     .asset-pill.selected { background: var(--primary); border-color: var(--primary); color: white; opacity: 1; }
 
+    /* Nav Styling */
+    .nav-item { color: var(--subtext); display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; gap: 4px; font-weight: 700; cursor: pointer; transition: 0.2s; }
+    .nav-item.active { color: var(--primary); }
+    .nav-item i { font-size: 1.2rem; }
+
+    /* Battery Icon Animation */
+    .battery-pulse { animation: pulse-green 2s infinite; color: #22c55e; }
+    @keyframes pulse-green { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    
     .loader-ring { display: inline-block; width: 20px; height: 20px; }
     .loader-ring:after { content: " "; display: block; width: 18px; height: 18px; margin: 1px; border-radius: 50%; border: 2px solid #fff; border-color: #fff transparent #fff transparent; animation: ring 1.2s linear infinite; }
     @keyframes ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
 </head>
 
-<body class="pb-28 select-none">
+<body class="select-none">
 
-<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 border-b border-gray-800/20" style="background-color: var(--bg)">
-  <div class="flex items-center gap-3">
-    <div onclick="window.history.back()" class="w-10 h-10 rounded-full bg-gray-800/50 flex items-center justify-center text-white cursor-pointer hover:bg-gray-700 transition">
-        <i class="fa-solid fa-arrow-left"></i>
+<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-30 bg-[#0b111b]/90 backdrop-blur-md">
+    <div id="ton-connect"></div>
+    <div class="w-10 h-10 rounded-full bg-gray-800/50 flex items-center justify-center text-gray-400 border border-gray-700/50">
+        <i class="fa-solid fa-bell"></i>
     </div>
-    <div>
-      <div class="font-extrabold text-lg tracking-tight">P2P Transfer</div>
-      <div id="status" class="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-        <i class="fa-solid fa-circle text-[6px] text-red-500"></i> Disconnected
-      </div>
-    </div>
-  </div>
-  <div id="ton-connect"></div>
 </header>
 
-<main class="p-5 space-y-6">
+<main class="px-5">
 
-    <div class="p2p-toggle">
-        <div onclick="setMode('send')" id="tab-send" class="p2p-tab active-tab">SEND CRYPTO</div>
-        <div onclick="setMode('sell')" id="tab-sell" class="p2p-tab">SELL TO CASH</div>
-    </div>
+<div class="py-6 space-y-4">
 
-    <div class="card-bg p-6 text-center">
-        <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color: var(--subtext)">Wallet Balance</p>
-        <h2 class="text-4xl font-black tracking-tight flex items-center justify-center gap-2">
-            <span id="displayBal">0.00</span> 
-            <span id="displayTicker" class="text-lg font-bold text-blue-500">TON</span>
-        </h2>
-    </div>
-
-    <div id="view-send" class="space-y-6">
-        <div class="flex gap-3 justify-center">
-            <div onclick="selectAsset('TON')" id="asset-ton" class="asset-pill selected">
-                <div class="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-[8px] text-white">T</div> TON
-            </div>
-            <div onclick="selectAsset('AQUAM')" id="asset-aquam" class="asset-pill">
-                <div class="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[8px]">A</div> AQUAM
-            </div>
+    <!-- MAIN AQUAM BALANCE -->
+    <div class="flex flex-col items-center justify-center">
+        <div class="flex items-center gap-2 mb-1 opacity-70">
+            <span class="text-xs font-bold uppercase tracking-widest">AQUAM Balance</span>
+            <i class="fa-solid fa-battery-full text-[10px] battery-pulse"></i>
         </div>
 
-        <div class="card-bg p-5 space-y-4">
-            <div>
-                <label class="text-[10px] uppercase font-extrabold mb-2 block opacity-50 tracking-widest">Recipient Address</label>
-                <div class="relative">
-                    <input id="p2pAddress" type="text" placeholder="Paste Wallet Address (UQ...)" class="input pr-10">
-                    <button onclick="pasteAddress()" class="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 text-sm font-bold">PASTE</button>
-                </div>
-            </div>
-
-            <div>
-                <label class="text-[10px] uppercase font-extrabold mb-2 block opacity-50 tracking-widest">Amount to Send</label>
-                <div class="relative">
-                    <input id="p2pAmount" type="number" placeholder="0.00" class="input">
-                    <button onclick="setMax()" class="absolute right-3 top-1/2 -translate-y-1/2 text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold hover:bg-blue-500 hover:text-white transition">MAX</button>
-                </div>
-            </div>
+        <!-- AQUAM BIG -->
+        <div class="flex items-baseline gap-1">
+            <span class="text-4xl font-black tracking-tighter text-white" id="balAQUAM">
+                0.00
+            </span>
+            <span class="text-lg font-bold text-blue-500">
+                AQUAM
+            </span>
         </div>
 
-        <button id="sendBtn" onclick="executeTransfer()" class="w-full py-5 bg-blue-600 rounded-2xl font-black text-white shadow-xl shadow-blue-500/20 flex items-center justify-center gap-3 transition hover:scale-[1.02]">
-            <i class="fa-solid fa-paper-plane"></i> SEND ASSETS
-        </button>
+        <!-- TON SMALL UNDER -->
+        <div class="flex items-center gap-1 mt-1 opacity-60">
+            <span class="text-xs font-semibold text-gray-300" id="balTON">
+                0.00
+            </span>
+            <span class="text-[10px] font-bold text-gray-400">
+                TON
+            </span>
+        </div>
     </div>
 
-    <div id="view-sell" class="space-y-6 hidden">
-        <div class="card-bg p-6 border-green-500/20 relative overflow-hidden">
-            <div class="absolute -right-5 -top-5 w-24 h-24 bg-green-500/20 rounded-full blur-2xl"></div>
-            <h3 class="text-xl font-black text-white mb-2">Cash Out via Transak</h3>
-            <p class="text-sm text-gray-400 leading-relaxed mb-4">Sell your AQUAM or TON directly to your bank account or card. Supported in 150+ countries.</p>
-            
-            <div class="flex flex-col gap-2 mb-4">
-                <div class="flex items-center gap-3 text-xs font-bold text-gray-500">
-                    <i class="fa-solid fa-check text-green-500"></i> Instant Bank Transfer
-                </div>
-                <div class="flex items-center gap-3 text-xs font-bold text-gray-500">
-                    <i class="fa-solid fa-check text-green-500"></i> Visa / Mastercard
-                </div>
-            </div>
+    <!-- ADDRESS -->
+    <div class="flex justify-center mt-2">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/5 border border-blue-500/10">
+            <span id="shortAddr" class="text-[10px] font-mono text-blue-400">
+                Not Connected
+            </span>
+        </div>
+    </div>
+
+</div>
+    <div class="grid grid-cols-3 gap-3 mb-8">
+        <div onclick="openModal('sendModal')" class="action-btn">
+            <i class="fa-solid fa-paper-plane text-blue-400"></i>
+            <span>Send</span>
+        </div>
+        <div onclick="openModal('receiveModal')" class="action-btn">
+            <i class="fa-solid fa-qrcode text-white"></i>
+            <span>Receive</span>
+        </div>
+        <div onclick="location.href='index.html'" class="action-btn">
+            <i class="fa-solid fa-wifi text-green-400"></i>
+            <span>Airtime & Data</span>
         </div>
 
-        <button onclick="openTransak()" class="w-full py-5 bg-green-600 rounded-2xl font-black text-white shadow-xl shadow-green-500/20 flex items-center justify-center gap-3 transition hover:scale-[1.02]">
-            <i class="fa-solid fa-building-columns"></i> SELL FOR FIAT (CASH)
-        </button>
+        <div onclick="location.href='dex.html'" class="action-btn">
+            <i class="fa-solid fa-shuffle text-purple-400"></i>
+            <span>Swap</span>
+        </div>
+        <div onclick="location.href='buyandsell.html'" class="action-btn">
+            <i class="fa-solid fa-money-bill-wave text-green-500"></i>
+            <span>Buy / Sell</span>
+        </div>
+        <div onclick="location.href='stake.html'" class="action-btn">
+            <i class="fa-solid fa-layer-group text-yellow-500"></i>
+            <span>Stake</span>
+        </div>
+    </div>
+
+    <div class="card-bg p-5">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-sm text-gray-400 uppercase tracking-wider">History</h3>
+            <i class="fa-solid fa-clock-rotate-left text-gray-600"></i>
+        </div>
         
-        <p class="text-center text-[10px] uppercase font-bold opacity-40">Redirects to Transak Secure Gateway</p>
+        <div id="tx-history" class="space-y-3">
+            <div class="text-center py-4">
+                <p class="text-xs text-gray-600">No recent transactions found.</p>
+            </div>
+        </div>
     </div>
 
 </main>
 
-<nav class="fixed bottom-0 left-0 right-0 backdrop-blur-md border-t border-gray-800/30 px-6 flex justify-between items-center z-50 h-[80px]" style="background-color: var(--bg)">
-    <div onclick="window.location.href='index.html'" class="nav-item"><i class="fa-solid fa-house-chimney text-lg"></i><span>Home</span></div>
-    <div class="nav-item active"><i class="fa-solid fa-money-bill-transfer text-lg"></i><span>P2P</span></div>
-    <div onclick="window.location.href='apps.html'" class="nav-item"><i class="fa-solid fa-shopping-cart text-lg"></i><span>Apps</span></div>
-    <div onclick="window.location.href='settings.html'" class="nav-item"><i class="fa-solid fa-sliders text-lg"></i><span>Settings</span></div>
+
+<div id="sendModal" class="modal-overlay" onclick="if(event.target === this) closeModal('sendModal')">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-bold text-xl">Send Assets</h3>
+            <button onclick="closeModal('sendModal')" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="flex gap-3 mb-6 bg-gray-900/50 p-2 rounded-2xl">
+            <div onclick="selectAsset('TON')" id="asset-ton" class="asset-pill selected flex-1 justify-center py-3">
+                <div class="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-[8px] text-white">T</div> TON
+            </div>
+            <div onclick="selectAsset('AQUAM')" id="asset-aquam" class="asset-pill flex-1 justify-center py-3">
+                <div class="w-4 h-4 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-[8px]">A</div> AQUAM
+            </div>
+        </div>
+
+        <div class="space-y-5">
+            <div>
+                <label class="text-xs text-gray-400 font-bold ml-1 mb-2 block uppercase">Recipient</label>
+                <div class="relative">
+                    <input id="p2pAddress" type="text" placeholder="Paste Wallet Address (UQ...)" class="input pr-12 text-xs font-mono">
+                    <button onclick="pasteAddress()" class="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 text-[10px] font-bold bg-blue-500/10 px-2 py-1 rounded">PASTE</button>
+                </div>
+            </div>
+
+            <div>
+                <label class="text-xs text-gray-400 font-bold ml-1 mb-2 block uppercase">Amount</label>
+                <div class="relative">
+                    <input id="p2pAmount" type="number" placeholder="0.00" class="input text-2xl font-black">
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                         <span class="text-xs font-bold text-gray-500" id="inputTicker">TON</span>
+                        <button onclick="setMax()" class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold">MAX</button>
+                    </div>
+                </div>
+                <div class="text-right mt-2">
+                    <span class="text-xs text-gray-500">Available: <span id="modalBal" class="text-white font-bold">0.00</span></span>
+                </div>
+            </div>
+
+            <button id="sendBtn" onclick="executeTransfer()" class="w-full mt-4 py-4 bg-blue-600 rounded-xl font-bold text-white shadow-lg shadow-blue-500/20 active:scale-95 transition-transform flex items-center justify-center gap-2">
+                Send Now <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<div id="receiveModal" class="modal-overlay" onclick="if(event.target === this) closeModal('receiveModal')">
+    <div class="modal-content text-center">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-bold text-xl">Receive</h3>
+            <button onclick="closeModal('receiveModal')" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="p-6 bg-white rounded-2xl mx-auto w-max mb-6 relative overflow-hidden">
+            <i class="fa-solid fa-qrcode text-6xl text-black relative z-10"></i>
+            <div class="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-transparent"></div>
+        </div>
+
+        <p class="text-gray-400 text-xs mb-2 uppercase font-bold tracking-widest">Your Address</p>
+        <div onclick="copyAddress()" class="bg-gray-800/50 p-4 rounded-xl border border-gray-700 flex items-center justify-between gap-3 cursor-pointer active:bg-gray-800 transition">
+            <div id="fullAddress" class="font-mono text-xs text-gray-300 break-all text-left">Connect Wallet...</div>
+            <i class="fa-regular fa-copy text-blue-500"></i>
+        </div>
+        <p class="text-[10px] text-gray-500 mt-4">Only send TON (TRC-20) or AQUAM to this address.</p>
+    </div>
+</div>
+
+
+<nav class="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-gray-800/40 px-4 flex justify-between items-center z-20 h-[85px]" style="background: rgba(11, 17, 27, 0.95)">
+    <div onclick="location.href='index.html'" class="nav-item">
+        <i class="fa-solid fa-house-chimney"></i>
+        <span>Home</span>
+    </div>
+    <div onclick="location.href='s2w.html'" class="nav-item">
+        <i class="fa-solid fa-clover"></i>
+        <span>Spin</span>
+    </div>
+    <div class="nav-item active scale-110">
+        <div class="w-10 h-10 rounded-full bg-blue-600/20 flex items-center justify-center mb-1 border border-blue-500/30">
+            <i class="fa-solid fa-handshake text-blue-500 text-sm"></i>
+        </div>
+        <span class="text-blue-500">P2P</span>
+    </div>
+    <div onclick="location.href='dex.html'" class="nav-item">
+        <i class="fa-solid fa-arrows-rotate"></i>
+        <span>Dex</span>
+    </div>
+    <div onclick="location.href='market.html'" class="nav-item">
+        <i class="fa-solid fa-shopping-cart"></i>
+        <span>Market</span>
+    </div>
 </nav>
 
 <script>
 // --- CONFIGURATION ---
 const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1"; 
 const API = "https://tonapi.io/v2";
-
-// Transak Configuration (Using standard staging/demo key for this template - Replace with Production Key)
-const TRANSAK_API_KEY = "4fcd6904-7061-4096-9803-22647b95287e"; // Public Demo Key
-const TRANSAK_ENV = "STAGING"; // Change to 'PRODUCTION' when live
 
 let userAddress = "";
 let jettonWallet = "";
@@ -157,48 +299,113 @@ const tonUI = new TON_CONNECT_UI.TonConnectUI({
   buttonRootId: "ton-connect"
 });
 
+// --- UI HELPERS ---
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
 // --- INIT ---
 tonUI.onStatusChange(async wallet => {
   if (!wallet) {
-    document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle text-[6px] text-red-500"></i> Disconnected';
     userAddress = "";
-    document.getElementById("sendBtn").classList.add("opacity-50", "pointer-events-none");
+    document.getElementById("shortAddr").innerText = "Not Connected";
+    document.getElementById("fullAddress").innerText = "Connect Wallet...";
+    document.getElementById("balTON").innerText = "0.00";
+    document.getElementById("balAQUAM").innerText = "0.00";
     return;
   }
+  
   userAddress = wallet.account.address;
-  document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle text-[6px] text-green-500"></i> Connected';
-  document.getElementById("sendBtn").classList.remove("opacity-50", "pointer-events-none");
+  const friendlyAddr = new TonWeb.utils.Address(userAddress).toString(true, true, true);
+  
+  // Update UI with address
+  document.getElementById("shortAddr").innerText = friendlyAddr.slice(0, 4) + "..." + friendlyAddr.slice(-4);
+  document.getElementById("fullAddress").innerText = friendlyAddr;
+  
   loadBalances();
 });
 
 // --- CORE FUNCTIONS ---
 
+// --- UPDATED CORE FUNCTIONS ---
+
 async function loadBalances() {
   try {
-      // 1. Get TON Balance
+      // 1. Get Balances
       const acc = await fetch(`${API}/accounts/${userAddress}`).then(r => r.json());
       balances.TON = acc.balance / 1e9;
       
-      // 2. Get Jetton (AQUAM) Balance
       const jets = await fetch(`${API}/accounts/${userAddress}/jettons`).then(r => r.json());
       const aqua = jets.balances.find(j => j.jetton.address === AQUA_MASTER);
       
       if (aqua) {
         balances.AQUAM = Number(aqua.balance) / 1e9;
-        // Save the user's specific Jetton Wallet address for sending
         jettonWallet = new TonWeb.utils.Address(aqua.wallet_address.address).toString(true, true, true);
       } else {
         balances.AQUAM = 0;
       }
       
       updateDisplay();
-  } catch(e) { console.error("Balance Error:", e); }
+      // 2. Load Real History
+      loadHistory(); 
+  } catch(e) { console.error("Update Error:", e); }
 }
 
+async function loadHistory() {
+    const historyDiv = document.getElementById('tx-history');
+    try {
+        const data = await fetch(`${API}/accounts/${userAddress}/events?limit=10`).then(r => r.json());
+        
+        if (!data.events || data.events.length === 0) {
+            historyDiv.innerHTML = `<div class="text-center py-4"><p class="text-xs text-gray-600">No transactions found.</p></div>`;
+            return;
+        }
+
+        historyDiv.innerHTML = ""; // Clear loader
+
+        data.events.forEach(event => {
+            // Check if it's a TON transfer or Jetton transfer
+            const isOut = event.actions[0].TonTransfer?.sender.address === userAddress || 
+                          event.actions[0].JettonTransfer?.sender?.address === userAddress;
+            
+            const amount = event.actions[0].TonTransfer 
+                ? (event.actions[0].TonTransfer.amount / 1e9).toFixed(2) + " TON"
+                : event.actions[0].JettonTransfer 
+                    ? (event.actions[0].JettonTransfer.amount / 1e9).toFixed(2) + " AQUAM"
+                    : "Action";
+
+            const time = new Date(event.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            const typeLabel = isOut ? "Sent" : "Received";
+            const colorClass = isOut ? "border-red-500 text-red-400" : "border-green-500 text-green-400";
+            const sign = isOut ? "-" : "+";
+
+            historyDiv.innerHTML += `
+                <div class="flex items-center justify-between text-xs bg-gray-800/30 p-3 rounded-lg border-l-2 ${colorClass}">
+                    <div>
+                        <div class="font-bold text-white">${typeLabel}</div>
+                        <div class="text-gray-500 text-[10px]">${time}</div>
+                    </div>
+                    <div class="font-bold">${sign}${amount}</div>
+                </div>
+            `;
+        });
+    } catch (e) {
+        console.error("History Error:", e);
+        historyDiv.innerHTML = `<p class="text-[10px] text-center text-red-500">Failed to load history</p>`;
+    }
+}
+
+// --- KEEP YOUR EXISTING executeTransfer() ---
+// (Just make sure it calls loadBalances() at the end to refresh everything!)
+
 function updateDisplay() {
+    // Main Screen Displays
+    document.getElementById("balTON").innerText = balances.TON.toLocaleString(undefined, {maximumFractionDigits: 2});
+    document.getElementById("balAQUAM").innerText = balances.AQUAM.toLocaleString(undefined, {maximumFractionDigits: 2});
+
+    // Modal Display
     const val = balances[currentAsset];
-    document.getElementById("displayBal").innerText = val.toLocaleString(undefined, {maximumFractionDigits: 4});
-    document.getElementById("displayTicker").innerText = currentAsset;
+    document.getElementById("modalBal").innerText = val.toLocaleString(undefined, {maximumFractionDigits: 4});
+    document.getElementById("inputTicker").innerText = currentAsset;
 }
 
 function selectAsset(asset) {
@@ -208,22 +415,8 @@ function selectAsset(asset) {
     updateDisplay();
 }
 
-function setMode(mode) {
-    document.querySelectorAll('.p2p-tab').forEach(el => el.classList.remove('active-tab'));
-    document.getElementById(`tab-${mode}`).classList.add('active-tab');
-    
-    if(mode === 'send') {
-        document.getElementById('view-send').classList.remove('hidden');
-        document.getElementById('view-sell').classList.add('hidden');
-    } else {
-        document.getElementById('view-send').classList.add('hidden');
-        document.getElementById('view-sell').classList.remove('hidden');
-    }
-}
-
 function setMax() {
     let max = balances[currentAsset];
-    // Leave dust for gas if TON
     if(currentAsset === 'TON') max = max > 0.05 ? max - 0.05 : 0;
     document.getElementById("p2pAmount").value = max.toFixed(4);
 }
@@ -232,9 +425,14 @@ async function pasteAddress() {
     try {
         const text = await navigator.clipboard.readText();
         document.getElementById("p2pAddress").value = text;
-    } catch (err) {
-        alert("Permission to read clipboard denied");
-    }
+    } catch (err) { alert("Permission denied"); }
+}
+
+function copyAddress() {
+    const text = document.getElementById("fullAddress").innerText;
+    if(text.includes("Connect")) return;
+    navigator.clipboard.writeText(text);
+    alert("Address copied!");
 }
 
 // --- TRANSFER LOGIC ---
@@ -244,7 +442,6 @@ async function executeTransfer() {
     const amount = parseFloat(document.getElementById("p2pAmount").value);
     const btn = document.getElementById("sendBtn");
 
-    // Validation
     if(!userAddress) return alert("Connect Wallet First");
     if(!recipient) return alert("Enter Recipient Address");
     if(!amount || amount <= 0) return alert("Enter Valid Amount");
@@ -256,7 +453,6 @@ async function executeTransfer() {
 
     try {
         if(currentAsset === 'TON') {
-            // SEND TON (Native)
             const amtNano = TonWeb.utils.toNano(amount.toString());
             await tonUI.sendTransaction({
                 validUntil: Math.floor(Date.now() / 1000) + 300,
@@ -266,68 +462,55 @@ async function executeTransfer() {
                 }]
             });
         } else {
-            // SEND AQUAM (Jetton)
-            if(!jettonWallet) throw new Error("No Aquam Wallet found for this account");
+            if(!jettonWallet) throw new Error("No Aquam Wallet found");
+            const amtNano = BigInt(Math.floor(amount * 1e9)); 
             
-            const amtNano = BigInt(Math.floor(amount * 1e9)); // Assuming 9 decimals
-            
-            // Construct Jetton Transfer Body
             const cell = new TonWeb.boc.Cell();
-            cell.bits.writeUint(0xf8a7ea5, 32); // OpCode: transfer
-            cell.bits.writeUint(0, 64); // QueryID
-            cell.bits.writeCoins(amtNano); // Jetton Amount
-            cell.bits.writeAddress(new TonWeb.utils.Address(recipient)); // Destination
-            cell.bits.writeAddress(new TonWeb.utils.Address(userAddress)); // Response Destination
-            cell.bits.writeBit(0); // Custom Payload (null)
-            cell.bits.writeCoins(TonWeb.utils.toNano("0.001")); // Forward Amount
-            cell.bits.writeBit(0); // Forward Payload (null)
+            cell.bits.writeUint(0xf8a7ea5, 32); 
+            cell.bits.writeUint(0, 64); 
+            cell.bits.writeCoins(amtNano); 
+            cell.bits.writeAddress(new TonWeb.utils.Address(recipient)); 
+            cell.bits.writeAddress(new TonWeb.utils.Address(userAddress)); 
+            cell.bits.writeBit(0); 
+            cell.bits.writeCoins(TonWeb.utils.toNano("0.001")); 
+            cell.bits.writeBit(0); 
 
             const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
 
             await tonUI.sendTransaction({
                 validUntil: Math.floor(Date.now() / 1000) + 300,
                 messages: [{
-                    address: jettonWallet, // Send to YOUR Jetton Wallet Contract
-                    amount: TonWeb.utils.toNano("0.05").toString(), // Gas for processing
+                    address: jettonWallet,
+                    amount: TonWeb.utils.toNano("0.05").toString(),
                     payload: payload
                 }]
             });
         }
+        alert("Sent Successfully!");
+        closeModal('sendModal');
+        loadBalances();
+        
+        // Mock Add to History (Local only)
+        const historyDiv = document.getElementById('tx-history');
+        if(historyDiv.innerText.includes("No recent")) historyDiv.innerHTML = "";
+        historyDiv.innerHTML = `
+            <div class="flex items-center justify-between text-xs bg-gray-800/30 p-3 rounded-lg border-l-2 border-red-500">
+                <div>
+                    <div class="font-bold text-white">Sent ${currentAsset}</div>
+                    <div class="text-gray-500 text-[10px]">${new Date().toLocaleTimeString()}</div>
+                </div>
+                <div class="font-bold text-red-400">-${amount}</div>
+            </div>
+        ` + historyDiv.innerHTML;
 
-        alert("Transaction Sent Successfully!");
-        document.getElementById("p2pAmount").value = "";
-        loadBalances(); // Refresh
     } catch(e) {
         console.error(e);
-        if(e.message.includes("User rejected")) return; // Don't alert on cancel
-        alert("Transaction Failed: " + e.message);
+        if(!e.message.includes("User rejected")) alert("Failed: " + e.message);
     } finally {
         btn.innerHTML = originalText;
         btn.classList.remove("pointer-events-none", "opacity-80");
     }
 }
-
-// --- TRANSAK INTEGRATION ---
-
-function openTransak() {
-    // We construct a URL to open Transak with pre-filled parameters
-    // We default to selling TON. Transak automatically handles the bank details step.
-    
-    const cryptoCurrencyCode = 'TON'; 
-    const walletAddress = userAddress; 
-    
-    // Constructing the URL
-    // Note: 'productsAvailed=SELL' locks the widget to Sell mode
-    let url = `https://global.transak.com?apiKey=${TRANSAK_API_KEY}&cryptoCurrencyCode=${cryptoCurrencyCode}&productsAvailed=SELL`;
-    
-    if(walletAddress) {
-        url += `&walletAddress=${walletAddress}`;
-    }
-    
-    // Open in new window/tab for security and better UX on mobile
-    window.open(url, '_blank');
-}
-
 </script>
 </body>
 </html>
