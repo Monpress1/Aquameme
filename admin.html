@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aqua P2P | Admin Terminal</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .status-badge { font-size: 10px; padding: 4px 10px; border-radius: 99px; font-weight: 900; text-transform: uppercase; }
+        .bg-dispute { background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; }
+        .bg-paid { background: #dcfce7; color: #16a34a; border: 1px solid #bbf7d0; }
+        .bg-locked { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        .animate-slide-in { animation: slideIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+    <div id="adminAuthOverlay" class="fixed inset-0 bg-gray-900 z-[100] flex items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl max-w-sm w-full text-center">
+            <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">
+                <i class="fa-solid fa-shield-check"></i>
+            </div>
+            <h2 class="text-2xl font-black mb-2 text-gray-900">Admin Login</h2>
+            <p class="text-gray-400 text-sm mb-6 font-medium">Restricted Terminal Access</p>
+            <input type="password" id="adminPass" placeholder="Enter Password" class="w-full bg-gray-100 border-none rounded-2xl px-5 py-4 mb-4 focus:ring-2 focus:ring-blue-500 outline-none">
+            <button onclick="checkAuth()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">UNLOCK</button>
+        </div>
+    </div>
+
+    <div id="mainContent" class="hidden p-4 md:p-8">
+        <div class="max-w-5xl mx-auto">
+            <header class="flex justify-between items-center mb-8 bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
+                <div>
+                    <h1 class="text-2xl font-black text-gray-900">AQUA <span class="text-blue-600">ADMIN</span></h1>
+                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest mt-1">Dispute Resolution Centre</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="logoutAdmin()" class="bg-gray-100 text-gray-400 w-12 h-12 rounded-2xl flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-colors">
+                        <i class="fa-solid fa-power-off"></i>
+                    </button>
+                    <button onclick="loadAdminData()" class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-blue-700 transition-all flex items-center gap-2">
+                        <i class="fa-solid fa-rotate"></i> SYNC
+                    </button>
+                </div>
+            </header>
+
+            <div id="adminList" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        </div>
+    </div>
+
+    <div id="adminChatModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex justify-end">
+        <div class="bg-white w-full max-w-lg h-full shadow-2xl flex flex-col animate-slide-in">
+            <header class="p-5 border-b flex justify-between items-center bg-gray-50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center shadow-lg"><i class="fa-solid fa-comments"></i></div>
+                    <div>
+                        <h3 class="font-black text-gray-900 text-sm">TRADE EVIDENCE</h3>
+                        <p id="chatTradeId" class="text-[9px] text-gray-400 font-mono font-bold"></p>
+                    </div>
+                </div>
+                <button onclick="closeAdminChat()" class="text-gray-400 hover:text-gray-600 text-xl p-2"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            <div id="adminMessages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50"></div>
+            <div class="p-6 border-t bg-white flex gap-3">
+                <input type="text" id="adminReplyInput" onkeypress="if(event.key === 'Enter') sendAdminMessage()" placeholder="Type admin response..." class="flex-1 bg-gray-100 border-none rounded-2xl px-4 py-4 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none">
+                <button onclick="sendAdminMessage()" class="bg-blue-600 text-white w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-all"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://ptllbgdixhesptlkqrqa.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let activeAdminTradeId = null;
+        let adminPolling = null;
+
+        // --- AUTH LOGIC (Saves to LocalStorage) ---
+        window.onload = () => {
+            if (localStorage.getItem('adminAuth_v1') === 'Aquam$') {
+                showPanel();
+            }
+        };
+
+        function checkAuth() {
+            const pass = document.getElementById('adminPass').value;
+            if (pass === "Aquacoinx2@24") {
+                localStorage.setItem('adminAuth_v1', 'Aquam$');
+                showPanel();
+            } else {
+                alert("Access Denied: Incorrect Password");
+            }
+        }
+
+        function logoutAdmin() {
+            localStorage.removeItem('adminAuth_v1');
+            location.reload();
+        }
+
+        function showPanel() {
+            document.getElementById('adminAuthOverlay').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            loadAdminData();
+        }
+
+        // --- DATA LOADING ---
+        async function loadAdminData() {
+            const list = document.getElementById('adminList');
+            list.innerHTML = '<div class="col-span-full text-center py-20"><i class="fa-solid fa-spinner fa-spin text-blue-600 text-4xl"></i></div>';
+
+            const { data, error } = await sb.from('trades')
+                .select('*')
+                .in('status', ['PAID_AWAITING_RELEASE', 'DISPUTE_OPEN', 'ESCROW_LOCKED'])
+                .order('created_at', { ascending: false });
+
+            list.innerHTML = '';
+            if(!data || data.length === 0) {
+                list.innerHTML = '<div class="col-span-full bg-white p-20 rounded-3xl text-center font-bold text-gray-300 border-4 border-dashed">No active disputes or payments found.</div>';
+                return;
+            }
+
+            data.forEach(trade => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-3xl shadow-sm border border-gray-100 hover:border-blue-200 transition-all";
+                let statusClass = trade.status === 'DISPUTE_OPEN' ? 'bg-dispute' : trade.status === 'PAID_AWAITING_RELEASE' ? 'bg-paid' : 'bg-locked';
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-6">
+                        <div>
+                            <span class="status-badge ${statusClass}">${trade.status.replace(/_/g, ' ')}</span>
+                            <h2 class="text-xl font-black mt-2 text-gray-900">${trade.amount_token.toLocaleString()} AQUA</h2>
+                            <p class="text-sm text-gray-400 font-bold">₦${parseInt(trade.amount_fiat).toLocaleString()}</p>
+                        </div>
+                        <button onclick="openAdminChat('${trade.id}')" class="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-[10px] font-black hover:bg-blue-600 hover:text-white transition-all">
+                            CHAT & PROOF
+                        </button>
+                    </div>
+                    <div class="bg-gray-50 p-4 rounded-2xl mb-6 text-[10px] font-mono border border-gray-100 flex flex-col gap-1">
+                        <div class="flex justify-between"><span class="font-bold opacity-40">BUYER:</span> <span class="truncate ml-4">${trade.buyer_wallet_address || '⚠️ UNSET'}</span></div>
+                        <div class="flex justify-between"><span class="font-bold opacity-40">TX REF:</span> <span class="truncate ml-4">${trade.id.split('-')[0]}...</span></div>
+                    </div>
+                    <div class="flex gap-3">
+                        <button id="rel-${trade.id}" onclick="adminRelease('${trade.id}')" class="flex-1 bg-green-600 text-white py-4 rounded-2xl font-black text-xs shadow-lg shadow-green-100 active:scale-95 transition-all">FORCE RELEASE</button>
+                        <button onclick="adminCancel('${trade.id}')" class="bg-gray-100 text-gray-400 px-6 rounded-2xl font-bold text-xs hover:bg-red-50 hover:text-red-500 transition-all">CANCEL</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // --- SQL-DIRECT RELEASE (Fixes "Not Ready" Error) ---
+        async function adminRelease(tradeId) {
+            const btn = document.getElementById(`rel-${tradeId}`);
+            if(!confirm("⚠️ ADMIN COMMAND:\nThis bypasses all status checks and forces the trade to COMPLETED via SQL. Continue?")) return;
+            
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "EXECUTING SQL...";
+
+            try {
+                // This calls the SQL function we created earlier
+                const { data, error } = await sb.rpc('admin_force_release', { target_trade_id: tradeId });
+
+                if (error) throw error;
+
+                if (data === 'SUCCESS') {
+                    // Log the admin action in chat
+                    await sb.from('chat_messages').insert({
+                        trade_id: tradeId,
+                        sender_id: 'ADMIN',
+                        message_text: "SYSTEM: Trade was manually COMPLETED by Admin override.",
+                        is_system_message: true
+                    });
+
+                    alert("Trade Forced to COMPLETED Successfully.");
+                    loadAdminData();
+                } else {
+                    alert("Database Error: " + data);
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
+            } catch (e) {
+                alert("Critical SQL Error: " + e.message);
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+
+        // --- CHAT SYSTEM ---
+        async function openAdminChat(tradeId) {
+            activeAdminTradeId = tradeId;
+            document.getElementById('adminChatModal').classList.remove('hidden');
+            document.getElementById('chatTradeId').innerText = `ID: ${tradeId}`;
+            loadChat();
+            if(adminPolling) clearInterval(adminPolling);
+            adminPolling = setInterval(loadChat, 4000);
+        }
+
+        async function loadChat() {
+            if(!activeAdminTradeId) return;
+            const { data: messages } = await sb.from('chat_messages').select('*').eq('trade_id', activeAdminTradeId).order('created_at', { ascending: true });
+            const container = document.getElementById('adminMessages');
+            container.innerHTML = '';
+            messages?.forEach(msg => {
+                const div = document.createElement('div');
+                if(msg.is_system_message) {
+                    div.className = "text-center text-[9px] text-gray-400 font-bold uppercase py-2 tracking-widest";
+                    div.innerText = msg.message_text;
+                } else {
+                    const isAdmin = msg.sender_id === 'ADMIN' || msg.message_text.startsWith('ADMIN:');
+                    div.className = `max-w-[85%] p-4 rounded-2xl text-sm ${isAdmin ? 'ml-auto bg-blue-600 text-white shadow-lg shadow-blue-100' : 'bg-white border border-gray-200 text-gray-800'}`;
+                    
+                    let content = '';
+                    if(msg.image_url) {
+                        content += `<a href="${msg.image_url}" target="_blank"><img src="${msg.image_url}" class="rounded-xl mb-3 border shadow-sm max-h-64 w-full object-cover"></a>`;
+                    }
+                    content += `<p class="font-medium">${msg.message_text}</p>`;
+                    div.innerHTML = content;
+                }
+                container.appendChild(div);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function sendAdminMessage() {
+            const input = document.getElementById('adminReplyInput');
+            const text = input.value.trim();
+            if(!text || !activeAdminTradeId) return;
+            const { error } = await sb.from('chat_messages').insert({ 
+                trade_id: activeAdminTradeId, 
+                sender_id: 'ADMIN', 
+                message_text: `ADMIN: ${text}`,
+                is_system_message: false 
+            });
+            if(!error) { input.value = ''; loadChat(); }
+        }
+
+        function closeAdminChat() { 
+            document.getElementById('adminChatModal').classList.add('hidden'); 
+            activeAdminTradeId = null; 
+            if(adminPolling) clearInterval(adminPolling); 
+        }
+
+        async function adminCancel(tradeId) {
+            if(!confirm("Cancel trade?")) return;
+            await sb.from('trades').update({ status: 'CANCELLED' }).eq('id', tradeId);
+            loadAdminData();
+        }
+    </script>
+</body>
+</html>
