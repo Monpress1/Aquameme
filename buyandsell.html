@@ -1,25 +1,55 @@
-<!DOCTYPE html>
+          <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aqua P2P Market | Secure Escrow</title>
+    <title>Aquameme  P2P Market | Secure Escrow</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
     <script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 
     <style>
         :root { --primary: #3b82f6; }
-        .chat-bubble { max-width: 85%; padding: 12px; border-radius: 16px; margin-bottom: 8px; font-size: 14px; line-height: 1.4; }
+        
+        /* Chat Styles */
+        .chat-bubble { max-width: 85%; padding: 12px; border-radius: 16px; margin-bottom: 8px; font-size: 14px; line-height: 1.4; position: relative; }
         .chat-me { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .chat-them { background: #f3f4f6; color: #1f2937; align-self: flex-start; border-bottom-left-radius: 4px; }
+        
         .system-msg { text-align: center; font-size: 11px; color: #9ca3af; margin: 15px 0; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        /* Animations & Utilities */
         .loader { border: 2px solid #f3f3f3; border-top: 2px solid var(--primary); border-radius: 50%; width: 18px; height: 18px; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+        /* Notification Badge */
+        .badge-dot { position: absolute; top: -5px; right: -5px; width: 12px; height: 12px; background-color: #ef4444; border-radius: 50%; border: 2px solid white; display: none; }
+        
+        /* Copy Icon interactions */
+        .copy-icon:active { transform: scale(0.9); color: var(--primary); }
+
+        /* Input Cleanups */
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        
+        /* Timer Urgency */
+        .timer-urgent { color: #ef4444; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+   #messagesList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size:0.03px;
+}
+
     </style>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans mb-20">
@@ -27,7 +57,7 @@
     <header class="bg-white border-b sticky top-0 z-40 p-4">
         <div class="max-w-lg mx-auto flex justify-between items-center">
             <div>
-                <h1 class="font-black text-2xl tracking-tighter text-blue-600">AQUA<span class="text-gray-900">P2P</span></h1>
+                <h1 class="font-black text-2xl tracking-tighter text-blue-600">Aquameme <span class="text-gray-900">P2P</span></h1>
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Secure Escrow Terminal</p>
             </div>
             <div class="text-right">
@@ -40,7 +70,10 @@
     <main class="max-w-lg mx-auto p-4">
         <div class="flex bg-gray-200/50 p-1 rounded-xl mb-6">
             <button onclick="switchTab('market')" id="tab-market" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all bg-white shadow-sm text-blue-600">Marketplace</button>
-            <button onclick="switchTab('my-trades')" id="tab-my-trades" class="flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-500 transition-all">My Trades</button>
+            <button onclick="switchTab('my-trades')" id="tab-my-trades" class="relative flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-500 transition-all">
+                My Trades
+                <div id="mainNavBadge" class="badge-dot"></div>
+            </button>
         </div>
 
         <div id="view-market" class="space-y-3">
@@ -71,9 +104,22 @@
                 </div>
 
                 <div class="bg-blue-600 p-5 rounded-2xl text-white">
-                    <label class="block text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">Amount to Sell (AQUA)</label>
-                    <input type="number" id="sellAmount" oninput="calculateFiat()" placeholder="0.00" required class="w-full bg-transparent text-4xl font-black outline-none placeholder:text-blue-400">
-                    <p class="mt-4 text-sm font-bold opacity-90 text-right">≈ ₦<span id="calcFiat">0.00</span></p>
+                    <label class="block text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">Amount to Sell (Min 10k)</label>
+                    <input type="number" id="sellAmount" min="1000" oninput="calculateFiat()" placeholder="0.00" required class="w-full bg-transparent text-4xl font-black outline-none placeholder:text-blue-400">
+                    
+                    <div class="flex justify-between items-end mt-4 border-t border-white/20 pt-3">
+                        <div>
+                            <p class="text-[10px] opacity-70 font-bold uppercase">Escrow Fee (5%)</p>
+                            <p class="text-sm font-bold">+ <span id="feeDisplay">0</span> Aquameme </p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] opacity-70 font-bold uppercase">Total Deducted</p>
+                            <p class="text-lg font-black"><span id="totalDeduction">0</span> Aquameme </p>
+                        </div>
+                    </div>
+                    
+                    <p class="mt-4 text-sm font-bold opacity-90 text-right bg-blue-700/50 p-2 rounded-lg inline-block float-right">≈ ₦<span id="calcFiat">0.00</span></p>
+                    <div class="clear-both"></div>
                 </div>
 
                 <button type="submit" class="w-full bg-gray-900 text-white py-4 rounded-2xl font-black text-lg shadow-xl">List Offer</button>
@@ -81,167 +127,205 @@
         </div>
     </div>
 
+    <div id="walletModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-[70] flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl animate-slide-up">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <h3 class="text-xl font-black">Connect Wallet</h3>
+                <p class="text-sm text-gray-500 mt-2 font-medium">Enter your TON address to receive Aquameme .</p>
+            </div>
+            <input type="text" id="walletInputData" placeholder="EQC..." class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:border-blue-500 font-mono text-sm mb-4">
+            <div class="flex gap-3">
+                <button onclick="closeModal('walletModal')" class="flex-1 py-3 bg-gray-100 rounded-xl font-bold text-gray-500">Cancel</button>
+                <button onclick="confirmBuyWallet()" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <div id="tradeModal" class="fixed inset-0 bg-white hidden z-[60] flex flex-col">
-        <header class="p-4 border-b flex justify-between items-center">
+        <header class="p-4 border-b flex justify-between items-center bg-white shadow-sm z-10">
             <button onclick="closeModal('tradeModal')" class="p-2"><i class="fa-solid fa-chevron-left text-xl"></i></button>
             <div class="text-center">
                 <p id="tradeIdDisplay" class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Trade ID: ---</p>
-                <div id="tradeStatusBadge" class="text-xs font-black px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 uppercase">Checking...</div>
+                <div class="flex items-center justify-center gap-2 mt-1">
+                    <div id="tradeStatusBadge" class="text-xs font-black px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 uppercase">Checking...</div>
+                    <div id="timerContainer" class="hidden flex items-center gap-1 text-xs font-mono font-bold bg-gray-900 text-white px-2 py-0.5 rounded-md">
+                        <i class="fa-regular fa-clock text-[10px]"></i> <span id="tradeTimer">10:00</span>
+                    </div>
+                </div>
             </div>
-            <div class="w-10"></div>
+            <button id="disputeBtn" onclick="raiseDispute()" class="hidden text-xs font-black bg-red-100 text-red-600 px-3 py-1.5 rounded-lg border border-red-200 uppercase tracking-wide">
+                Dispute
+            </button>
+            <div id="disputePlaceholder" class="w-10" style="display:none"></div>
         </header>
 
         <div id="chatContainer" class="flex-1 overflow-y-auto bg-gray-50 p-4">
             <div id="ton-connect-container" class="hidden mb-4 flex justify-center"></div>
 
             <div id="tradeDetailsCard" class="space-y-3 mb-6"></div>
-            <div id="messagesList" class="flex flex-col"></div>
+            <div id="messagesList" class="flex flex-col pb-4"></div>
         </div>
 
-        <div class="p-4 bg-white border-t flex items-center gap-3">
-            <button onclick="document.getElementById('fileInput').click()" class="text-gray-400 hover:text-blue-500"><i class="fa-solid fa-paperclip text-xl"></i></button>
-            <input type="file" id="fileInput" class="hidden" onchange="handleImageUpload(this)">
+        <div class="p-4 bg-white border-t flex items-center gap-3 safe-area-bottom">
+            <button onclick="document.getElementById('fileInput').click()" class="text-gray-400 hover:text-blue-500 w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-50 transition-colors relative">
+                <i class="fa-solid fa-paperclip text-xl"></i>
+            </button>
+            <input type="file" id="fileInput" class="hidden" accept="image/*" onchange="handleImageUpload(this)">
+            
             <input type="text" id="messageInput" placeholder="Type message..." class="flex-1 bg-gray-100 rounded-2xl px-4 py-3 outline-none font-medium">
-            <button onclick="sendMessage()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30"><i class="fa-solid fa-paper-plane"></i></button>
+            <button onclick="sendMessage()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30 hover:scale-105 active:scale-95 transition-all">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
         </div>
     </div>
+<script>
+    
+    // --- CONFIGURATION & STATE ---
+const SUPABASE_URL = "https://ptllbgdixhesptlkqrqa.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+const EDGE_FUNC_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/P2p";
 
-    <script>
-        // --- CONFIGURATION ---
-        const SUPABASE_URL = "https://ptllbgdixhesptlkqrqa.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
-        const EDGE_FUNC_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/P2p";
-        const TREASURY = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D"; 
-        const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
-        const NGN_RATE = 1650;
+const TREASURY = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D"; 
+const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
+const NGN_RATE = 1650;
 
-        const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json",
-            buttonRootId: "ton-connect-container"
-        });
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json",
+    buttonRootId: "ton-connect-container"
+});
 
-        let currentUser = null;
-        let activeTradeId = null;
-        let currentPriceUSD = 0;
+let currentUser = null;
+let activeTradeId = null;
+let currentPriceUSD = 0;
+let tradeTimerInterval = null;
+let pollingInterval = null;
+let buyerHasUploadedProof = false;
+let tempSelectedTradeId = null;
 
-        // --- INIT ---
-        window.onload = async () => {
-            const { data: { session } } = await sb.auth.getSession();
-            if (!session) {
-                const { data } = await sb.auth.signInAnonymously();
-                currentUser = data.user;
-            } else {
-                currentUser = session.user;
-            }
-            
-            await fetchPrice();
-            loadMarketplace();
-            
-            const saved = JSON.parse(localStorage.getItem('seller_profile') || '{}');
-            if(saved.name) {
-                document.getElementById('sellerName').value = saved.name;
-                document.getElementById('bankName').value = saved.bank;
-                document.getElementById('accountNum').value = saved.account;
-            }
-        };
+// --- INITIALIZATION ---
+window.onload = async () => {
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+        const { data } = await sb.auth.signInAnonymously();
+        currentUser = data.user;
+    } else {
+        currentUser = session.user;
+    }
+    
+    await fetchPrice();
+    loadMarketplace();
+    
+    const saved = JSON.parse(localStorage.getItem('seller_profile') || '{}');
+    if(saved.name) {
+        document.getElementById('sellerName').value = saved.name;
+        document.getElementById('bankName').value = saved.bank;
+        document.getElementById('accountNum').value = saved.account;
+    }
 
-        async function fetchPrice() {
-            try {
-                const res = await fetch(`https://api.ston.fi/v1/assets/EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d`);
-                const data = await res.json();
-                currentPriceUSD = parseFloat(data.asset.dex_usd_price);
-                document.getElementById('aquamRate').innerText = `1 AQUA = $${currentPriceUSD.toFixed(6)}`;
-            } catch (e) { document.getElementById('aquamRate').innerText = "Price Offline"; }
-        }
+    subscribeToNotifications();
+};
 
-        // --- MARKET LOGIC ---
-        async function loadMarketplace() {
-            const list = document.getElementById('marketList');
-            list.innerHTML = '<div class="py-10 flex justify-center"><div class="loader"></div></div>';
+async function fetchPrice() {
+    try {
+        const res = await fetch(`https://api.ston.fi/v1/assets/EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d`);
+        const data = await res.json();
+        currentPriceUSD = parseFloat(data.asset.dex_usd_price);
+        document.getElementById('aquamRate').innerText = `1 AQUA = $${currentPriceUSD.toFixed(6)}`;
+    } catch (e) { 
+        document.getElementById('aquamRate').innerText = "Price Offline"; 
+    }
+}
 
-            const { data: offers } = await sb.from('trades').select('*').is('buyer_id', null).eq('status', 'AWAITING_DEPOSIT').order('created_at', { ascending: false });
-            
-            list.innerHTML = '';
-            if(!offers || offers.length === 0) return list.innerHTML = '<p class="text-center text-gray-400 py-10 font-bold">No offers available</p>';
-
-            offers.forEach(offer => {
-                const div = document.createElement('div');
-                div.className = "bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center";
-                div.innerHTML = `
-                    <div>
-                        <p class="text-2xl font-black">${offer.amount_token.toLocaleString()} <span class="text-xs text-blue-500">AQUA</span></p>
-                        <p class="text-sm font-bold text-gray-500">₦${parseInt(offer.amount_fiat).toLocaleString()}</p>
-                        <p class="text-[10px] text-gray-400 mt-1 uppercase font-black"><i class="fa-solid fa-bank"></i> ${offer.bank_details.bank}</p>
-                    </div>
-                    <button onclick="buyNow('${offer.id}')" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-sm">BUY</button>
-                `;
-                list.appendChild(div);
-            });
-        }
-// --- MARKET LOGIC ---
 async function loadMarketplace() {
     const list = document.getElementById('marketList');
+    if (!list) return;
+
     list.innerHTML = '<div class="py-10 flex justify-center"><div class="loader"></div></div>';
 
-    // FIX: Use .in() to fetch trades that are AWAITING_DEPOSIT or ESCROW_LOCKED
-    // This ensures your funded trade shows up for other users.
+    // THE FIX: Filter for ESCROW_LOCKED and ensure tx_hash_deposit is NOT null/empty
     const { data: offers, error } = await sb.from('trades')
         .select('*')
         .is('buyer_id', null)
-        .in('status', ['AWAITING_DEPOSIT', 'ESCROW_LOCKED'])
+        .eq('status', 'ESCROW_LOCKED') 
+        .not('tx_hash_deposit', 'is', null)
+        .neq('tx_hash_deposit', '')
         .order('created_at', { ascending: false });
-
+    
     if (error) {
-        console.error("Marketplace Load Error:", error);
-        return list.innerHTML = '<p class="text-center text-red-400 py-10 font-bold">Failed to load marketplace</p>';
+        console.error("Marketplace error:", error);
+        list.innerHTML = '<p class="text-center text-red-500 py-10 font-bold tracking-tighter">Connection Error</p>';
+        return;
     }
-    
+
     list.innerHTML = '';
-    
-    // Check if there are offers and filter out the current user's own offers 
-    // (Optional: sellers usually shouldn't buy their own ads)
-    const availableOffers = offers ? offers.filter(o => o.seller_id !== currentUser?.id) : [];
+    const available = offers ? offers.filter(o => o.seller_id !== currentUser?.id) : [];
 
-    if(availableOffers.length === 0) {
-        return list.innerHTML = '<p class="text-center text-gray-400 py-10 font-bold">No offers available</p>';
+    if(available.length === 0) {
+        list.innerHTML = '<p class="text-center text-gray-400 py-10 font-bold uppercase text-[10px] tracking-widest">No funded offers available</p>';
+        return;
     }
 
-    availableOffers.forEach(offer => {
+    available.forEach(offer => {
         const div = document.createElement('div');
         div.className = "bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center";
         
-        // Visual indicator if the trade is already locked/secured
-        const isLocked = offer.status === 'ESCROW_LOCKED';
-        const badge = isLocked ? 
-            `<span class="text-[9px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full ml-2">SECURED</span>` : 
-            `<span class="text-[9px] bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-full ml-2">UNFUNDED</span>`;
-
         div.innerHTML = `
             <div>
-                <p class="text-2xl font-black">
-                    ${offer.amount_token.toLocaleString()} 
-                    <span class="text-xs text-blue-500">AQUA</span>
-                    ${badge}
-                </p>
+                <p class="text-2xl font-black">${offer.amount_token.toLocaleString()} <span class="text-xs text-blue-500">AQUA</span></p>
                 <p class="text-sm font-bold text-gray-500">₦${parseInt(offer.amount_fiat).toLocaleString()}</p>
-                <p class="text-[10px] text-gray-400 mt-1 uppercase font-black">
-                    <i class="fa-solid fa-bank"></i> ${offer.bank_details.bank}
-                </p>
+                <p class="text-[10px] text-gray-400 mt-1 uppercase font-black"><i class="fa-solid fa-bank"></i> ${offer.bank_details.bank}</p>
             </div>
-            <button onclick="buyNow('${offer.id}')" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-sm hover:bg-blue-700 transition-colors">
-                BUY
-            </button>
+            <button onclick="initBuyProcess('${offer.id}')" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-sm active:scale-95 transition-transform">BUY</button>
         `;
         list.appendChild(div);
     });
 }
 
-        async function handleCreateOffer(e) {
+
+function initBuyProcess(tradeId) {
+    tempSelectedTradeId = tradeId;
+    document.getElementById('walletModal').classList.remove('hidden');
+}
+
+async function confirmBuyWallet() {
+    const walletAddr = document.getElementById('walletInputData').value;
+    if(!walletAddr || walletAddr.length < 10) return alert("Please enter a valid TON wallet address");
+    
+    closeModal('walletModal');
+    
+    const { error } = await sb.from('trades').update({ 
+        buyer_id: currentUser.id,
+        buyer_wallet_address: walletAddr 
+    }).eq('id', tempSelectedTradeId);
+
+    if(!error) openTradeModal(tempSelectedTradeId);
+}
+
+// --- OFFER CREATION ---
+function calculateFiat() {
+    const val = parseFloat(document.getElementById('sellAmount').value) || 0;
+    const fee = val * 0.05;
+    const totalDeduction = val + fee;
+    
+    document.getElementById('feeDisplay').innerText = fee.toLocaleString();
+    document.getElementById('totalDeduction').innerText = totalDeduction.toLocaleString();
+    document.getElementById('calcFiat').innerText = (val * currentPriceUSD * NGN_RATE).toLocaleString(undefined, {minimumFractionDigits: 2});
+}
+
+async function handleCreateOffer(e) {
     e.preventDefault();
     const amount = parseFloat(document.getElementById('sellAmount').value);
-    const fiat = amount * currentPriceUSD * NGN_RATE;
     
+    if(amount < 1000) {
+        alert("Minimum sell amount is 1,000 AQUA");
+        return;
+    }
+
+    const fiat = amount * currentPriceUSD * NGN_RATE;
     const profile = {
         name: document.getElementById('sellerName').value,
         bank: document.getElementById('bankName').value,
@@ -249,287 +333,624 @@ async function loadMarketplace() {
     };
     localStorage.setItem('seller_profile', JSON.stringify(profile));
 
-    // Log the data we are sending to debug
-    console.log("Sending to Supabase:", {
-        seller_id: currentUser.id,
-        amount_token: amount,
-        amount_fiat: fiat,
-        bank_details: profile,
-        status: 'AWAITING_DEPOSIT'
-    });
-
     const { data, error } = await sb.from('trades').insert({
         seller_id: currentUser.id,
-        amount_token: amount,
+        amount_token: amount, 
         amount_fiat: fiat,
         bank_details: profile,
         status: 'AWAITING_DEPOSIT'
-        // Notice: buyer_wallet_address is omitted here so it stays null
     }).select();
 
     if (error) {
-        console.error("Supabase Error:", error);
-        alert(`Error: ${error.message}\nHint: ${error.hint || 'Check console'}`);
+        alert(`Error: ${error.message}`);
     } else {
         closeModal('sellModal');
         openTradeModal(data[0].id);
     }
 }
-
-
-        async function buyNow(tradeId) {
-            const walletAddr = prompt("Enter your TON Wallet Address to receive AQUA:");
-            if(!walletAddr) return;
-
-            const { error } = await sb.from('trades').update({ 
-                buyer_id: currentUser.id,
-                buyer_wallet_address: walletAddr 
-            }).eq('id', tradeId);
-
-            if(!error) openTradeModal(tradeId);
+// --- TRADE ROOM ENGINE ---
+async function openTradeModal(tradeId) {
+    activeTradeId = tradeId;
+    
+    // UI Setup
+    document.getElementById('tradeModal').classList.remove('hidden');
+    document.getElementById('tradeIdDisplay').innerText = `ID: ${tradeId.split('-')[0]}`;
+    document.getElementById('messagesList').innerHTML = '<div class="loader mx-auto my-10"></div>';
+    
+    // Reset flags
+    buyerHasUploadedProof = false;
+    
+    // 1. Initial Sync
+    await syncTradeData(tradeId);
+    
+    // 2. Start Polling (The Heartbeat - runs every 4s)
+    if (pollingInterval) clearInterval(pollingInterval);
+    pollingInterval = setInterval(() => {
+        if (activeTradeId) {
+            syncTradeData(activeTradeId);
+        } else {
+            clearInterval(pollingInterval);
         }
+    }, 4000);
 
-        // --- TRADE & ESCROW UI ---
-        async function openTradeModal(tradeId) {
-            activeTradeId = tradeId;
-            document.getElementById('tradeModal').classList.remove('hidden');
-            document.getElementById('tradeIdDisplay').innerText = `ID: ${tradeId.split('-')[0]}`;
-            
-            subscribeToTrade(tradeId);
-            refreshTradeData();
-        }
+    // 3. Keep Realtime as a backup for instant push
+    subscribeToTrade(tradeId);
+}
 
-        async function refreshTradeData() {
-            const { data: trade } = await sb.from('trades').select('*').eq('id', activeTradeId).single();
-            if(!trade) return;
-            renderTradeUI(trade);
-            loadChatMessages(trade.id);
-        }
+async function syncTradeData(tradeId) {
+    try {
+        const { data: trade, error: tErr } = await sb.from('trades')
+            .select('*')
+            .eq('id', tradeId)
+            .single();
+        
+        if (tErr) throw tErr;
 
-        function renderTradeUI(trade) {
-            const isSeller = trade.seller_id === currentUser.id;
-            const isBuyer = trade.buyer_id === currentUser.id;
-            const container = document.getElementById('tradeDetailsCard');
-            const badge = document.getElementById('tradeStatusBadge');
-            const tonContainer = document.getElementById('ton-connect-container');
+        const { data: messages, error: mErr } = await sb.from('chat_messages')
+            .select('*')
+            .eq('trade_id', tradeId)
+            .order('created_at', { ascending: true });
 
-            badge.innerText = trade.status.replace(/_/g, ' ');
-            
-            let html = `<div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex justify-between text-sm mb-2">
-                    <span class="text-gray-400 font-bold">Total Amount</span>
-                    <span class="font-black text-blue-600">${trade.amount_token} AQUA</span>
-                </div>
-                <div class="flex justify-between text-sm">
-                    <span class="text-gray-400 font-bold">Fiat to Pay</span>
-                    <span class="font-black">₦${parseInt(trade.amount_fiat).toLocaleString()}</span>
-                </div>
-            </div>`;
+        if (mErr) throw mErr;
 
-            // Logic per status
-            if (trade.status === 'AWAITING_DEPOSIT') {
-                if (isSeller) {
-                    tonContainer.classList.remove('hidden');
-                    html += `<div class="mt-4 p-4 bg-yellow-50 rounded-2xl border border-yellow-100 text-yellow-800 text-sm">
-                        <p class="font-black mb-2 uppercase text-[10px]">Action Required</p>
-                        <p class="font-bold">Connect your wallet and deposit AQUA to lock the trade in escrow.</p>
-                        <button id="depositBtn" onclick="depositToEscrow(${trade.amount_token}, '${trade.id}')" class="w-full mt-4 bg-yellow-500 text-white py-4 rounded-xl font-black shadow-lg">DEPOSIT & LOCK</button>
-                    </div>`;
-                } else {
-                    tonContainer.classList.add('hidden');
-                    html += `<p class="text-center text-xs text-gray-400 font-bold mt-4 uppercase">Waiting for seller to deposit...</p>`;
+        // Render UI Elements
+        renderTradeUI(trade);
+        
+      
+
+        const list = document.getElementById('messagesList');
+        const currentItems = list.querySelectorAll('.chat-bubble, .system-msg').length;
+        
+        if (messages.length !== currentItems) {
+            list.innerHTML = '';
+            messages.forEach(msg => {
+                appendMessage(msg);
+                if (msg.image_url && msg.sender_id === trade.buyer_id) {
+                    buyerHasUploadedProof = true;
                 }
-            } 
-            else if (trade.status === 'ESCROW_LOCKED') {
-                tonContainer.classList.add('hidden');
-                if (isBuyer) {
-                    html += `<div class="mt-4 p-4 bg-blue-50 rounded-2xl border border-blue-100 text-blue-800 text-sm">
-                        <p class="font-black mb-2 uppercase text-[10px]">Safe to Pay</p>
-                        <p class="mb-1"><b>Bank:</b> ${trade.bank_details.bank}</p>
-                        <p class="mb-1"><b>Number:</b> ${trade.bank_details.account}</p>
-                        <p class="mb-3"><b>Name:</b> ${trade.bank_details.name}</p>
-                        <button onclick="markAsPaid()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-black shadow-lg">I HAVE PAID</button>
-                    </div>`;
-                } else {
-                    html += `<p class="text-center text-xs text-gray-400 font-bold mt-4 uppercase">Waiting for buyer to pay ₦${parseInt(trade.amount_fiat).toLocaleString()}...</p>`;
-                }
-            }
-            else if (trade.status === 'PAID_AWAITING_RELEASE') {
-                if (isSeller) {
-                    html += `<div class="mt-4 p-4 bg-green-50 rounded-2xl border border-green-100 text-green-800 text-sm">
-                        <p class="font-black mb-1">Buyer has paid!</p>
-                        <p class="mb-3">Confirm receipt in your bank and release coins.</p>
-                        <button onclick="releaseFunds()" class="w-full bg-green-600 text-white py-4 rounded-xl font-black shadow-lg">RELEASE CRYPTO</button>
-                    </div>`;
-                } else {
-                    html += `<p class="text-center text-xs text-gray-400 font-bold mt-4 uppercase">Waiting for seller to release coins...</p>`;
-                }
-            }
-            else if (trade.status === 'COMPLETED') {
-                html += `<div class="mt-4 p-6 bg-green-600 text-white rounded-2xl text-center font-black">TRADE COMPLETED</div>`;
-            }
-
-            container.innerHTML = html;
+            });
+            scrollChatToBottom();
         }
+    } catch (e) {
+        console.error("Sync Pulse Error:", e);
+    }
+}
 
-        // --- BLOCKCHAIN LOGIC ---
-        async function depositToEscrow(amount, tradeId) {
-    const wallet = tonConnectUI.account;
-    if(!wallet) return alert("Connect Wallet first!");
-    const btn = document.getElementById('depositBtn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = `<div class="loader mx-auto"></div>`;
+
+// --- THE RELEASE FIX ---
+async function releaseFunds() {
+    // 1. Fetch the latest trade state to ensure we have the right data
+    const { data: trade, error: fetchErr } = await sb.from('trades').select('*').eq('id', activeTradeId).single();
+    
+    if (fetchErr || !trade) {
+        alert("Error fetching trade data. Please refresh.");
+        return;
+    }
+
+    if (!trade.buyer_wallet_address) {
+        alert("CRITICAL ERROR: No buyer wallet address found.");
+        return;
+    }
+
+    // THE FIX: Allow release if status is EITHER 'PAID_AWAITING_RELEASE' OR 'DISPUTE_OPEN'
+    const allowedStatuses = ['PAID_AWAITING_RELEASE', 'DISPUTE_OPEN'];
+    if (!allowedStatuses.includes(trade.status)) {
+        alert(`CANNOT RELEASE: Status is currently "${trade.status}".`);
+        return;
+    }
+
+    if (!confirm("CONFIRM RELEASE: Are you sure you want to release the AQUA to the buyer? This will resolve any open dispute.")) return;
+
+    // UI Loading state
+    const btn = document.querySelector('button[onclick="releaseFunds()"]');
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> RELEASING...`;
 
     try {
-        // 1. Get Seller's Jettons
+        const response = await fetch(EDGE_FUNC_URL, {
+            method: "POST",
+            headers: { 
+                "Authorization": `Bearer ${SUPABASE_KEY}`, 
+                "Content-Type": "application/json" 
+            },
+            body: JSON.stringify({ 
+                action: "release_funds", 
+                trade_id: activeTradeId 
+            })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert("SUCCESS: Funds released and dispute resolved.");
+            
+            // Log system message
+            await sb.from('chat_messages').insert({
+                trade_id: activeTradeId,
+                sender_id: 'SYSTEM',
+                message_text: "✅ TRADE SETTLED: Seller released funds during dispute.",
+                is_system_message: true
+            });
+
+            syncTradeData(activeTradeId); 
+        } else {
+            throw new Error(result.error || "Blockchain transaction failed");
+        }
+    } catch (err) {
+        alert("RELEASE FAILED: " + err.message);
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+    }
+}
+
+// --- CHAT & MEDIA HANDLING ---
+function appendMessage(msg) {
+    const list = document.getElementById('messagesList');
+    const div = document.createElement('div');
+    
+    if (msg.is_system_message) {
+        div.className = "system-msg";
+        div.innerText = msg.message_text;
+    } else {
+        const isMe = msg.sender_id === currentUser.id;
+        div.className = `chat-bubble ${isMe ? 'chat-me' : 'chat-them'}`;
+        
+        let html = '';
+        if (msg.image_url) {
+            html += `
+                <a href="${msg.image_url}" target="_blank">
+                    <img src="${msg.image_url}" class="rounded-xl mb-2 max-w-full border border-black/10 shadow-sm" style="max-height:250px; object-fit:cover;">
+                </a>`;
+        }
+        if (msg.message_text) {
+            html += `<p class="font-medium">${msg.message_text}</p>`;
+        }
+        
+        const time = new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+        html += `<div class="text-[9px] opacity-60 text-right mt-1">${time}</div>`;
+        
+        div.innerHTML = html;
+    }
+    list.appendChild(div);
+}
+
+async function raiseDispute() {
+    if (!activeTradeId) return;
+    
+    const confirmDispute = confirm("Open a dispute? An admin will join the chat to review payment evidence immediately.");
+    if (!confirmDispute) return;
+
+    // 1. Update status to DISPUTE_OPEN
+    const { error } = await sb.from('trades')
+        .update({ status: 'DISPUTE_OPEN' })
+        .eq('id', activeTradeId);
+
+    if (error) {
+        alert("Error: " + error.message);
+        return;
+    }
+
+    // 2. Insert System Message into Chat
+    await sb.from('chat_messages').insert({
+        trade_id: activeTradeId,
+        sender_id: currentUser.id,
+        message_text: "⚠️ DISPUTE OPENED: Admin intervention has been requested. Users, please provide proof of payment/bank statements in this chat.",
+        is_system_message: true
+    });
+
+    alert("Dispute raised. A moderator will review this trade shortly.");
+}
+
+
+async function handleImageUpload(input) {
+    const file = input.files[0];
+    if (!file || !activeTradeId) return;
+
+    // Local Preview (UX)
+    const list = document.getElementById('messagesList');
+    const tempId = 'up_' + Date.now();
+    const tempDiv = document.createElement('div');
+    tempDiv.id = tempId;
+    tempDiv.className = "chat-bubble chat-me opacity-50";
+    tempDiv.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin mr-2"></i> Uploading Receipt...`;
+    list.appendChild(tempDiv);
+    scrollChatToBottom();
+
+    try {
+        const options = { maxSizeMB: 0.7, maxWidthOrHeight: 1200, useWebWorker: true, initialQuality: 0.5 };
+        const compressed = await imageCompression(file, options);
+        
+        const path = `receipts/${activeTradeId}/${Date.now()}.jpg`;
+        const { data, error } = await sb.storage.from('p2p').upload(path, compressed);
+        if (error) throw error;
+
+        const { data: { publicUrl } } = sb.storage.from('p2p').getPublicUrl(path);
+
+        await sb.from('chat_messages').insert({
+            trade_id: activeTradeId,
+            sender_id: currentUser.id,
+            image_url: publicUrl,
+            message_text: "Sent payment proof."
+        });
+
+        buyerHasUploadedProof = true;
+        syncTradeData(activeTradeId);
+    } catch (e) {
+        alert("Upload Error: " + e.message);
+    } finally {
+        if (document.getElementById(tempId)) document.getElementById(tempId).remove();
+        input.value = '';
+    }
+}
+
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const val = input.value.trim();
+    if (!val || !activeTradeId) return;
+    
+    input.value = '';
+    await sb.from('chat_messages').insert({
+        trade_id: activeTradeId,
+        sender_id: currentUser.id,
+        message_text: val
+    });
+}
+
+function scrollChatToBottom() {
+    const container = document.getElementById('chatContainer');
+    container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+}
+// --- UI & NAVIGATION ---
+function switchTab(tab) {
+    document.getElementById('view-market').classList.toggle('hidden', tab !== 'market');
+    document.getElementById('view-my-trades').classList.toggle('hidden', tab !== 'my-trades');
+    
+    // Active/Inactive Styles
+    const activeClass = "flex-1 py-2.5 rounded-lg text-sm font-bold bg-white shadow-sm text-blue-600";
+    const inactiveClass = "flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-500";
+    
+    document.getElementById('tab-market').className = tab === 'market' ? activeClass : inactiveClass;
+    document.getElementById('tab-my-trades').className = tab === 'my-trades' ? activeClass : inactiveClass;
+    
+    if(tab === 'my-trades') {
+        loadMyTrades();
+        // Clear badge when visiting trades tab
+        const badge = document.getElementById('mainNavBadge');
+        if(badge) badge.style.display = 'none';
+    }
+}
+
+async function loadMyTrades() {
+    const list = document.getElementById('myTradesList');
+    list.innerHTML = '<div class="loader mx-auto my-10"></div>';
+    
+    const { data, error } = await sb.from('trades')
+        .select('*')
+        .or(`seller_id.eq.${currentUser.id},buyer_id.eq.${currentUser.id}`)
+        .order('created_at', {ascending: false});
+            
+    list.innerHTML = '';
+    if(!data || data.length === 0) {
+        list.innerHTML = '<p class="text-center text-gray-400 py-10 font-bold">No active trades found</p>';
+        return;
+    }
+    
+    data.forEach(t => {
+        const div = document.createElement('div');
+        div.onclick = () => openTradeModal(t.id);
+        div.className = "bg-white p-4 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer hover:bg-gray-50 mb-3 shadow-sm";
+        
+        const isSell = t.seller_id === currentUser.id;
+        const typeColor = isSell ? 'text-red-500' : 'text-green-500';
+        const typeText = isSell ? 'SELL' : 'BUY';
+
+        div.innerHTML = `
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-black ${typeColor} bg-gray-100 px-1 rounded">${typeText}</span>
+                    <p class="font-black">${t.amount_token.toLocaleString()} AQUA</p>
+                </div>
+                <p class="text-[10px] text-gray-400 uppercase font-black mt-1">${t.status.replace(/_/g, ' ')}</p>
+            </div>
+            <i class="fa-solid fa-chevron-right text-gray-300"></i>
+        `;
+        list.appendChild(div);
+    });
+}
+
+// --- MODAL CONTROLS ---
+function openSellModal() { 
+    document.getElementById('sellModal').classList.remove('hidden'); 
+}
+
+function closeModal(id) { 
+    document.getElementById(id).classList.add('hidden'); 
+    if(id === 'tradeModal') {
+        activeTradeId = null;
+        if(tradeTimerInterval) clearInterval(tradeTimerInterval);
+        if(pollingInterval) clearInterval(pollingInterval);
+        sb.removeAllChannels(); // Stop Realtime
+        subscribeToNotifications(); // Go back to global listener
+    }
+}
+
+// --- GLOBAL NOTIFICATIONS ---
+function subscribeToNotifications() {
+    sb.channel('global-notifs')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, payload => {
+            const msg = payload.new;
+            if (msg.sender_id !== currentUser?.id && msg.trade_id !== activeTradeId) {
+                const badge = document.getElementById('mainNavBadge');
+                if(badge) badge.style.display = 'block';
+            }
+        })
+        .subscribe();
+}
+
+
+    // 
+
+   
+
+    
+function renderTradeUI(trade) {
+    const isSeller = trade.seller_id === currentUser.id;
+    const isBuyer = trade.buyer_id === currentUser.id;
+    const container = document.getElementById('tradeDetailsCard');
+    const badge = document.getElementById('tradeStatusBadge');
+    const tonContainer = document.getElementById('ton-connect-container');
+    const disputeBtn = document.getElementById('disputeBtn');
+
+    // Update Status Badge text
+    badge.innerText = trade.status.replace(/_/g, ' ');
+    
+    // --- DISPUTE BUTTON LOGIC ---
+    // Show dispute button ONLY if the trade is funded or in progress
+    // We hide it for COMPLETED, CANCELLED, or unfunded PENDING trades
+    const activeStatuses = ['ESCROW_LOCKED', 'PAID_AWAITING_RELEASE', 'DISPUTE_OPEN'];
+    
+    if (activeStatuses.includes(trade.status)) {
+         disputeBtn.classList.remove('hidden');
+         
+         // If a dispute is already open, style the button differently
+         if(trade.status === 'DISPUTE_OPEN') {
+             disputeBtn.innerText = "DISPUTE ACTIVE";
+             disputeBtn.classList.replace('bg-red-100', 'bg-red-600');
+             disputeBtn.classList.replace('text-red-600', 'text-white');
+             disputeBtn.disabled = true;
+         } else {
+             disputeBtn.innerText = "RAISE DISPUTE";
+             disputeBtn.disabled = false;
+         }
+    } else {
+         disputeBtn.classList.add('hidden');
+    }
+
+    let html = `
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+            <div class="flex justify-between text-sm mb-2">
+                <span class="text-gray-400 font-bold">Token Amount</span>
+                <span class="font-black text-blue-600">${trade.amount_token.toLocaleString()} AQUA</span>
+            </div>
+            <div class="flex justify-between text-sm">
+                <span class="text-gray-400 font-bold">Fiat to Pay</span>
+                <span class="font-black text-gray-900">₦${parseInt(trade.amount_fiat).toLocaleString()}</span>
+            </div>
+        </div>
+    `;
+
+    // --- PHASE 1: AWAITING SELLER DEPOSIT ---
+    if (trade.status === 'AWAITING_DEPOSIT') {
+        tonContainer.classList.toggle('hidden', !isSeller);
+        if (isSeller) {
+            const depositAmt = (trade.amount_token * 1.05).toFixed(2);
+            html += `
+                <div class="mt-4 p-4 bg-yellow-50 rounded-2xl border border-yellow-100 text-sm">
+                    <p class="font-black text-yellow-800 uppercase text-[10px] mb-2">Action Required</p>
+                    <p class="text-yellow-700 font-bold mb-3">Deposit ${depositAmt} AQUA to list this on the market.</p>
+                    <button id="depositBtn" onclick="depositToEscrow(${trade.amount_token}, '${trade.id}')" class="w-full bg-yellow-500 text-white py-4 rounded-xl font-black shadow-lg">DEPOSIT & LOCK</button>
+                </div>`;
+        } else {
+            html += `<p class="text-center text-xs text-gray-400 font-bold mt-6 uppercase animate-pulse font-black">Awaiting Seller Funding...</p>`;
+        }
+    } 
+    
+    // --- PHASE 2: ESCROW LOCKED (BUYER PAYS NOW) ---
+    else if (trade.status === 'ESCROW_LOCKED') {
+        tonContainer.classList.add('hidden');
+        if (isBuyer) {
+            const btnState = buyerHasUploadedProof ? '' : 'disabled opacity-50 grayscale';
+            const btnText = buyerHasUploadedProof ? 'I HAVE PAID' : 'UPLOAD PROOF TO UNLOCK';
+
+            html += `
+                <div class="mt-4 p-4 bg-blue-50 rounded-2xl border border-blue-100 text-sm text-blue-900">
+                    <p class="font-black uppercase text-[10px] mb-2 opacity-60">Payment Details</p>
+                    <div class="bg-white p-3 rounded-xl mb-3 border border-blue-100">
+                        <div class="flex justify-between items-center mb-2">
+                            <p class="text-[9px] text-gray-400 uppercase font-black">Account Number</p>
+                            <button onclick="copyToClipboard('${trade.bank_details.account}')" class="text-blue-600 text-[10px] font-black underline">COPY</button>
+                        </div>
+                        <p class="font-mono font-bold text-lg">${trade.bank_details.account}</p>
+                        <p class="text-xs mt-1"><b>${trade.bank_details.bank}</b> | ${trade.bank_details.name}</p>
+                    </div>
+                    <button onclick="markAsPaid()" ${btnState} class="w-full bg-blue-600 text-white py-4 rounded-xl font-black shadow-xl transition-all">${btnText}</button>
+                </div>`;
+        } else {
+            html += `<p class="text-center text-xs text-gray-400 font-bold mt-6 uppercase animate-pulse font-black">MAKE ALL TRADE ON THE AQUAMEME PLATFORM.</p>`;
+        }
+    }
+
+    // --- PHASE 3: PAID (SELLER RELEASES NOW) ---
+    else if (['PAID_AWAITING_RELEASE', 'DISPUTE_OPEN'].includes(trade.status)) {
+        if (isSeller) {
+            html += `
+                <div class="mt-4 p-4 bg-green-50 rounded-2xl border border-green-100 text-green-800 text-sm">
+                    <p class="font-black text-lg mb-1">Verify NGN Payment</p>
+                    <p class="mb-4 opacity-80 font-medium">Once you see ₦${parseInt(trade.amount_fiat).toLocaleString()} in your bank, release the crypto.</p>
+                    <button onclick="releaseFunds()" class="w-full bg-green-600 text-white py-4 rounded-xl font-black shadow-lg">RELEASE AQUA</button>
+                </div>`;
+        } else {
+            html += `
+                <div class="mt-4 p-6 bg-gray-100 rounded-2xl text-center border border-gray-200">
+                    <i class="fa-solid fa-hourglass-half text-gray-400 text-2xl mb-2"></i>
+                    <p class="text-xs font-black text-gray-500 uppercase tracking-widest">Payment Sent</p>
+                    <p class="text-sm font-bold text-gray-400 mt-1">Waiting for seller to release funds...</p>
+                </div>`;
+        }
+    }
+
+    // --- PHASE 4: COMPLETED ---
+    else if (trade.status === 'COMPLETED') {
+        html += `
+            <div class="mt-4 p-8 bg-green-600 text-white rounded-3xl text-center font-black shadow-2xl">
+                <i class="fa-solid fa-circle-check text-4xl mb-3"></i>
+                <p class="text-lg uppercase tracking-tight">Trade Completed</p>
+                <p class="text-xs opacity-70 font-medium mt-1">Tokens transferred to buyer wallet.</p>
+            </div>`;
+    }
+
+    container.innerHTML = html;
+}
+
+// --- REALTIME SUBSCRIPTION ---
+function subscribeToTrade(tradeId) {
+    // 1. Clear existing to avoid duplicate listeners
+    sb.removeAllChannels();
+
+    // 2. Listen for trade status changes and new messages
+    sb.channel(`trade_room_${tradeId}`)
+        .on(
+            'postgres_changes', 
+            { event: '*', schema: 'public', table: 'trades', filter: `id=eq.${tradeId}` }, 
+            (payload) => {
+                console.log("Realtime Trade Update:", payload.new);
+                renderTradeUI(payload.new); 
+            }
+        )
+        .on(
+            'postgres_changes', 
+            { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `trade_id=eq.${tradeId}` }, 
+            (payload) => {
+                appendMessage(payload.new);
+                scrollChatToBottom();
+                
+                // If buyer sends proof, enable the 'Paid' button immediately
+                if (payload.new.image_url && payload.new.sender_id !== currentUser.id) {
+                    buyerHasUploadedProof = true;
+                }
+            }
+        )
+        .subscribe();
+}
+
+// --- BUYER ACTION: MARK AS PAID ---
+async function markAsPaid() {
+    if (!activeTradeId) return;
+    
+    // Safety check: Don't let them click if they haven't uploaded
+    if (!buyerHasUploadedProof) {
+        alert("Please upload your payment screenshot first!");
+        return;
+    }
+
+    const { error } = await sb.from('trades')
+        .update({ status: 'PAID_AWAITING_RELEASE' })
+        .eq('id', activeTradeId);
+
+    if (error) {
+        alert("Error updating status: " + error.message);
+    } else {
+        // Send a system message so the seller sees it in chat
+        await sb.from('chat_messages').insert({ 
+            trade_id: activeTradeId, 
+            sender_id: currentUser.id, 
+            message_text: "System: Buyer has marked as PAID. Please verify your bank.", 
+            is_system_message: true 
+        });
+    }
+}
+
+// --- SELLER ACTION: BLOCKCHAIN DEPOSIT ---
+async function depositToEscrow(amount, tradeId) {
+    const wallet = tonConnectUI.account;
+    if(!wallet) return alert("Please connect your TON wallet first using the button above.");
+    
+    const btn = document.getElementById('depositBtn');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Processing...`;
+
+    try {
+        // 1. Fetch the seller's Jetton wallet address for AQUA
         const res = await fetch(`https://tonapi.io/v2/accounts/${wallet.address}/jettons`);
         const data = await res.json();
-        
-        // 2. Find AQUAM Jetton Wallet
         const aqua = data.balances.find(j => j.jetton.address.includes("3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1"));
         
-        if(!aqua) throw new Error("No AQUA tokens found in this wallet.");
+        if(!aqua) throw new Error("You do not have any AQUA tokens in this wallet.");
 
-        // --- THE CRITICAL FIX ---
-        // Convert the raw "0:xxxx" address to a User-Friendly Base64 string
-        const sellerJettonWalletAddress = new TonWeb.utils.Address(aqua.wallet_address.address).toString(true, true, true);
+        const sellerJettonWallet = new TonWeb.utils.Address(aqua.wallet_address.address).toString(true, true, true);
 
-        const jetAmt = BigInt(Math.floor(amount * 1e9));
+        // 2. Prepare the 105% Deposit (Amount + 5% Fee)
+        const amountWithFee = amount * 1.05;
+        const jettonAmount = BigInt(Math.floor(amountWithFee * 1e9)); // NanoAQUA
+
+        // 3. Construct the Jetton Transfer payload
         const cell = new TonWeb.boc.Cell();
         cell.bits.writeUint(0xf8a7ea5, 32); // op::transfer
-        cell.bits.writeUint(0, 64); // query_id
-        cell.bits.writeCoins(jetAmt);
-        cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY));
-        cell.bits.writeAddress(new TonWeb.utils.Address(wallet.address));
-        cell.bits.writeBit(0); // no custom_payload
-        cell.bits.writeCoins(TonWeb.utils.toNano("0.05")); // forward_ton_amount
-        cell.bits.writeBit(0); // no forward_payload
+        cell.bits.writeUint(0, 64);          // query_id
+        cell.bits.writeCoins(jettonAmount);
+        cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY)); // Destination: Your Treasury
+        cell.bits.writeAddress(new TonWeb.utils.Address(wallet.address)); // Excesses to seller
+        cell.bits.writeBit(0); // no custom payload
+        cell.bits.writeCoins(TonWeb.utils.toNano("0.05")); // forward amount
+        cell.bits.writeBit(0); // no forward payload
 
         const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
         
-        // 3. Send Transaction
         const result = await tonConnectUI.sendTransaction({
             validUntil: Math.floor(Date.now()/1000) + 300,
             messages: [{ 
-                address: sellerJettonWalletAddress, // Now in correct format
+                address: sellerJettonWallet, 
                 amount: TonWeb.utils.toNano("0.1").toString(), 
                 payload: payload 
             }]
         });
 
         if(result) {
-            // Update Supabase
+            // Update DB so the buyer can see they can now pay
             await sb.from('trades').update({ 
                 status: 'ESCROW_LOCKED', 
                 tx_hash_deposit: result.boc 
             }).eq('id', tradeId);
             
-            // Log to chat
             await sb.from('chat_messages').insert({ 
                 trade_id: tradeId, 
                 sender_id: currentUser.id, 
-                message_text: "System: Seller has locked AQUA in Escrow.", 
+                message_text: "System: Seller has deposited AQUA into escrow.", 
                 is_system_message: true 
             });
             
-            alert("Escrow Locked Successfully!");
+            alert("Escrow Secured! Your AQUA is now safely locked.");
         }
     } catch(e) { 
         console.error(e);
         alert("Transaction Failed: " + e.message); 
-        btn.innerHTML = originalText; 
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
     }
 }
 
-        async function markAsPaid() {
-            await sb.from('trades').update({ status: 'PAID_AWAITING_RELEASE' }).eq('id', activeTradeId);
-            await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: currentUser.id, message_text: "System: Buyer marked as Paid. Check your bank.", is_system_message: true });
-        }
+// --- UTILITY: COPY TO CLIPBOARD ---
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        alert("Copied to clipboard!");
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+}
 
-        async function releaseFunds() {
-            if(!confirm("Release crypto? This is irreversible.")) return;
-            const res = await fetch(EDGE_FUNC_URL, {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "release_funds", trade_id: activeTradeId })
-            });
-            const result = await res.json();
-            if(result.success) alert("Released!"); else alert(result.error);
-        }
 
-        // --- CHAT & REALTIME ---
-        function subscribeToTrade(tradeId) {
-            sb.channel(`trade-${tradeId}`)
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'trades', filter: `id=eq.${tradeId}` }, p => renderTradeUI(p.new))
-                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `trade_id=eq.${tradeId}` }, p => {
-                    appendMessage(p.new);
-                    document.getElementById('chatContainer').scrollTop = 999999;
-                })
-                .subscribe();
-        }
-
-        async function loadChatMessages(tradeId) {
-            const { data } = await sb.from('chat_messages').select('*').eq('trade_id', tradeId).order('created_at', { ascending: true });
-            const list = document.getElementById('messagesList');
-            list.innerHTML = '';
-            if(data) data.forEach(appendMessage);
-            document.getElementById('chatContainer').scrollTop = 999999;
-        }
-
-        function appendMessage(msg) {
-            const list = document.getElementById('messagesList');
-            const div = document.createElement('div');
-            if(msg.is_system_message) {
-                div.className = "system-msg";
-                div.innerText = msg.message_text;
-            } else {
-                const isMe = msg.sender_id === currentUser.id;
-                div.className = `chat-bubble ${isMe ? 'chat-me' : 'chat-them'}`;
-                if(msg.image_url) div.innerHTML = `<img src="${msg.image_url}" class="rounded-xl mb-2 max-w-full">`;
-                div.innerHTML += `<span>${msg.message_text}</span>`;
-            }
-            list.appendChild(div);
-        }
-
-        async function sendMessage() {
-            const input = document.getElementById('messageInput');
-            const text = input.value.trim();
-            if(!text) return;
-            input.value = '';
-            await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: currentUser.id, message_text: text });
-        }
-
-        // --- UTILS ---
-        function calculateFiat() {
-            const val = parseFloat(document.getElementById('sellAmount').value) || 0;
-            document.getElementById('calcFiat').innerText = (val * currentPriceUSD * NGN_RATE).toLocaleString(undefined, {minimumFractionDigits: 2});
-        }
-
-        function switchTab(tab) {
-            document.getElementById('view-market').classList.toggle('hidden', tab !== 'market');
-            document.getElementById('view-my-trades').classList.toggle('hidden', tab !== 'my-trades');
-            document.getElementById('tab-market').className = tab === 'market' ? "flex-1 py-2.5 rounded-lg text-sm font-bold bg-white shadow-sm text-blue-600" : "flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-500";
-            document.getElementById('tab-my-trades').className = tab === 'my-trades' ? "flex-1 py-2.5 rounded-lg text-sm font-bold bg-white shadow-sm text-blue-600" : "flex-1 py-2.5 rounded-lg text-sm font-bold text-gray-500";
-            if(tab === 'my-trades') loadMyTrades();
-        }
-
-        async function loadMyTrades() {
-            const list = document.getElementById('myTradesList');
-            list.innerHTML = '<div class="loader mx-auto"></div>';
-            const { data } = await sb.from('trades').select('*').or(`seller_id.eq.${currentUser.id},buyer_id.eq.${currentUser.id}`).order('created_at', {ascending: false});
-            list.innerHTML = '';
-            if(!data || data.length === 0) return list.innerHTML = '<p class="text-center text-gray-400 py-10">No trades found</p>';
-            data.forEach(t => {
-                const div = document.createElement('div');
-                div.onclick = () => openTradeModal(t.id);
-                div.className = "bg-white p-4 rounded-2xl border border-gray-100 flex justify-between items-center cursor-pointer";
-                div.innerHTML = `<div><p class="font-black">${t.amount_token} AQUA</p><p class="text-[10px] text-gray-400 uppercase font-black">${t.status}</p></div><i class="fa-solid fa-chevron-right text-gray-300"></i>`;
-                list.appendChild(div);
-            });
-        }
-
-        function openSellModal() { document.getElementById('sellModal').classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); if(id==='tradeModal') sb.removeAllChannels(); }
-    </script>
-</body>
-</html>
+</script>
+</body>  
