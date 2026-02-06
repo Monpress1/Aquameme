@@ -1,5 +1,15 @@
 {
-  "url": "https://aquapay-xabt-monpress-s-projects.vercel.app",
-  "name": "AquaCoinX",
-  "iconUrl": "https://aquapay-xabt-monpress-s-projects.vercel.app/logo.png"
+  "app_name": "AquaMeme",
+  "name": "AquaMeme",
+  "image": "https://aquameme.vercel.app/logo.png",
+  "about_url": "https://aquameme.vercel.app",
+  "universal_url": "https://aquameme.vercel.app",
+  "platforms": ["web", "android", "ios", "windows", "macos", "linux"],
+  "features": [
+    {
+      "name": "SendTransaction",
+      "maxMessages": 4,
+      "extraCurrencySupported": false
+    }
+  ]
 }
