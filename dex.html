@@ -2,25 +2,42 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Swap | AquaCoinX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Aquam | Swap </title>
 
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://widget.ston.fi/v0/index.js"></script>
 
 <style>
-    :root { --bg: #0b111b; --card: #131b29; --border: #1e293b; --text: #ffffff; --subtext: #94a3b8; --primary: #3b82f6; }
-    
-    html, body { 
-        width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; 
-        overscroll-behavior: none; touch-action: none; background: var(--bg); 
-        color: var(--text); font-family: 'Manrope', sans-serif;
+    :root { 
+        --bg: #0b111b; 
+        --card: #131b29; 
+        --border: #1e293b; 
+        --text: #ffffff; 
+        --subtext: #94a3b8; 
+        --primary: #3b82f6; 
+    }
+    main { 
+    padding-bottom: 140px; 
+}
+
+    body { 
+        background: var(--bg); 
+        color: var(--text); 
+        font-family: 'Manrope', sans-serif; 
+        -webkit-tap-highlight-color: transparent; 
+        margin: 0; 
+        padding-bottom: 100px;
     }
 
-    .app-wrapper { display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; }
+    .card-bg { 
+        background: var(--card); 
+        border: 1px solid var(--border); 
+        border-radius: 1.5rem; 
+        overflow: hidden;
+    }
 
     /* Wiggle Animation: Fast-Fast-Slow-Pause */
     @keyframes wiggle-pro {
@@ -33,123 +50,130 @@
     }
     .wiggle-icon { animation: wiggle-pro 3.5s infinite ease-in-out; display: inline-block; }
 
-    /* Merge Loader Animation */
-    .merge-box { position: relative; display: flex; align-items: center; justify-content: center; height: 100px; width: 100%; }
-    .word { position: absolute; font-weight: 900; letter-spacing: 2px; transition: all 0.8s cubic-bezier(0.7, 0, 0.3, 1); font-size: 1.2rem; }
-    #word-left { transform: translateX(-60px); opacity: 1; color: var(--primary); }
-    #word-right { transform: translateX(60px); opacity: 1; color: #ffffff; }
-    
-    .merging #word-left { transform: translateX(0); opacity: 0; scale: 0.5; filter: blur(10px); }
-    .merging #word-right { transform: translateX(0); opacity: 0; scale: 0.5; filter: blur(10px); }
-
-    #lock-icon { opacity: 0; transform: scale(0.5); transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: absolute; }
-    .merging #lock-icon { opacity: 1; transform: scale(1.2); }
-
-    .lock-glow { filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.8)); color: var(--primary); }
-
-    /* Layout Elements */
-    header { height: 70px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom: 1px solid rgba(30, 41, 59, 0.5); z-index: 60; }
-    main { flex-grow: 1; position: relative; width: 100%; }
-    .iframe-container { width: 100%; height: 100%; }
-    iframe { width: 100%; height: 100%; border: none; touch-action: auto; }
-
-    nav { height: 85px; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; background: rgba(11, 17, 27, 0.98); backdrop-blur: 15px; border-top: 1px solid rgba(30, 41, 59, 0.8); z-index: 60; }
-    .nav-item { color: var(--subtext); display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; gap: 5px; font-weight: 600; cursor: pointer; }
+    /* Nav Styling */
+    .nav-item { color: var(--subtext); display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; gap: 4px; font-weight: 700; cursor: pointer; transition: 0.2s; }
     .nav-item.active { color: var(--primary); }
+    .nav-item i { font-size: 1.2rem; }
 
-    .loading-screen { position: absolute; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+    #omniston {
+        --omniston-bg: var(--card);
+        --omniston-container-bg: var(--card);
+        --omniston-primary: var(--primary);
+        --omniston-text-primary: #ffffff;
+        --omniston-text-secondary: var(--subtext);
+        --omniston-border-color: var(--border);
+    }
 </style>
 </head>
 
-<body>
+<body class="select-none">
 
-<div class="app-wrapper">
-    <header>
-      <div class="flex items-center gap-4">
-        <a href="index.html" class="text-gray-400"><i class="fa-solid fa-chevron-left text-lg"></i></a>
-        <h1 class="font-extrabold text-lg tracking-tight">Aquameme</h1>
+<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 border-b border-gray-800/30" style="background-color: var(--bg)">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/20">A</div>
+    <div>
+      <div class="font-extrabold text-lg tracking-tight">Aquam</div>
+      <div id="status" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+        <i class="fa-solid fa-circle text-[6px] text-green-500 animate-pulse"></i> Active
       </div>
-      
-      <div onclick="openModal()" class="cursor-pointer">
-          <i class="fa-solid fa-clipboard-question text-2xl text-blue-500 wiggle-icon"></i>
-      </div>
-    </header>
+    </div>
+  </div>
+  
+  <div class="flex items-center gap-2">
+      <button onclick="openHelp()" class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400">
+        <i class="fa-solid fa-circle-question text-lg wiggle-icon"></i>
+      </button>
+  </div>
+</header>
 
-    <main>
-        <div id="loader" class="loading-screen">
-            <div class="merge-box" id="mergeContainer">
-                <span id="word-left" class="word uppercase tracking-widest">AQUAM</span>
-             +   <span id="word-right" class="word uppercase tracking-widest">STON.fi</span>
-                <i id="lock-icon" class="fa-solid fa-lock text-4xl lock-glow"></i>
-            </div>
-        </div>
-        
-        <div class="iframe-container">
-            <iframe id="stonfiFrame" allow="clipboard-read; clipboard-write"></iframe>
-        </div>
-    </main>
+<main class="p-4 space-y-6">
+  
+  <div class="card-bg p-2 shadow-2xl">
+    <div id="omniston"></div>
+  </div>
 
-    <nav>
-        <div onclick="window.location.href='index.html'" class="nav-item"><i class="fa-solid fa-house-chimney"></i><span>Home</span></div>
-        <div onclick="window.location.href='s2w.html'" class="nav-item"><i class="fa-solid fa-dice"></i><span>Spin2Win</span></div>
-        <div class="nav-item active"><i class="fa-solid fa-right-left"></i><span>Swap</span></div>
-        <div onclick="window.location.href='p2p.html'" class="nav-item"><i class="fa-solid fa-handshake"></i><span>P2P</span></div>
-        <div onclick="window.location.href='market.html'" class="nav-item"><i class="fa-solid fa-shopping-cart"></i><span>Market</span></div>
-    </nav>
-</div>
+  <div class="card-bg p-5 flex items-center gap-4 border-dashed border-blue-500/30 bg-blue-500/5">
+    <div class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
+        <i class="fa-solid fa-shield-halved text-xl"></i>
+    </div>
+    <div>
+        <p class="font-bold text-sm text-white">Secure Routing</p>
+        <p class="text-xs text-gray-400">Transactions are executed directly on the TON blockchain.</p>
+    </div>
+  </div>
 
-<div id="helpModal" class="fixed inset-0 z-[200] hidden items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
-    <div class="bg-[#131b29] border border-gray-800 w-full max-w-xs rounded-3xl p-6 shadow-2xl">
-        <div class="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 mb-4">
-            <i class="fa-solid fa-lightbulb"></i>
-        </div>
-        <h3 class="font-bold text-lg mb-4">How to Swap</h3>
+</main>
+
+<div id="helpModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
+    <div class="bg-[#131b29] w-full max-w-sm p-6 rounded-3xl border border-gray-800 shadow-2xl">
+        <h3 class="font-bold text-lg mb-4 text-white">How to Swap</h3>
         <ul class="space-y-4 text-sm text-gray-400 font-medium">
-            <li class="flex gap-3"><span class="text-blue-500 font-bold">1.</span> Connect wallet </li>
+            <i class="fa-solid fa-lightbulb wiggle-icon text-yellow-400" style="font-size:22.7px;"></i>
+            
+            <li class="flex gap-3"><span class="text-blue-500 font-bold">1.</span> Connect your wallet.</li>
             <li class="flex gap-3"><span class="text-blue-500 font-bold">2.</span> Click "Select Asset" on the bottom field.</li>
             <li class="flex gap-3"><span class="text-blue-500 font-bold">3.</span> Search and select AQUAM.</li>
             <li class="flex gap-3"><span class="text-blue-500 font-bold">4.</span> Input the amount you want to convert.</li>
         </ul>
-        <button onclick="closeModal()" class="w-full mt-6 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 active:scale-95 transition-all">GOT IT</button>
+        <button onclick="closeHelp()" class="w-full mt-8 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 active:scale-95 transition-all">GOT IT</button>
     </div>
 </div>
 
+<nav class="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-gray-800/40 px-4 flex justify-between items-center z-10 h-[85px]" style="background: rgba(11, 17, 27, 0.9)">
+    
+    <div onclick="location.href='index.html'" class="nav-item">
+        <i class="fa-solid fa-house-chimney"></i>
+        <span>Home</span>
+    </div>
+    <div onclick="location.href='s2w.html'" class="nav-item">
+        <i class="fa-solid fa-clover"></i>
+        <span>Spin2Win</span>
+    </div>
+    <div onclick="location.href='dex.html'" class="nav-item active">
+        <i class="fa-solid fa-arrows-rotate"></i>
+        <span>Dex</span>
+    </div>
+    <div onclick="location.href='p2p.html'" class="nav-item">
+        <i class="fa-solid fa-handshake"></i>
+        <span>P2P</span>
+    </div>
+    <div onclick="location.href='market.html'" class="nav-item">
+        <i class="fa-solid fa-shopping-cart"></i>
+        <span>Market</span>
+    </div>
+</nav>
+
 <script>
-    const AQUAM_ADDRESS = "EQA71L6_7UY_aENYSZ_cfbFyUz8SsunxTWyN5Ac80BV_Hg5Z"; 
+  function openHelp() { document.getElementById('helpModal').classList.remove('hidden'); }
+  function closeHelp() { document.getElementById('helpModal').classList.add('hidden'); }
 
-    // Modal logic
-    function openModal() { document.getElementById('helpModal').style.display = 'flex'; }
-    function closeModal() { document.getElementById('helpModal').style.display = 'none'; }
-
-    // Merge & Load logic
-    function initTerminal() {
-        const frame = document.getElementById("stonfiFrame");
-        const loader = document.getElementById("loader");
-        const container = document.getElementById("mergeContainer");
-        
-        const url = `https://app.ston.fi/swap?chartVisible=false&ft=TON&tt=${AQUAM_ADDRESS}&theme=dark`;
-        frame.src = url;
-
-        frame.onload = () => {
-            // Trigger the "Merge" animation
-            setTimeout(() => {
-                container.classList.add('merging');
-
-                // Fade out the entire loading screen after merge
-                setTimeout(() => {
-                    loader.style.transition = "opacity 0.8s ease";
-                    loader.style.opacity = "0";
-                    setTimeout(() => loader.style.display = "none", 800);
-                }, 1800);
-            }, 1200);
-        };
+  /* Initialize Omniston Widget with Default Pair */
+  const widget = new window.OmnistonWidget({
+    tonconnect: {
+      type: "standalone",
+      options: {
+        // Ensure this URL is live and contains valid JSON! 
+        // If this URL returns a 404, you'll get that "Failed to" error.
+        manifestUrl: "https://aquameme.vercel.app/tonconnect-manifest.json"
+      }
+    },
+    widget: {
+      // TON is correct as "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"
+      defaultBidAsset: "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c", 
+      
+      // BOSS: Replace the address below with your actual AQUAM Jetton Master Contract Address
+      // If EQC4R... is your wallet, it WILL cause that JSON error.
+      defaultAskAsset: "EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d", 
+      
+      referrerAddress: "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D",
+      referrerFeeBps: 100 
     }
+  });
 
-    // Scroll Lock
-    document.addEventListener('touchmove', e => { if (!e.target.closest('iframe')) e.preventDefault(); }, { passive: false });
-
-    window.onload = initTerminal;
+  widget.mount(document.getElementById("omniston"));
 </script>
+
 
 </body>
 </html>
+
