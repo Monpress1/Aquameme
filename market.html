@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aquamarket | P2P Escrow</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+
+    <script>
+        // Apply Dark Mode immediately to prevent flash
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
+    <style>
+        /* --- THEME VARIABLES --- */
+        :root {
+            --primary: #2563eb;
+            --bg-body: #f9fafb;
+            --bg-card: #ffffff;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+            --border-color: #e5e7eb;
+            --input-bg: #f3f4f6;
+        }
+
+        /* Dark Mode Overrides */
+        html.dark {
+            --primary: #3b82f6;
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border-color: #334155;
+            --input-bg: #334155;
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* --- UTILITIES --- */
+        .card { background-color: var(--bg-card); border: 1px solid var(--border-color); }
+        .text-sub { color: var(--text-sub); }
+        .input-box { background-color: var(--input-bg); color: var(--text-main); border: 1px solid transparent; }
+        .input-box:focus { border-color: var(--primary); }
+
+        /* --- CHAT STYLES --- */
+        .chat-bubble { max-width: 85%; padding: 12px; border-radius: 16px; margin-bottom: 8px; font-size: 14px; position: relative; }
+        .chat-me { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
+        .chat-them { background: var(--input-bg); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border-color); }
+        .system-msg { text-align: center; font-size: 11px; color: var(--text-sub); margin: 15px 0; font-weight: bold; text-transform: uppercase; }
+
+        /* --- ANIMATIONS --- */
+        .loader { border: 2px solid var(--border-color); border-top: 2px solid var(--primary); border-radius: 50%; width: 24px; height: 24px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .slide-in-right { animation: slideInRight 0.3s forwards; }
+        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        
+        .slide-out-right { animation: slideOutRight 0.3s forwards; }
+        @keyframes slideOutRight { from { transform: translateX(0); } to { transform: translateX(100%); } }
+
+        /* --- LAYOUT --- */
+        .product-card img { height: 180px; width: 100%; object-fit: cover; border-radius: 12px; }
+        .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+        .hidden { display: none !important; }
+        
+        /* Menu Badge */
+        .badge-dot { position: absolute; top: 0; right: 0; width: 10px; height: 10px; background: #ef4444; border: 2px solid var(--bg-card); border-radius: 50%; }
+
+        /* Hide Scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="pb-24 safe-area-bottom">
+
+<header class="card sticky top-0 z-40 px-4 py-3 border-b-0 border-b-[1px] border-[var(--border-color)]">
+    <div class="max-w-xl mx-auto flex justify-between items-center">
+        <div onclick="showSection('market')" class="cursor-pointer">
+            <h1 class="font-black text-2xl tracking-tighter text-blue-600">Aqua<span style="color: var(--text-main)">market</span></h1>
+            <p class="text-[10px] font-bold text-sub uppercase tracking-widest">P2P Escrow</p>
+        </div>
+        
+        <div class="flex items-center gap-2">
+            <div id="ton-connect-btn" class="max-w-[110px] sm:max-w-[140px] overflow-hidden rounded-xl"></div>
+            
+            <button onclick="showSection('orders')" class="relative w-10 h-10 rounded-full bg-[var(--input-bg)] flex items-center justify-center text-[var(--text-main)]">
+                <i class="fa-solid fa-cart-shopping text-base"></i>
+                <div id="cart-notif-dot" class="badge-dot hidden"></div>
+            </button>
+            
+            <button onclick="toggleMenu()" class="relative w-10 h-10 rounded-full bg-[var(--input-bg)] flex items-center justify-center text-[var(--text-main)]">
+                <i class="fa-solid fa-bars text-lg"></i>
+                <div id="menu-notif-badge" class="badge-dot hidden"></div>
+            </button>
+        </div>
+    </div>
+</header>
+
+    
+
+    <div class="max-w-xl mx-auto px-4 py-3 sticky top-[70px] z-30 bg-[var(--bg-body)] transition-colors duration-300">
+        <div class="flex gap-2">
+            <div class="relative flex-1">
+                <i class="fa-solid fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                <input type="text" id="searchInput" onkeyup="handleSearch()" placeholder="Search products..." class="w-full pl-10 pr-4 py-3 rounded-xl input-box outline-none font-semibold shadow-sm">
+            </div>
+            <button onclick="openModal('filterModal')" class="w-12 rounded-xl bg-[var(--input-bg)] text-[var(--text-main)] border border-[var(--border-color)] shadow-sm flex items-center justify-center">
+                <i class="fa-solid fa-sliders"></i>
+            </button>
+        </div>
+    </div>
+
+    <main class="max-w-xl mx-auto px-4 mt-2">
+        
+        <div id="view-market">
+            <div id="market-grid" class="grid grid-cols-2 gap-3">
+                </div>
+        </div>
+
+        <div id="view-orders" class="hidden space-y-3">
+            <h2 class="text-xl font-black mb-4 px-1">My Orders</h2>
+            <div id="orders-list">
+                </div>
+        </div>
+
+        <div id="view-listings" class="hidden space-y-3">
+            <h2 class="text-xl font-black mb-4 px-1">My Listings</h2>
+            <div id="listings-list">
+                </div>
+        </div>
+
+    </main>
+
+    <button onclick="openModal('createModal')" class="fixed bottom-8 right-6 bg-blue-600 text-white w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center text-xl z-30 hover:scale-110 transition-transform">
+        <i class="fa-solid fa-plus"></i>
+    </button>
+
+    <div id="sideMenuOverlay" onclick="toggleMenu()" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[60] transition-opacity"></div>
+    <div id="sideMenu" class="fixed top-0 right-0 h-full w-[280px] card z-[70] transform translate-x-full transition-transform duration-300 shadow-2xl flex flex-col">
+        
+        <div class="p-6 flex justify-between items-center border-b border-[var(--border-color)]">
+            <h2 class="font-black text-xl">Menu</h2>
+            <button onclick="toggleMenu()" class="w-8 h-8 rounded-full bg-[var(--input-bg)] flex items-center justify-center text-sub">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="flex-1 p-4 space-y-2 overflow-y-auto">
+            <button onclick="showSection('market')" class="w-full text-left p-4 rounded-xl hover:bg-[var(--input-bg)] font-bold flex items-center gap-3 text-[var(--text-main)]">
+                <i class="fa-solid fa-store w-6 text-blue-500"></i> Market
+            </button>
+            
+            <button onclick="showSection('orders')" class="w-full text-left p-4 rounded-xl hover:bg-[var(--input-bg)] font-bold flex items-center gap-3 text-[var(--text-main)] relative">
+                <i class="fa-solid fa-box-open w-6 text-purple-500"></i> My Orders
+                <span id="menu-order-badge" class="hidden ml-auto bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">NEW</span>
+            </button>
+
+            <button onclick="showSection('listings')" class="w-full text-left p-4 rounded-xl hover:bg-[var(--input-bg)] font-bold flex items-center gap-3 text-[var(--text-main)]">
+                <i class="fa-solid fa-tags w-6 text-green-500"></i> My Listings
+            </button>
+        </div>
+
+        <div class="p-4 border-t border-[var(--border-color)]">
+            <div class="flex items-center justify-between p-4 rounded-xl bg-[var(--input-bg)]">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-moon text-sub"></i>
+                    <span class="font-bold text-sm">Dark Mode</span>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="darkModeToggle" class="sr-only peer" onchange="toggleDarkMode()">
+                    <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+            </div>
+            <p class="text-center text-[10px] text-sub font-bold mt-4 uppercase">Aquamarket v2.0</p>
+        </div>
+    </div>
+
+    <div id="filterModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[60] flex items-end sm:items-center justify-center">
+        <div class="bg-[var(--bg-card)] w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black">Filter Products</h2>
+                <button onclick="closeModal('filterModal')" class="p-2 text-sub"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-sub uppercase mb-2 block">Location</label>
+                    <select id="filterCity" class="w-full p-4 rounded-xl input-box outline-none font-semibold appearance-none">
+                        <option value="all">All Cities</option>
+                        </select>
+                </div>
+                
+                <div>
+                    <label class="text-xs font-bold text-sub uppercase mb-2 block">Price Range</label>
+                    <div class="flex gap-3">
+                        <input type="number" id="filterMin" placeholder="Min" class="w-full p-4 rounded-xl input-box outline-none font-black">
+                        <input type="number" id="filterMax" placeholder="Max" class="w-full p-4 rounded-xl input-box outline-none font-black">
+                    </div>
+                </div>
+
+                <button onclick="applyFilters()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-lg">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[60] flex items-end sm:items-center justify-center">
+        <div class="bg-[var(--bg-card)] w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[90vh] overflow-y-auto no-scrollbar">
+            <div id="detailContent"></div>
+        </div>
+    </div>
+
+    <div id="createModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[60] flex items-end sm:items-center justify-center p-4">
+        <div class="bg-[var(--bg-card)] w-full max-w-md rounded-3xl p-6 overflow-y-auto max-h-[90vh] no-scrollbar">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black">Sell Product</h2>
+                <button onclick="closeModal('createModal')" class="p-2 text-sub"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="productForm" onsubmit="handleCreateProduct(event)" class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-sub uppercase">Product Details</label>
+                    <input type="text" id="pTitle" placeholder="What are you selling?" required class="w-full p-4 rounded-xl input-box outline-none font-semibold">
+                    <textarea id="pDesc" placeholder="Description, condition, etc." class="w-full p-4 rounded-xl input-box outline-none font-medium h-24"></textarea>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-sub uppercase">Price (AQUAM)</label>
+                        <input type="number" id="pPrice" placeholder="0.00" required class="w-full p-4 rounded-xl input-box outline-none font-black">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-sub uppercase">Your City</label>
+                        <input type="text" id="pCity" placeholder="e.g. Lagos" required class="w-full p-4 rounded-xl input-box outline-none font-semibold">
+                    </div>
+                </div>
+
+                <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl space-y-3">
+                    <label class="text-xs font-bold text-blue-600 uppercase">Logistics Options</label>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm font-bold">Allow Pick-up</span>
+                        <input type="checkbox" id="pPickup" checked class="w-5 h-5 accent-blue-600">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-blue-400 uppercase">City Delivery Fee (0 for Free)</label>
+                        <input type="number" id="pDelivery" value="0" class="w-full bg-transparent border-b border-blue-200 outline-none font-black text-blue-800 dark:text-blue-300 py-1">
+                    </div>
+                </div>
+<div class="space-y-2">
+    <label class="text-xs font-bold text-blue-600 uppercase">Payout Wallet Address (TON)</label>
+    <input type="text" id="pWallet" placeholder="Enter your UQ... or EQ... address" required 
+           class="w-full p-4 rounded-xl input-box outline-none font-semibold border-2 border-blue-100 focus:border-blue-500">
+    <p class="text-[10px] text-sub font-bold px-1">⚠️ Double check this! This is where your AQUAM will be sent.</p>
+</div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-sub uppercase">Product Image</label>
+                    <input type="file" id="pImage" accept="image/*" required class="w-full text-sm text-sub">
+                </div>
+
+                <button type="submit" id="submitProductBtn" class="w-full bg-[var(--text-main)] text-[var(--bg-card)] py-4 rounded-2xl font-black text-lg">Post Listing</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="tradeModal" class="fixed inset-0 bg-[var(--bg-card)] hidden z-[70] flex flex-col">
+        <header class="p-4 border-b border-[var(--border-color)] flex justify-between items-center shadow-sm bg-[var(--bg-card)]">
+            <button onclick="closeModal('tradeModal')" class="p-2"><i class="fa-solid fa-chevron-left text-xl"></i></button>
+            <div class="text-center">
+                <p id="tradeIdDisplay" class="text-[10px] font-bold text-sub uppercase">Order Details</p>
+                <div id="tradeStatusBadge" class="text-xs font-black px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 uppercase mt-1">Status</div>
+            </div>
+            <button id="disputeBtn" onclick="raiseDispute()" class="hidden text-xs font-black bg-red-100 text-red-600 px-3 py-1.5 rounded-lg border border-red-200 uppercase">Dispute</button>
+            <div id="headerSpacer" class="w-10"></div>
+        </header>
+
+        <div id="chatContainer" class="flex-1 overflow-y-auto bg-[var(--bg-body)] p-4">
+            <div id="tradeInfoCard" class="mb-6"></div>
+            <div id="messagesList" class="flex flex-col"></div>
+        </div>
+
+        <div class="p-4 border-t border-[var(--border-color)] flex items-center gap-3 safe-area-bottom bg-[var(--bg-card)]">
+            <button onclick="document.getElementById('chatFileInput').click()" class="text-gray-400 w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--input-bg)]">
+                <i class="fa-solid fa-camera text-xl"></i>
+            </button>
+            <input type="file" id="chatFileInput" class="hidden" accept="image/*" onchange="handleChatImage(this)">
+            <input type="text" id="messageInput" placeholder="Message..." class="flex-1 input-box rounded-2xl px-4 py-3 outline-none font-medium">
+            <button onclick="sendMessage()" class="bg-blue-600 text-white w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    </body>
+    <script>
+    // --- CONFIGURATION ---
+    const SUPABASE_URL = "https://ptllbgdixhesptlkqrqa.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+    const EDGE_FUNC_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/smart-handler"; 
+    const TREASURY = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D";
+    const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
+
+    // --- INITIALIZATION ---
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json",
+        buttonRootId: "ton-connect-btn"
+    });
+
+    // --- STATE MANAGEMENT ---
+    let currentUser = null;
+    let activeTradeId = null;
+    let pollingInterval = null;
+    let allProducts = []; // Cache for search filtering
+
+    // --- ON LOAD ---
+    window.onload = async () => {
+        initDarkMode();
+        
+        // Auth Check
+        const { data: { session } } = await sb.auth.getSession();
+        currentUser = session ? session.user : (await sb.auth.signInAnonymously()).data.user;
+        
+        // Initial Loads
+        loadMarketplace();
+        subscribeToNotifications();
+        
+        // Populate Filter City Dropdown
+        setTimeout(populateCities, 2000);
+    };
+
+    // --- UI LOGIC: MENU & NAVIGATION ---
+    function toggleMenu() {
+        const menu = document.getElementById('sideMenu');
+        const overlay = document.getElementById('sideMenuOverlay');
+        const isOpen = !menu.classList.contains('translate-x-full');
+        
+        if(isOpen) {
+            menu.classList.add('translate-x-full');
+            overlay.classList.add('hidden');
+        } else {
+            menu.classList.remove('translate-x-full');
+            overlay.classList.remove('hidden');
+            // Check for notification dot on "My Orders" inside menu
+            checkOrderNotifications();
+        }
+    }
+
+    function showSection(sectionId) {
+        // Hide all sections
+        ['view-market', 'view-orders', 'view-listings'].forEach(id => {
+            document.getElementById(id).classList.add('hidden');
+        });
+        
+        // Show selected
+        document.getElementById(`view-${sectionId}`).classList.remove('hidden');
+        
+        // Close menu if open
+        toggleMenu();
+
+        // Load specific data
+        if(sectionId === 'orders') loadOrders();
+        if(sectionId === 'listings') loadMyListings();
+    }
+
+    // --- UI LOGIC: DARK MODE ---
+    function initDarkMode() {
+        const isDark = localStorage.getItem('theme') === 'dark';
+        document.getElementById('darkModeToggle').checked = isDark;
+        if(isDark) document.documentElement.classList.add('dark');
+    }
+
+    function toggleDarkMode() {
+        const isDark = document.getElementById('darkModeToggle').checked;
+        if(isDark) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+    }
+
+    // --- MARKETPLACE LOGIC ---
+    async function loadMarketplace() {
+        const container = document.getElementById('market-grid');
+        container.innerHTML = '<div class="col-span-2 py-20 flex justify-center"><div class="loader"></div></div>';
+
+        const { data: products, error } = await sb.from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) return container.innerHTML = '<p class="col-span-2 text-center text-red-500">Error loading products</p>';
+        
+        allProducts = products || []; // Store for search
+        renderProducts(allProducts);
+    }
+
+    function renderProducts(products) {
+        const container = document.getElementById('market-grid');
+        if(!products.length) {
+            container.innerHTML = '<p class="col-span-2 text-center py-20 text-sub font-bold uppercase text-xs">No products found</p>';
+            return;
+        }
+
+        container.innerHTML = '';
+        products.forEach(p => {
+            const div = document.createElement('div');
+            div.className = "bg-[var(--bg-card)] p-3 rounded-2xl border border-[var(--border-color)] shadow-sm cursor-pointer hover:scale-[1.02] transition-transform product-card";
+            div.onclick = () => openProductDetail(p);
+            div.innerHTML = `
+                <img src="${p.image_url}" alt="${p.title}">
+                <div class="mt-3">
+                    <h3 class="font-bold text-sm truncate text-[var(--text-main)]">${p.title}</h3>
+                    <p class="text-blue-600 font-black text-lg">${p.price_aquam.toLocaleString()} <span class="text-[10px]">AQUAM</span></p>
+                    <p class="text-[10px] text-sub font-bold uppercase mt-1"><i class="fa-solid fa-location-dot"></i> ${p.city}</p>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    // --- SEARCH & FILTER ---
+    function handleSearch() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = allProducts.filter(p => p.title.toLowerCase().includes(term) || p.description?.toLowerCase().includes(term));
+        renderProducts(filtered);
+    }
+
+    function populateCities() {
+        const select = document.getElementById('filterCity');
+        const cities = [...new Set(allProducts.map(p => p.city))];
+        cities.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.innerText = c;
+            select.appendChild(opt);
+        });
+    }
+
+    function applyFilters() {
+        const city = document.getElementById('filterCity').value;
+        const min = parseFloat(document.getElementById('filterMin').value) || 0;
+        const max = parseFloat(document.getElementById('filterMax').value) || Infinity;
+
+        const filtered = allProducts.filter(p => {
+            const matchCity = city === 'all' || p.city === city;
+            const matchPrice = p.price_aquam >= min && p.price_aquam <= max;
+            return matchCity && matchPrice;
+        });
+        
+        renderProducts(filtered);
+        closeModal('filterModal');
+    }
+
+   
+   async function openProductDetail(p) {
+    const modal = document.getElementById('detailModal');
+    const content = document.getElementById('detailContent');
+    
+    // Reset rating state for new modal
+    selectedRating = 0; 
+    
+    // Show loading state
+    content.innerHTML = '<div class="py-10 flex justify-center"><div class="loader"></div></div>';
+    modal.classList.remove('hidden');
+
+    // 1. Fetch Reviews
+    const { data: reviews, error } = await sb.from('reviews')
+        .select('*')
+        .eq('product_id', p.id)
+        .order('created_at', { ascending: false });
+        
+    const reviewList = reviews || [];
+
+    // 2. Calculate Average
+    let avgRating = 0;
+    let starDisplay = '';
+    
+    if (reviewList.length > 0) {
+        const total = reviewList.reduce((acc, curr) => acc + curr.rating, 0);
+        avgRating = (total / reviewList.length).toFixed(1);
+        
+        // Generate header stars (read-only)
+        const fullStars = Math.floor(avgRating);
+        const hasHalf = avgRating % 1 >= 0.5;
+        for(let i=0; i<5; i++) {
+            if(i < fullStars) starDisplay += '<i class="fa-solid fa-star text-yellow-400"></i>';
+            else if(i === fullStars && hasHalf) starDisplay += '<i class="fa-solid fa-star-half-stroke text-yellow-400"></i>';
+            else starDisplay += '<i class="fa-regular fa-star text-gray-300"></i>';
+        }
+    } else {
+        starDisplay = '<span class="text-xs text-sub font-bold uppercase">No ratings yet</span>';
+    }
+
+    const escrowFee = Math.floor(p.price_aquam * 0.05);
+    const isSeller = currentUser && p.seller_id === currentUser.id;
+
+    // 3. Render Content
+    content.innerHTML = `
+        <div class="flex justify-between items-start mb-4">
+            <div>
+                <h2 class="text-2xl font-black text-[var(--text-main)] leading-tight">${p.title}</h2>
+                <div class="flex items-center gap-2 mt-1">
+                    <span class="text-sm font-bold">${starDisplay}</span>
+                    <span class="text-xs text-sub">(${reviewList.length} reviews)</span>
+                </div>
+            </div>
+            <button onclick="closeModal('detailModal')" class="p-2 text-sub hover:bg-[var(--input-bg)] rounded-full"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <img src="${p.image_url}" class="w-full rounded-2xl mb-4 h-64 object-cover shadow-md">
+        
+        <p class="text-[var(--text-sub)] mb-6 font-medium leading-relaxed">${p.description || 'No description provided.'}</p>
+        
+        <div class="space-y-3 mb-6">
+            <div class="flex justify-between items-center p-4 bg-[var(--input-bg)] rounded-xl">
+                <span class="font-bold text-sub">Base Price</span>
+                <span class="font-black text-[var(--text-main)]">${p.price_aquam.toLocaleString()} AQUAM</span>
+            </div>
+            <div class="flex justify-between items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+                <span class="font-bold text-blue-600">Escrow Fee (5%)</span>
+                <span class="font-black text-blue-600">${escrowFee.toLocaleString()} AQUAM</span>
+            </div>
+        </div>
+
+        <div class="mb-8 border-t border-[var(--border-color)] pt-4">
+            <h3 class="font-black text-sm uppercase text-sub mb-3">Customer Reviews</h3>
+            <div id="reviewsContainer" class="space-y-3 max-h-[200px] overflow-y-auto pr-2 mb-4 custom-scrollbar">
+                ${reviewList.length === 0 ? 
+                    `<p class="text-xs text-sub italic">No reviews yet.</p>` : 
+                    reviewList.map(r => `
+                        <div class="p-3 rounded-xl bg-[var(--input-bg)]">
+                            <div class="flex justify-between items-center mb-1">
+                                <div class="text-[10px] font-bold text-yellow-500">
+                                    ${Array(r.rating).fill('<i class="fa-solid fa-star"></i>').join('')}
+                                    ${Array(5 - r.rating).fill('<i class="fa-regular fa-star text-gray-300"></i>').join('')}
+                                </div>
+                                <span class="text-[10px] text-sub">${new Date(r.created_at).toLocaleDateString()}</span>
+                            </div>
+                            <p class="text-xs text-[var(--text-main)] font-medium">"${r.comment || ''}"</p>
+                        </div>
+                    `).join('')
+                }
+            </div>
+
+            ${!isSeller ? `
+            <div class="bg-[var(--input-bg)] p-4 rounded-xl border border-[var(--border-color)]">
+                <p class="text-xs font-bold uppercase text-sub mb-2">Write a Review</p>
+                
+                <div class="flex gap-2 mb-3 text-2xl cursor-pointer" id="starInputContainer">
+                    <i onclick="rateProduct(1)" class="fa-regular fa-star text-gray-400 hover:text-yellow-400 transition-colors" id="star-1"></i>
+                    <i onclick="rateProduct(2)" class="fa-regular fa-star text-gray-400 hover:text-yellow-400 transition-colors" id="star-2"></i>
+                    <i onclick="rateProduct(3)" class="fa-regular fa-star text-gray-400 hover:text-yellow-400 transition-colors" id="star-3"></i>
+                    <i onclick="rateProduct(4)" class="fa-regular fa-star text-gray-400 hover:text-yellow-400 transition-colors" id="star-4"></i>
+                    <i onclick="rateProduct(5)" class="fa-regular fa-star text-gray-400 hover:text-yellow-400 transition-colors" id="star-5"></i>
+                </div>
+
+                <textarea id="reviewText" placeholder="Share your thoughts..." class="w-full p-3 rounded-lg text-sm bg-[var(--bg-card)] border border-[var(--border-color)] outline-none focus:border-blue-500 mb-3"></textarea>
+                
+                <button onclick="submitReview('${p.id}')" id="submitReviewBtn" class="w-full bg-[var(--text-main)] text-[var(--bg-card)] py-3 rounded-xl font-bold text-sm">Post Review</button>
+            </div>
+            ` : ''}
+        </div>
+
+        ${isSeller ? 
+            `<div class="p-4 bg-yellow-50 text-yellow-700 rounded-xl text-center font-bold border border-yellow-200">This is your listing</div>` : 
+            `<div class="space-y-3 sticky bottom-0 bg-[var(--bg-card)] pt-2 border-t border-[var(--border-color)]">
+                <div class="grid grid-cols-2 gap-3 mt-2">
+                    ${p.can_pickup ? 
+                        `<button onclick="initiatePurchase('${p.id}', 'pickup')" class="p-4 border-2 border-[var(--border-color)] rounded-2xl font-black text-sm hover:border-blue-500 hover:text-blue-500 transition-all text-[var(--text-main)]">
+                            Pick-up <br> <span class="text-[10px] font-bold text-sub">+0 AQUAM</span>
+                        </button>` : ''}
+                    <button onclick="initiatePurchase('${p.id}', 'delivery')" class="p-4 border-2 border-[var(--border-color)] rounded-2xl font-black text-sm hover:border-blue-500 hover:text-blue-500 transition-all text-[var(--text-main)]">
+                        Delivery <br> <span class="text-[10px] font-bold text-sub">+${p.home_delivery_fee.toLocaleString()} AQUAM</span>
+                    </button>
+                </div>
+            </div>`
+        }
+    `;
+}
+
+   
+let selectedRating = 0; // Tracks the star rating user wants to submit
+
+    async function initiatePurchase(productId, method) {
+    if (!currentUser) return alert("Please refresh page.");
+    
+    // 1. Fetch the product details INCLUDING the seller's wallet
+    const { data: p, error: fetchError } = await sb.from('products')
+        .select('*')
+        .eq('id', productId)
+        .single();
+    
+    if (fetchError || !p) return alert("Could not fetch product details.");
+    if (p.seller_id === currentUser.id) return alert("You cannot buy your own listing.");
+    if (!tonConnectUI.account) return alert("Please connect your wallet first.");
+    if (!p.seller_wallet_address) return alert("Seller has not provided a wallet address. Contact support.");
+
+    const basePrice = Math.floor(Number(p.price_aquam));
+    const deliveryFee = (method === 'delivery') ? Math.floor(Number(p.home_delivery_fee)) : 0;
+    const escrowFee = Math.floor(basePrice * 0.05);
+    const totalToLock = basePrice + deliveryFee + escrowFee;
+
+    // 2. Insert the Trade row with the seller's wallet address copied over
+    const { data: order, error: insertError } = await sb.from('trades').insert({
+        product_id: productId,
+        seller_id: p.seller_id,
+        buyer_id: currentUser.id,
+        amount_token: basePrice,
+        delivery_fee: deliveryFee,
+        escrow_fee: escrowFee,
+        total_locked: totalToLock,
+        delivery_method: method,
+        buyer_wallet_address: tonConnectUI.account.address, 
+        seller_wallet_address: p.seller_wallet_address, // <--- TRANSFERS WALLET TO TRADE
+        status: 'AWAITING_LOCK'
+    }).select().single();
+
+    if (insertError) {
+        console.error(insertError);
+        return alert("Error creating order: " + insertError.message);
+    }
+
+    closeModal('detailModal');
+    openTradeRoom(order.id);
+}
+
+    // --- MY ORDERS & LISTINGS ---
+    async function loadOrders() {
+        const container = document.getElementById('orders-list');
+        container.innerHTML = '<div class="loader mx-auto"></div>';
+        
+        const { data: orders } = await sb.from('trades')
+            .select('*, products(title, image_url)')
+            .or(`buyer_id.eq.${currentUser.id},seller_id.eq.${currentUser.id}`)
+            .order('created_at', { ascending: false });
+
+        container.innerHTML = orders?.length ? '' : '<p class="text-center py-10 text-sub font-bold uppercase text-xs">No orders yet</p>';
+        
+        orders?.forEach(o => {
+            const div = document.createElement('div');
+            div.className = "bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-color)] flex gap-3 items-center cursor-pointer mb-2 hover:bg-[var(--input-bg)]";
+            div.onclick = () => openTradeRoom(o.id);
+            div.innerHTML = `
+                <img src="${o.products?.image_url || ''}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
+                <div class="flex-1">
+                    <h4 class="text-sm font-black truncate text-[var(--text-main)]">${o.products?.title || 'Unknown Product'}</h4>
+                    <p class="text-[10px] font-bold uppercase text-blue-500">${o.status}</p>
+                </div>
+                <i class="fa-solid fa-chevron-right text-gray-300"></i>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    async function loadMyListings() {
+        const container = document.getElementById('listings-list');
+        container.innerHTML = '<div class="loader mx-auto"></div>';
+
+        const { data: listings } = await sb.from('products')
+            .select('*')
+            .eq('seller_id', currentUser.id)
+            .order('created_at', { ascending: false });
+
+        container.innerHTML = listings?.length ? '' : '<p class="text-center py-10 text-sub font-bold uppercase text-xs">You have no listings</p>';
+
+        listings?.forEach(p => {
+            const div = document.createElement('div');
+            div.className = "bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-color)] flex gap-3 items-center mb-2";
+            div.innerHTML = `
+                <img src="${p.image_url}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
+                <div class="flex-1">
+                    <h4 class="text-sm font-black truncate text-[var(--text-main)]">${p.title}</h4>
+                    <p class="text-[10px] font-bold uppercase text-sub">${p.price_aquam} AQUAM</p>
+                </div>
+                <button onclick="deleteListing('${p.id}')" class="text-red-500 p-2"><i class="fa-solid fa-trash"></i></button>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    async function deleteListing(id) {
+        if(!confirm("Delete this listing?")) return;
+        await sb.from('products').delete().eq('id', id);
+        loadMyListings();
+        loadMarketplace(); // Refresh market
+    }
+
+    // --- TRADE ROOM LOGIC ---
+    async function openTradeRoom(tradeId) {
+        activeTradeId = tradeId;
+        document.getElementById('tradeModal').classList.remove('hidden');
+        document.getElementById('messagesList').innerHTML = '';
+        
+        // If coming from notification, clear badge logic (simplified)
+        // document.getElementById('notif-badge').classList.add('hidden'); 
+
+        syncTradeData();
+        if (pollingInterval) clearInterval(pollingInterval);
+        pollingInterval = setInterval(syncTradeData, 4000);
+        subscribeToTrade(tradeId);
+    }
+
+    async function syncTradeData() {
+        if (!activeTradeId) return;
+        
+        const { data: trade } = await sb.from('trades').select('*, products(*)').eq('id', activeTradeId).single();
+        const { data: messages } = await sb.from('chat_messages').select('*').eq('trade_id', activeTradeId).order('created_at', { ascending: true });
+
+        renderTradeUI(trade);
+        
+        const list = document.getElementById('messagesList');
+        const safeMessages = messages || []; 
+        
+        if (safeMessages.length !== list.children.length) {
+            list.innerHTML = '';
+            safeMessages.forEach(appendMessage);
+            list.scrollTo(0, list.scrollHeight);
+        }
+    }
+
+    function renderTradeUI(trade) {
+        const isBuyer = trade.buyer_id === currentUser.id;
+        const isSeller = trade.seller_id === currentUser.id;
+        document.getElementById('tradeStatusBadge').innerText = trade.status;
+        document.getElementById('disputeBtn').classList.toggle('hidden', !['LOCKED', 'SHIPPED', 'DISPUTED'].includes(trade.status));
+
+        let html = `
+            <div class="bg-[var(--bg-card)] p-4 rounded-2xl shadow-sm border border-[var(--border-color)]">
+                <div class="flex gap-3 mb-4">
+                    <img src="${trade.products.image_url}" class="w-16 h-16 rounded-xl object-cover">
+                    <div>
+                        <h4 class="font-black text-sm text-[var(--text-main)]">${trade.products.title}</h4>
+                        <p class="text-xs text-sub">${trade.delivery_method === 'pickup' ? 'Pick-up' : 'Delivery'}</p>
+                    </div>
+                </div>
+                <div class="space-y-1 text-xs font-bold border-t border-[var(--border-color)] pt-3 text-[var(--text-main)]">
+                    <div class="flex justify-between"><span>Price:</span><span>${trade.amount_token} AQUAM</span></div>
+                    <div class="flex justify-between text-blue-600"><span>Escrow Fee:</span><span>${trade.escrow_fee} AQUAM</span></div>
+                    <div class="flex justify-between"><span>Delivery:</span><span>${trade.delivery_fee} AQUAM</span></div>
+                    <div class="flex justify-between text-lg font-black border-t border-[var(--border-color)] mt-2 pt-2"><span>TOTAL:</span><span>${trade.total_locked} AQUAM</span></div>
+                </div>
+        `;
+
+        // STATUS BUTTONS
+        if (trade.status === 'AWAITING_LOCK') {
+            if (isBuyer) html += `<button id="lockBtn" onclick="depositEscrow('${trade.id}', ${trade.total_locked})" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-xl font-black shadow-lg">LOCK AQUAM IN ESCROW</button>`;
+            else html += `<p class="mt-4 text-center text-xs text-orange-500 font-bold uppercase">Awaiting Buyer Payment...</p>`;
+        } 
+        else if (trade.status === 'LOCKED') {
+            if (isSeller) html += `<button onclick="updateStatus('SHIPPED')" class="w-full mt-4 bg-green-600 text-white py-4 rounded-xl font-black shadow-lg">MARK AS SHIPPED</button>`;
+            else html += `<p class="mt-4 text-center text-xs text-blue-500 font-bold uppercase tracking-widest">Funds Locked. Waiting for Seller...</p>
+                         <button onclick="refundBuyer('${trade.id}')" class="w-full mt-2 border border-red-200 text-red-500 py-3 rounded-xl font-bold text-xs uppercase hover:bg-red-50">Cancel & Refund Me</button>`;
+        }
+        else if (trade.status === 'SHIPPED') {
+            if (isBuyer) html += `<button onclick="confirmRelease()" class="w-full mt-4 bg-green-600 text-white py-4 rounded-xl font-black shadow-lg">CONFIRM RECEIPT & RELEASE</button>`;
+            else html += `<p class="mt-4 text-center text-xs text-green-500 font-bold uppercase">Item Dispatched. Awaiting Buyer...</p>`;
+        }
+        else if (trade.status === 'COMPLETED') {
+            html += `<div class="mt-4 p-4 bg-green-100 text-green-700 rounded-xl text-center font-black">ORDER COMPLETED</div>`;
+        }
+        else if (trade.status === 'CANCELLED') {
+            html += `<div class="mt-4 p-4 bg-red-100 text-red-700 rounded-xl text-center font-black">ORDER CANCELLED</div>`;
+        }
+
+        html += `</div>`;
+        document.getElementById('tradeInfoCard').innerHTML = html;
+    }
+
+    // --- BLOCKCHAIN ACTIONS ---
+    async function depositEscrow(tradeId, amount) {
+        const btn = document.getElementById('lockBtn');
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Locking...`;
+
+        try {
+            const wallet = tonConnectUI.account.address;
+            const res = await fetch(`https://tonapi.io/v2/accounts/${wallet}/jettons`);
+            const data = await res.json();
+            const aqua = data.balances.find(j => j.jetton.address.includes(AQUA_MASTER.split(':')[1]));
+            
+            if(!aqua) throw new Error("AQUAM tokens not found.");
+
+            const sellerJettonWallet = new TonWeb.utils.Address(aqua.wallet_address.address).toString(true, true, true);
+            const jettonAmount = BigInt(Math.floor(amount * 1e9));
+
+            const cell = new TonWeb.boc.Cell();
+            cell.bits.writeUint(0xf8a7ea5, 32);
+            cell.bits.writeUint(0, 64);
+            cell.bits.writeCoins(jettonAmount);
+            cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY));
+            cell.bits.writeAddress(new TonWeb.utils.Address(wallet));
+            cell.bits.writeBit(0);
+            cell.bits.writeCoins(TonWeb.utils.toNano("0.05"));
+            cell.bits.writeBit(0);
+
+            const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+            
+            const result = await tonConnectUI.sendTransaction({
+                validUntil: Math.floor(Date.now()/1000) + 300,
+                messages: [{ address: sellerJettonWallet, amount: TonWeb.utils.toNano("0.1").toString(), payload: payload }]
+            });
+
+            if(result) {
+                await sb.from('trades').update({ status: 'LOCKED', tx_hash_deposit: result.boc }).eq('id', tradeId);
+                await sb.from('chat_messages').insert({ trade_id: tradeId, sender_id: 'SYSTEM', message_text: "🔒 Funds locked in escrow.", is_system_message: true });
+            }
+        } catch(e) {
+            alert(e.message || "Lock failed");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = "LOCK AQUAM IN ESCROW";
+        }
+    }
+
+    async function confirmRelease() {
+        if(!confirm("Confirm Receipt? Funds will be released.")) return;
+        const btn = document.querySelector('button[onclick="confirmRelease()"]');
+        btn.disabled = true;
+        btn.innerHTML = "Releasing...";
+
+        try {
+            const response = await fetch(EDGE_FUNC_URL, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "release_funds", trade_id: activeTradeId })
+            });
+            const result = await response.json();
+            if(result.success) {
+                alert("Funds released!");
+                syncTradeData();
+            } else throw new Error(result.error);
+        } catch (e) {
+            alert(e.message);
+            btn.disabled = false;
+            btn.innerHTML = "CONFIRM RECEIPT & RELEASE";
+        }
+    }
+
+    async function refundBuyer(tradeId) {
+        if(!confirm("Cancel order and refund wallet? 5% fee applies.")) return;
+        try {
+             const response = await fetch(EDGE_FUNC_URL, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ action: "refund_buyer", trade_id: tradeId })
+            });
+            const result = await response.json();
+            if(result.success) alert("Refund initiated!");
+            else alert("Error: " + result.error);
+        } catch(e) { alert(e.message); }
+    }
+
+
+// Handles visual star clicking
+function rateProduct(n) {
+    selectedRating = n;
+    for (let i = 1; i <= 5; i++) {
+        const star = document.getElementById(`star-${i}`);
+        if (i <= n) {
+            star.classList.remove('fa-regular', 'text-gray-400');
+            star.classList.add('fa-solid', 'text-yellow-400');
+        } else {
+            star.classList.remove('fa-solid', 'text-yellow-400');
+            star.classList.add('fa-regular', 'text-gray-400');
+        }
+    }
+}
+
+// Handles submitting the review to Supabase
+async function submitReview(productId) {
+    if (selectedRating === 0) return alert("Please select a star rating.");
+    const comment = document.getElementById('reviewText').value.trim();
+    if (!comment) return alert("Please write a short comment.");
+    
+    const btn = document.getElementById('submitReviewBtn');
+    btn.disabled = true;
+    btn.innerText = "Posting...";
+
+    try {
+        const { error } = await sb.from('reviews').insert({
+            product_id: productId,
+            reviewer_id: currentUser.id,
+            rating: selectedRating,
+            comment: comment
+        });
+
+        if (error) throw error;
+
+        // Reload the modal to show the new review
+        // We fetch the product data again or pass a minimal object if you prefer
+        // But the easiest way is to close and reopen or just re-call openProductDetail
+        // Since we need the full product object, let's just alert and close for now, 
+        // OR ideally, we just re-fetch the product to pass it back.
+        
+        alert("Review Posted!");
+        
+        // Quick way to refresh UI: close then re-open logic (requires holding product data)
+        // OR simpler: Just reload the page content
+        const { data: p } = await sb.from('products').select('*').eq('id', productId).single();
+        openProductDetail(p);
+
+    } catch (e) {
+        alert("Error posting review: " + e.message);
+        btn.disabled = false;
+        btn.innerText = "Post Review";
+    }
+}
+
+    // --- CHAT & UTILS ---
+    function appendMessage(msg) {
+        const list = document.getElementById('messagesList');
+        const div = document.createElement('div');
+        if (msg.is_system_message) {
+            div.className = "system-msg";
+            div.innerText = msg.message_text;
+        } else {
+            const isMe = msg.sender_id === currentUser.id;
+            div.className = `chat-bubble ${isMe ? 'chat-me' : 'chat-them'}`;
+            div.innerHTML = msg.image_url ? `<img src="${msg.image_url}" class="rounded-lg mb-1 max-w-full">` : '';
+            div.innerHTML += `<p class="font-medium">${msg.message_text || ''}</p>`;
+        }
+        list.appendChild(div);
+    }
+
+    async function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const text = input.value.trim();
+        if(!text || !activeTradeId) return;
+        input.value = '';
+        await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: currentUser.id, message_text: text });
+    }
+
+    async function handleChatImage(input) {
+        const file = input.files[0];
+        if(!file || !activeTradeId) return;
+        try {
+            const compressed = await imageCompression(file, { maxSizeMB: 0.5, maxWidthOrHeight: 1024 });
+            const path = `chats/${activeTradeId}/${Date.now()}.jpg`;
+            await sb.storage.from('p2p').upload(path, compressed);
+            const { data: { publicUrl } } = sb.storage.from('p2p').getPublicUrl(path);
+            await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: currentUser.id, image_url: publicUrl });
+        } catch(e) { alert("Upload failed"); }
+    }
+async function handleCreateProduct(e) {
+    e.preventDefault();
+    const btn = document.getElementById('submitProductBtn');
+    const walletInput = document.getElementById('pWallet').value.trim();
+
+    // Basic validation to ensure they aren't entering junk
+    if (walletInput.length < 10) {
+        return alert("Please enter a valid TON wallet address.");
+    }
+
+    btn.disabled = true;
+    btn.innerText = "Posting...";
+
+    try {
+        const file = document.getElementById('pImage').files[0];
+        const compressed = await imageCompression(file, { maxSizeMB: 0.8, maxWidthOrHeight: 1200 });
+        const path = `products/${currentUser.id}/${Date.now()}.jpg`;
+        
+        // Upload Image
+        await sb.storage.from('p2p').upload(path, compressed);
+        const { data: { publicUrl } } = sb.storage.from('p2p').getPublicUrl(path);
+
+        // Insert Product with Wallet
+        const { error } = await sb.from('products').insert({
+            seller_id: currentUser.id,
+            title: document.getElementById('pTitle').value,
+            description: document.getElementById('pDesc').value,
+            price_aquam: parseInt(document.getElementById('pPrice').value),
+            home_delivery_fee: parseInt(document.getElementById('pDelivery').value),
+            can_pickup: document.getElementById('pPickup').checked,
+            city: document.getElementById('pCity').value,
+            image_url: publicUrl,
+            seller_wallet_address: walletInput // <--- SAVING WALLET HERE
+        });
+
+        if (error) throw error;
+        
+        alert("Listing created successfully!");
+        closeModal('createModal');
+        loadMarketplace();
+        
+        // Clear form
+        e.target.reset();
+    } catch(e) {
+        alert("Error: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Post Listing";
+    }
+}
+
+    
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { 
+        document.getElementById(id).classList.add('hidden'); 
+        if(id === 'tradeModal') {
+            activeTradeId = null;
+            clearInterval(pollingInterval);
+        }
+    }
+
+    function subscribeToNotifications() {
+    sb.channel('global-notif').on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'chat_messages' 
+    }, payload => {
+        // If message is from the other person/system
+        if(payload.new.sender_id !== currentUser.id) {
+            document.getElementById('menu-notif-badge').classList.remove('hidden');
+            document.getElementById('cart-notif-dot').classList.remove('hidden'); // Show cart dot
+            
+            // If the side menu has a "NEW" badge on the order button
+            const orderBadge = document.getElementById('menu-order-badge');
+            if(orderBadge) orderBadge.classList.remove('hidden');
+        }
+    }).subscribe();
+}
+
+// Update showSection to clear the dot when orders are opened
+function showSection(sectionId) {
+    ['view-market', 'view-orders', 'view-listings'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+    });
+    
+    document.getElementById(`view-${sectionId}`).classList.remove('hidden');
+    
+    // Logic for Orders section
+    if(sectionId === 'orders') {
+        loadOrders();
+        document.getElementById('cart-notif-dot').classList.add('hidden'); // Hide dot
+    }
+
+    if(sectionId === 'listings') loadMyListings();
+
+    // Close menu if it was open
+    const menu = document.getElementById('sideMenu');
+    if (!menu.classList.contains('translate-x-full')) {
+        toggleMenu();
+    }
+}
+
+    
+    function subscribeToTrade(tradeId) {
+        sb.channel(`trade-${tradeId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'trades', filter: `id=eq.${tradeId}` }, syncTradeData).subscribe();
+    }
+
+    async function updateStatus(newStatus) {
+        await sb.from('trades').update({ status: newStatus }).eq('id', activeTradeId);
+        await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: 'SYSTEM', message_text: `Status changed to ${newStatus}`, is_system_message: true });
+    }
+
+    async function raiseDispute() {
+        if(!confirm("Open dispute?")) return;
+        updateStatus('DISPUTED');
+    }
+</script>
+
+</html>
