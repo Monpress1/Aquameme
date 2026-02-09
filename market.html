@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aquamarket | P2P Escrow</title>
+    <title>Aquamarket | Real-Time P2P</title>
     
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -13,14 +13,12 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 
     <script>
-        // Apply Dark Mode immediately to prevent flash
         if (localStorage.getItem('theme') === 'dark') {
             document.documentElement.classList.add('dark');
         }
     </script>
 
     <style>
-        /* --- THEME VARIABLES --- */
         :root {
             --primary: #2563eb;
             --bg-body: #f9fafb;
@@ -31,7 +29,6 @@
             --input-bg: #f3f4f6;
         }
 
-        /* Dark Mode Overrides */
         html.dark {
             --primary: #3b82f6;
             --bg-body: #0f172a;
@@ -49,37 +46,26 @@
             transition: background-color 0.3s, color 0.3s;
         }
 
-        /* --- UTILITIES --- */
         .card { background-color: var(--bg-card); border: 1px solid var(--border-color); }
         .text-sub { color: var(--text-sub); }
         .input-box { background-color: var(--input-bg); color: var(--text-main); border: 1px solid transparent; }
         .input-box:focus { border-color: var(--primary); }
 
-        /* --- CHAT STYLES --- */
         .chat-bubble { max-width: 85%; padding: 12px; border-radius: 16px; margin-bottom: 8px; font-size: 14px; position: relative; }
         .chat-me { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 4px; }
         .chat-them { background: var(--input-bg); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 4px; border: 1px solid var(--border-color); }
         .system-msg { text-align: center; font-size: 11px; color: var(--text-sub); margin: 15px 0; font-weight: bold; text-transform: uppercase; }
 
-        /* --- ANIMATIONS --- */
         .loader { border: 2px solid var(--border-color); border-top: 2px solid var(--primary); border-radius: 50%; width: 24px; height: 24px; animation: spin 0.8s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .slide-in-right { animation: slideInRight 0.3s forwards; }
-        @keyframes slideInRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
-        
-        .slide-out-right { animation: slideOutRight 0.3s forwards; }
-        @keyframes slideOutRight { from { transform: translateX(0); } to { transform: translateX(100%); } }
-
-        /* --- LAYOUT --- */
         .product-card img { height: 180px; width: 100%; object-fit: cover; border-radius: 12px; }
         .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
         .hidden { display: none !important; }
         
-        /* Menu Badge */
         .badge-dot { position: absolute; top: 0; right: 0; width: 10px; height: 10px; background: #ef4444; border: 2px solid var(--bg-card); border-radius: 50%; }
+        .badge-count { position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 10px; border: 2px solid var(--bg-card); }
 
-        /* Hide Scrollbar */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -90,7 +76,7 @@
     <div class="max-w-xl mx-auto flex justify-between items-center">
         <div onclick="showSection('market')" class="cursor-pointer">
             <h1 class="font-black text-2xl tracking-tighter text-blue-600">Aqua<span style="color: var(--text-main)">market</span></h1>
-            <p class="text-[10px] font-bold text-sub uppercase tracking-widest">P2P Escrow</p>
+            <p id="aquamRateHeader" class="text-[10px] font-bold text-sub uppercase tracking-widest">Loading Rate...</p>
         </div>
         
         <div class="flex items-center gap-2">
@@ -109,8 +95,6 @@
     </div>
 </header>
 
-    
-
     <div class="max-w-xl mx-auto px-4 py-3 sticky top-[70px] z-30 bg-[var(--bg-body)] transition-colors duration-300">
         <div class="flex gap-2">
             <div class="relative flex-1">
@@ -124,24 +108,19 @@
     </div>
 
     <main class="max-w-xl mx-auto px-4 mt-2">
-        
         <div id="view-market">
-            <div id="market-grid" class="grid grid-cols-2 gap-3">
-                </div>
+            <div id="market-grid" class="grid grid-cols-2 gap-3"></div>
         </div>
 
         <div id="view-orders" class="hidden space-y-3">
             <h2 class="text-xl font-black mb-4 px-1">My Orders</h2>
-            <div id="orders-list">
-                </div>
+            <div id="orders-list"></div>
         </div>
 
         <div id="view-listings" class="hidden space-y-3">
             <h2 class="text-xl font-black mb-4 px-1">My Listings</h2>
-            <div id="listings-list">
-                </div>
+            <div id="listings-list"></div>
         </div>
-
     </main>
 
     <button onclick="openModal('createModal')" class="fixed bottom-8 right-6 bg-blue-600 text-white w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center text-xl z-30 hover:scale-110 transition-transform">
@@ -158,18 +137,36 @@
             </button>
         </div>
 
-        <div class="flex-1 p-4 space-y-2 overflow-y-auto">
-            <button onclick="showSection('market')" class="w-full text-left p-4 rounded-xl hover:bg-[var(--input-bg)] font-bold flex items-center gap-3 text-[var(--text-main)]">
-                <i class="fa-solid fa-store w-6 text-blue-500"></i> Market
+        <div class="p-4 bg-[var(--input-bg)] m-4 rounded-xl space-y-2">
+            <p class="text-xs font-bold text-sub uppercase">Wallet Balance</p>
+            <div class="flex justify-between items-center">
+                <span class="font-bold text-blue-500">TON</span>
+                <span class="font-black" id="tonBal">0.00</span>
+            </div>
+            <div class="flex justify-between items-center text-xs text-sub">
+                <span>Value</span>
+                <span>$<span id="tonUsdVal">0.00</span></span>
+            </div>
+            <div class="h-[1px] bg-[var(--border-color)] my-1"></div>
+            <div class="flex justify-between items-center">
+                <span class="font-bold text-blue-400">AQUAM</span>
+                <span class="font-black" id="aquaBal">0</span>
+            </div>
+        </div>
+
+        <div class="flex-1 px-4 space-y-1 overflow-y-auto">
+            <button onclick="showSection('market')" class="w-full text-left p-3 rounded-xl hover:bg-[var(--input-bg)] font-bold flex items-center gap-3 text-[var(--text-main)]">
+                <i class="fa-solid fa-store w-5 text-blue-500"></i> Market
             </button>
-            
-            <button onclick="showSection('orders')" class="w-full text-left p-4 rounded-xl hover:bg-[var(--input-bg)] font-bold flex items-center gap-3 text-[var(--text-main)] relative">
-                <i class="fa-solid fa-box-open w-6 text-purple-500"></i> My Orders
+            <button onclick="showSection('orders')" class="w-full text-left p-3 rounded-xl hover:bg-[var(--input-bg)] font-bold flex items-center gap-3 text-[var(--text-main)] relative">
+                <i class="fa-solid fa-box-open w-5 text-purple-500"></i> My Orders
                 <span id="menu-order-badge" class="hidden ml-auto bg-red-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">NEW</span>
             </button>
-
-            <button onclick="showSection('listings')" class="w-full text-left p-4 rounded-xl hover:bg-[var(--input-bg)] font-bold flex items-center gap-3 text-[var(--text-main)]">
-                <i class="fa-solid fa-tags w-6 text-green-500"></i> My Listings
+            <button onclick="showSection('listings')" class="w-full text-left p-3 rounded-xl hover:bg-[var(--input-bg)] font-bold flex items-center gap-3 text-[var(--text-main)]">
+                <i class="fa-solid fa-tags w-5 text-green-500"></i> My Listings
+            </button>
+            <button onclick="openProfileModal()" class="w-full text-left p-3 rounded-xl hover:bg-[var(--input-bg)] font-bold flex items-center gap-3 text-[var(--text-main)]">
+                <i class="fa-solid fa-user-pen w-5 text-orange-500"></i> Edit Profile
             </button>
         </div>
 
@@ -184,41 +181,48 @@
                     <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                 </label>
             </div>
-            <p class="text-center text-[10px] text-sub font-bold mt-4 uppercase">Aquamarket v2.0</p>
+            <p class="text-center text-[10px] text-sub font-bold mt-4 uppercase">Aquamarket v2.2</p>
         </div>
     </div>
 
-    <div id="filterModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[60] flex items-end sm:items-center justify-center">
-        <div class="bg-[var(--bg-card)] w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up">
+    <div id="profileModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[80] flex items-end sm:items-center justify-center p-4">
+        <div class="bg-[var(--bg-card)] w-full max-w-md rounded-3xl p-6 overflow-y-auto max-h-[90vh] no-scrollbar">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-black">Filter Products</h2>
-                <button onclick="closeModal('filterModal')" class="p-2 text-sub"><i class="fa-solid fa-xmark"></i></button>
+                <h2 class="text-xl font-black">Your Profile</h2>
+                <button onclick="closeModal('profileModal')" class="p-2 text-sub"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="text-xs font-bold text-sub uppercase mb-2 block">Location</label>
-                    <select id="filterCity" class="w-full p-4 rounded-xl input-box outline-none font-semibold appearance-none">
-                        <option value="all">All Cities</option>
-                        </select>
+            <form onsubmit="saveProfile(event)" class="space-y-4">
+                <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-xs text-blue-600 mb-4">
+                    <i class="fa-solid fa-circle-info mr-1"></i> This info is sent automatically when you start a trade to help with shipping.
                 </div>
-                
                 <div>
-                    <label class="text-xs font-bold text-sub uppercase mb-2 block">Price Range</label>
-                    <div class="flex gap-3">
-                        <input type="number" id="filterMin" placeholder="Min" class="w-full p-4 rounded-xl input-box outline-none font-black">
-                        <input type="number" id="filterMax" placeholder="Max" class="w-full p-4 rounded-xl input-box outline-none font-black">
+                    <label class="text-xs font-bold text-sub uppercase">Full Name</label>
+                    <input type="text" id="profName" required class="w-full p-4 rounded-xl input-box outline-none font-semibold">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-sub uppercase">Gender</label>
+                        <select id="profGender" class="w-full p-4 rounded-xl input-box outline-none font-semibold">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-sub uppercase">Phone</label>
+                        <input type="tel" id="profPhone" required class="w-full p-4 rounded-xl input-box outline-none font-semibold">
                     </div>
                 </div>
-
-                <button onclick="applyFilters()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-lg mt-4 shadow-lg">Apply Filters</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="detailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[60] flex items-end sm:items-center justify-center">
-        <div class="bg-[var(--bg-card)] w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[90vh] overflow-y-auto no-scrollbar">
-            <div id="detailContent"></div>
+                <div>
+                    <label class="text-xs font-bold text-sub uppercase">WhatsApp (Optional)</label>
+                    <input type="tel" id="profWhatsapp" class="w-full p-4 rounded-xl input-box outline-none font-semibold">
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-sub uppercase">Shipping Address / Location</label>
+                    <textarea id="profAddress" required class="w-full p-4 rounded-xl input-box outline-none font-semibold h-24"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-[var(--text-main)] text-[var(--bg-card)] py-4 rounded-2xl font-black text-lg">Save Profile</button>
+            </form>
         </div>
     </div>
 
@@ -237,32 +241,45 @@
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-xs font-bold text-sub uppercase">Price (AQUAM)</label>
-                        <input type="number" id="pPrice" placeholder="0.00" required class="w-full p-4 rounded-xl input-box outline-none font-black">
+                        <label class="text-xs font-bold text-sub uppercase">Currency</label>
+                        <select id="pCurrency" onchange="calculateAquamPrice()" class="w-full p-4 rounded-xl input-box outline-none font-bold">
+                            <option value="AQUAM">AQUAM</option>
+                            <option value="USD">USD ($)</option>
+                            <option value="NGN">NGN (₦)</option>
+                        </select>
                     </div>
                     <div>
-                        <label class="text-xs font-bold text-sub uppercase">Your City</label>
-                        <input type="text" id="pCity" placeholder="e.g. Lagos" required class="w-full p-4 rounded-xl input-box outline-none font-semibold">
+                        <label class="text-xs font-bold text-sub uppercase">Price</label>
+                        <input type="number" id="pPriceInput" oninput="calculateAquamPrice()" placeholder="0.00" required class="w-full p-4 rounded-xl input-box outline-none font-black">
                     </div>
                 </div>
+                
+                <div id="conversionDisplay" class="hidden p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex justify-between items-center">
+                    <span class="text-xs text-blue-600 font-bold uppercase">Listing Price:</span>
+                    <span class="font-black text-blue-600 text-lg"><span id="finalAquam">0</span> AQUAM</span>
+                </div>
 
-                <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-2xl space-y-3">
-                    <label class="text-xs font-bold text-blue-600 uppercase">Logistics Options</label>
+                <div>
+                    <label class="text-xs font-bold text-sub uppercase">Your City</label>
+                    <input type="text" id="pCity" placeholder="e.g. Lagos" required class="w-full p-4 rounded-xl input-box outline-none font-semibold">
+                </div>
+
+                <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-2xl space-y-3 border border-[var(--border-color)]">
+                    <label class="text-xs font-bold text-[var(--text-main)] uppercase">Logistics</label>
                     <div class="flex items-center justify-between">
                         <span class="text-sm font-bold">Allow Pick-up</span>
                         <input type="checkbox" id="pPickup" checked class="w-5 h-5 accent-blue-600">
                     </div>
                     <div>
-                        <label class="text-[10px] font-bold text-blue-400 uppercase">City Delivery Fee (0 for Free)</label>
-                        <input type="number" id="pDelivery" value="0" class="w-full bg-transparent border-b border-blue-200 outline-none font-black text-blue-800 dark:text-blue-300 py-1">
+                        <label class="text-[10px] font-bold text-sub uppercase">Delivery Fee (AQUAM)</label>
+                        <input type="number" id="pDelivery" value="0" class="w-full bg-transparent border-b border-[var(--border-color)] outline-none font-black py-1">
                     </div>
                 </div>
-<div class="space-y-2">
-    <label class="text-xs font-bold text-blue-600 uppercase">Payout Wallet Address (TON)</label>
-    <input type="text" id="pWallet" placeholder="Enter your UQ... or EQ... address" required 
-           class="w-full p-4 rounded-xl input-box outline-none font-semibold border-2 border-blue-100 focus:border-blue-500">
-    <p class="text-[10px] text-sub font-bold px-1">⚠️ Double check this! This is where your AQUAM will be sent.</p>
-</div>
+
+                <div class="space-y-2">
+                    <label class="text-xs font-bold text-blue-600 uppercase">Payout Wallet (TON)</label>
+                    <input type="text" id="pWallet" placeholder="UQ... or EQ..." required class="w-full p-4 rounded-xl input-box outline-none font-semibold border-2 border-blue-100 focus:border-blue-500">
+                </div>
 
                 <div class="space-y-2">
                     <label class="text-xs font-bold text-sub uppercase">Product Image</label>
@@ -274,22 +291,38 @@
         </div>
     </div>
 
+    <div id="detailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[60] flex items-end sm:items-center justify-center">
+        <div class="bg-[var(--bg-card)] w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6 animate-slide-up max-h-[90vh] overflow-y-auto no-scrollbar">
+            <div id="detailContent"></div>
+        </div>
+    </div>
+
+    <div id="filterModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[60] flex items-end sm:items-center justify-center">
+        <div class="bg-[var(--bg-card)] w-full max-w-md rounded-t-3xl sm:rounded-3xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-black">Filter</h2>
+                <button onclick="closeModal('filterModal')" class="p-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <select id="filterCity" class="w-full p-4 rounded-xl input-box mb-4"><option value="all">All Cities</option></select>
+            <div class="flex gap-3 mb-4"><input type="number" id="filterMin" placeholder="Min Price" class="w-full p-4 rounded-xl input-box"><input type="number" id="filterMax" placeholder="Max Price" class="w-full p-4 rounded-xl input-box"></div>
+            <button onclick="applyFilters()" class="w-full bg-blue-600 text-white py-4 rounded-2xl font-black">Apply</button>
+        </div>
+    </div>
+
     <div id="tradeModal" class="fixed inset-0 bg-[var(--bg-card)] hidden z-[70] flex flex-col">
         <header class="p-4 border-b border-[var(--border-color)] flex justify-between items-center shadow-sm bg-[var(--bg-card)]">
             <button onclick="closeModal('tradeModal')" class="p-2"><i class="fa-solid fa-chevron-left text-xl"></i></button>
             <div class="text-center">
-                <p id="tradeIdDisplay" class="text-[10px] font-bold text-sub uppercase">Order Details</p>
+                <p class="text-[10px] font-bold text-sub uppercase">Order Details</p>
                 <div id="tradeStatusBadge" class="text-xs font-black px-2 py-0.5 rounded-full bg-blue-100 text-blue-600 uppercase mt-1">Status</div>
             </div>
             <button id="disputeBtn" onclick="raiseDispute()" class="hidden text-xs font-black bg-red-100 text-red-600 px-3 py-1.5 rounded-lg border border-red-200 uppercase">Dispute</button>
-            <div id="headerSpacer" class="w-10"></div>
+            <div class="w-10"></div>
         </header>
-
         <div id="chatContainer" class="flex-1 overflow-y-auto bg-[var(--bg-body)] p-4">
             <div id="tradeInfoCard" class="mb-6"></div>
             <div id="messagesList" class="flex flex-col"></div>
         </div>
-
         <div class="p-4 border-t border-[var(--border-color)] flex items-center gap-3 safe-area-bottom bg-[var(--bg-card)]">
             <button onclick="document.getElementById('chatFileInput').click()" class="text-gray-400 w-10 h-10 flex items-center justify-center rounded-full hover:bg-[var(--input-bg)]">
                 <i class="fa-solid fa-camera text-xl"></i>
@@ -302,120 +335,313 @@
 
     </body>
     <script>
-    // --- CONFIGURATION ---
     const SUPABASE_URL = "https://ptllbgdixhesptlkqrqa.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
     const EDGE_FUNC_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/smart-handler"; 
     const TREASURY = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D";
     const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
+    const TONAPI_URL = "https://tonapi.io/v2"; 
 
-    // --- INITIALIZATION ---
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json",
         buttonRootId: "ton-connect-btn"
     });
 
-    // --- STATE MANAGEMENT ---
     let currentUser = null;
     let activeTradeId = null;
     let pollingInterval = null;
-    let allProducts = []; // Cache for search filtering
+    let allProducts = []; 
+    let currentAquamPriceUsd = 0;
+    const NGN_PER_USD = 1650; // Hardcoded fallback for demo
 
-    // --- ON LOAD ---
     window.onload = async () => {
         initDarkMode();
-        
-        // Auth Check
         const { data: { session } } = await sb.auth.getSession();
         currentUser = session ? session.user : (await sb.auth.signInAnonymously()).data.user;
         
-        // Initial Loads
         loadMarketplace();
         subscribeToNotifications();
+        fetchAquamPrice(); // New
+        loadBalances(); // New (attempts load if wallet connected)
         
-        // Populate Filter City Dropdown
+        // Setup Balance listener on wallet change
+        tonConnectUI.onStatusChange(wallet => {
+            if(wallet) loadBalances();
+        });
+
         setTimeout(populateCities, 2000);
     };
 
-    // --- UI LOGIC: MENU & NAVIGATION ---
-    function toggleMenu() {
-        const menu = document.getElementById('sideMenu');
-        const overlay = document.getElementById('sideMenuOverlay');
-        const isOpen = !menu.classList.contains('translate-x-full');
-        
-        if(isOpen) {
-            menu.classList.add('translate-x-full');
-            overlay.classList.add('hidden');
-        } else {
-            menu.classList.remove('translate-x-full');
-            overlay.classList.remove('hidden');
-            // Check for notification dot on "My Orders" inside menu
-            checkOrderNotifications();
+    // --- NEW: DYNAMIC PRICE FETCHING ---
+    async function fetchAquamPrice() {
+        try {
+            const res = await fetch(`https://api.ston.fi/v1/assets/EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d`);
+            const data = await res.json();
+            currentAquamPriceUsd = parseFloat(data.asset.dex_usd_price);
+            document.getElementById('aquamRateHeader').innerText = `1 AQUAM = $${currentAquamPriceUsd.toFixed(6)}`;
+        } catch (e) {
+            document.getElementById('aquamRateHeader').innerText = "Rate Offline";
+            console.error("Price fetch error", e);
         }
     }
 
-    function showSection(sectionId) {
-        // Hide all sections
-        ['view-market', 'view-orders', 'view-listings'].forEach(id => {
-            document.getElementById(id).classList.add('hidden');
+    // --- NEW: FETCH BALANCES ---
+    async function loadBalances() {
+        if(!tonConnectUI.account) return;
+        const userAddress = tonConnectUI.account.address;
+        
+        try {
+            // Fetch TON Price & Balance
+            const priceRes = await fetch(`${TONAPI_URL}/rates?tokens=ton&currencies=usd`);
+            const priceData = await priceRes.json();
+            const tonPrice = priceData.rates.TON.prices.USD;
+
+            const accRes = await fetch(`${TONAPI_URL}/accounts/${userAddress}`);
+            const acc = await accRes.json();
+            const tonBal = acc.balance / 1e9;
+
+            document.getElementById("tonBal").innerText = tonBal.toFixed(2);
+            document.getElementById("tonUsdVal").innerText = (tonBal * tonPrice).toFixed(2);
+
+            // Fetch AQUA Balance
+            const jetRes = await fetch(`${TONAPI_URL}/accounts/${userAddress}/jettons`);
+            const jets = await jetRes.json();
+            // Matching address hash part
+            const aqua = jets.balances.find(j => j.jetton.address.includes(AQUA_MASTER.split(':')[1]));
+            
+            if (aqua) {
+                const aquaBal = Number(aqua.balance) / 1e9;
+                document.getElementById("aquaBal").innerText = Math.floor(aquaBal).toLocaleString();
+            }
+        } catch(e) { console.error("Balance Error:", e); }
+    }
+
+    // --- NEW: CURRENCY CONVERSION IN LISTING ---
+    function calculateAquamPrice() {
+        const currency = document.getElementById('pCurrency').value;
+        const inputVal = parseFloat(document.getElementById('pPriceInput').value) || 0;
+        const display = document.getElementById('conversionDisplay');
+        const finalSpan = document.getElementById('finalAquam');
+
+        if (inputVal <= 0) {
+            display.classList.add('hidden');
+            return;
+        }
+
+        let finalVal = 0;
+
+        if (currency === 'AQUAM') {
+            display.classList.add('hidden');
+            return; // No conversion needed
+        } 
+        else if (currency === 'USD') {
+            if (currentAquamPriceUsd > 0) {
+                finalVal = inputVal / currentAquamPriceUsd;
+            }
+        } 
+        else if (currency === 'NGN') {
+            if (currentAquamPriceUsd > 0) {
+                const usdValue = inputVal / NGN_PER_USD;
+                finalVal = usdValue / currentAquamPriceUsd;
+            }
+        }
+
+        display.classList.remove('hidden');
+        finalSpan.innerText = Math.ceil(finalVal).toLocaleString();
+    }
+
+    // --- MODIFIED CREATE PRODUCT ---
+    async function handleCreateProduct(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submitProductBtn');
+        btn.disabled = true;
+        btn.innerText = "Posting...";
+
+        try {
+            // Determine Final Price
+            const currency = document.getElementById('pCurrency').value;
+            const inputVal = parseFloat(document.getElementById('pPriceInput').value);
+            let aquamPrice = 0;
+
+            if(currency === 'AQUAM') {
+                aquamPrice = inputVal;
+            } else {
+                const calculated = document.getElementById('finalAquam').innerText.replace(/,/g, '');
+                aquamPrice = parseFloat(calculated);
+            }
+
+            if(!aquamPrice || aquamPrice <= 0) throw new Error("Invalid Price Calculation");
+
+            const file = document.getElementById('pImage').files[0];
+            const compressed = await imageCompression(file, { maxSizeMB: 0.8, maxWidthOrHeight: 1200 });
+            const path = `products/${currentUser.id}/${Date.now()}.jpg`;
+            
+            await sb.storage.from('p2p').upload(path, compressed);
+            const { data: { publicUrl } } = sb.storage.from('p2p').getPublicUrl(path);
+
+            const { error } = await sb.from('products').insert({
+                seller_id: currentUser.id,
+                title: document.getElementById('pTitle').value,
+                description: document.getElementById('pDesc').value,
+                price_aquam: Math.ceil(aquamPrice), // Store as Integer AQUAM
+                home_delivery_fee: parseInt(document.getElementById('pDelivery').value),
+                can_pickup: document.getElementById('pPickup').checked,
+                city: document.getElementById('pCity').value,
+                image_url: publicUrl,
+                seller_wallet_address: document.getElementById('pWallet').value.trim()
+            });
+
+            if (error) throw error;
+            
+            alert("Listing created!");
+            closeModal('createModal');
+            loadMarketplace();
+            e.target.reset();
+            document.getElementById('conversionDisplay').classList.add('hidden');
+        } catch(e) {
+            alert("Error: " + e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Post Listing";
+        }
+    }
+
+    // --- NEW: PROFILE LOGIC ---
+    function openProfileModal() {
+        const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+        if(profile.name) {
+            document.getElementById('profName').value = profile.name;
+            document.getElementById('profGender').value = profile.gender;
+            document.getElementById('profPhone').value = profile.phone;
+            document.getElementById('profWhatsapp').value = profile.whatsapp || '';
+            document.getElementById('profAddress').value = profile.address;
+        }
+        document.getElementById('profileModal').classList.remove('hidden');
+    }
+
+    function saveProfile(e) {
+        e.preventDefault();
+        const profile = {
+            name: document.getElementById('profName').value,
+            gender: document.getElementById('profGender').value,
+            phone: document.getElementById('profPhone').value,
+            whatsapp: document.getElementById('profWhatsapp').value,
+            address: document.getElementById('profAddress').value
+        };
+        localStorage.setItem('userProfile', JSON.stringify(profile));
+        alert("Profile Saved!");
+        closeModal('profileModal');
+    }
+
+    // --- MODIFIED: PURCHASE WITH AUTO-PROFILE SEND ---
+    async function initiatePurchase(productId, method) {
+        if (!currentUser) return alert("Refresh page.");
+        
+        // 1. Check Profile
+        const profileStr = localStorage.getItem('userProfile');
+        if (!profileStr) {
+            alert("First time? Please set up your shipping profile.");
+            openProfileModal();
+            return;
+        }
+
+        const { data: p } = await sb.from('products').select('*').eq('id', productId).single();
+        if (p.seller_id === currentUser.id) return alert("Cannot buy own item.");
+        if (!tonConnectUI.account) return alert("Connect Wallet first.");
+
+        const basePrice = Math.floor(Number(p.price_aquam));
+        const deliveryFee = (method === 'delivery') ? Math.floor(Number(p.home_delivery_fee)) : 0;
+        const escrowFee = Math.floor(basePrice * 0.05);
+        const totalToLock = basePrice + deliveryFee + escrowFee;
+
+        const { data: order, error } = await sb.from('trades').insert({
+            product_id: productId,
+            seller_id: p.seller_id,
+            buyer_id: currentUser.id,
+            amount_token: basePrice,
+            delivery_fee: deliveryFee,
+            escrow_fee: escrowFee,
+            total_locked: totalToLock,
+            delivery_method: method,
+            buyer_wallet_address: tonConnectUI.account.address,
+            seller_wallet_address: p.seller_wallet_address,
+            status: 'AWAITING_LOCK'
+        }).select().single();
+
+        if (error) return alert(error.message);
+
+        closeModal('detailModal');
+        
+        // 2. Auto-send Profile Info
+        const profile = JSON.parse(profileStr);
+        const infoMsg = `📋 **BUYER PROFILE**\nName: ${profile.name}\nGender: ${profile.gender}\nPhone: ${profile.phone}\nWhatsApp: ${profile.whatsapp || 'N/A'}\nAddress: ${profile.address}`;
+        
+        await sb.from('chat_messages').insert({ 
+            trade_id: order.id, 
+            sender_id: currentUser.id, 
+            message_text: infoMsg 
         });
+
+        openTradeRoom(order.id);
+    }
+
+    // --- MODIFIED: ORDERS WITH UNREAD COUNT BADGES ---
+    async function loadOrders() {
+        const container = document.getElementById('orders-list');
+        container.innerHTML = '<div class="loader mx-auto"></div>';
         
-        // Show selected
-        document.getElementById(`view-${sectionId}`).classList.remove('hidden');
-        
-        // Close menu if open
-        toggleMenu();
-
-        // Load specific data
-        if(sectionId === 'orders') loadOrders();
-        if(sectionId === 'listings') loadMyListings();
-    }
-
-    // --- UI LOGIC: DARK MODE ---
-    function initDarkMode() {
-        const isDark = localStorage.getItem('theme') === 'dark';
-        document.getElementById('darkModeToggle').checked = isDark;
-        if(isDark) document.documentElement.classList.add('dark');
-    }
-
-    function toggleDarkMode() {
-        const isDark = document.getElementById('darkModeToggle').checked;
-        if(isDark) {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-        } else {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-        }
-    }
-
-    // --- MARKETPLACE LOGIC ---
-    async function loadMarketplace() {
-        const container = document.getElementById('market-grid');
-        container.innerHTML = '<div class="col-span-2 py-20 flex justify-center"><div class="loader"></div></div>';
-
-        const { data: products, error } = await sb.from('products')
-            .select('*')
+        const { data: orders } = await sb.from('trades')
+            .select('*, products(title, image_url)')
+            .or(`buyer_id.eq.${currentUser.id},seller_id.eq.${currentUser.id}`)
             .order('created_at', { ascending: false });
 
-        if (error) return container.innerHTML = '<p class="col-span-2 text-center text-red-500">Error loading products</p>';
+        container.innerHTML = orders?.length ? '' : '<p class="text-center py-10 text-sub font-bold uppercase text-xs">No orders yet</p>';
         
-        allProducts = products || []; // Store for search
+        // Process unread counts
+        for (const o of (orders || [])) {
+            const lastViewed = parseInt(localStorage.getItem(`lastViewed_${o.id}`) || '0');
+            
+            // Fetch count of messages newer than lastViewed where sender is NOT me
+            const { count } = await sb.from('chat_messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('trade_id', o.id)
+                .gt('created_at', new Date(lastViewed).toISOString())
+                .neq('sender_id', currentUser.id);
+
+            const div = document.createElement('div');
+            div.className = "bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-color)] flex gap-3 items-center cursor-pointer mb-2 hover:bg-[var(--input-bg)] relative";
+            div.onclick = () => openTradeRoom(o.id);
+            
+            div.innerHTML = `
+                <img src="${o.products?.image_url || ''}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
+                <div class="flex-1">
+                    <h4 class="text-sm font-black truncate text-[var(--text-main)]">${o.products?.title || 'Product'}</h4>
+                    <p class="text-[10px] font-bold uppercase text-blue-500">${o.status}</p>
+                </div>
+                ${count > 0 ? `<div class="badge-count">${count}</div>` : ''}
+                <i class="fa-solid fa-chevron-right text-gray-300"></i>
+            `;
+            container.appendChild(div);
+        }
+        
+        document.getElementById('cart-notif-dot').classList.add('hidden');
+    }
+
+    // --- GENERIC UI FUNCTIONS ---
+    async function loadMarketplace() {
+        const container = document.getElementById('market-grid');
+        const { data: products } = await sb.from('products').select('*').order('created_at', { ascending: false });
+        allProducts = products || [];
         renderProducts(allProducts);
     }
 
     function renderProducts(products) {
         const container = document.getElementById('market-grid');
-        if(!products.length) {
-            container.innerHTML = '<p class="col-span-2 text-center py-20 text-sub font-bold uppercase text-xs">No products found</p>';
-            return;
-        }
-
-        container.innerHTML = '';
+        container.innerHTML = products.length ? '' : '<p class="col-span-2 text-center text-sub text-xs">No products</p>';
         products.forEach(p => {
             const div = document.createElement('div');
-            div.className = "bg-[var(--bg-card)] p-3 rounded-2xl border border-[var(--border-color)] shadow-sm cursor-pointer hover:scale-[1.02] transition-transform product-card";
+            div.className = "bg-[var(--bg-card)] p-3 rounded-2xl border border-[var(--border-color)] shadow-sm cursor-pointer product-card";
             div.onclick = () => openProductDetail(p);
             div.innerHTML = `
                 <img src="${p.image_url}" alt="${p.title}">
@@ -429,645 +655,354 @@
         });
     }
 
-    // --- SEARCH & FILTER ---
-    function handleSearch() {
-        const term = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = allProducts.filter(p => p.title.toLowerCase().includes(term) || p.description?.toLowerCase().includes(term));
-        renderProducts(filtered);
-    }
-
-    function populateCities() {
-        const select = document.getElementById('filterCity');
-        const cities = [...new Set(allProducts.map(p => p.city))];
-        cities.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c;
-            opt.innerText = c;
-            select.appendChild(opt);
-        });
-    }
-
-    function applyFilters() {
-        const city = document.getElementById('filterCity').value;
-        const min = parseFloat(document.getElementById('filterMin').value) || 0;
-        const max = parseFloat(document.getElementById('filterMax').value) || Infinity;
-
-        const filtered = allProducts.filter(p => {
-            const matchCity = city === 'all' || p.city === city;
-            const matchPrice = p.price_aquam >= min && p.price_aquam <= max;
-            return matchCity && matchPrice;
-        });
-        
-        renderProducts(filtered);
-        closeModal('filterModal');
-    }
-
-   
-   async function openProductDetail(p) {
+ async function openProductDetail(p) {
     const modal = document.getElementById('detailModal');
     const content = document.getElementById('detailContent');
-    
-    // Reset rating state for new modal
-    selectedRating = 0; 
-    
-    // Show loading state
-    content.innerHTML = '<div class="py-10 flex justify-center"><div class="loader"></div></div>';
     modal.classList.remove('hidden');
+    content.innerHTML = '<div class="flex justify-center p-10"><div class="loader"></div></div>';
 
-    // 1. Fetch Reviews
-    const { data: reviews, error } = await sb.from('reviews')
-        .select('*')
-        .eq('product_id', p.id)
-        .order('created_at', { ascending: false });
-        
-    const reviewList = reviews || [];
-
-    // 2. Calculate Average
-    let avgRating = 0;
-    let starDisplay = '';
+    const { data: revs } = await sb.from('reviews').select('*').eq('product_id', p.id);
+    const userReview = revs?.find(r => r.reviewer_id === currentUser?.id);
+    const avg = revs?.length ? (revs.reduce((a, b) => a + b.rating, 0) / revs.length).toFixed(1) : "0";
     
-    if (reviewList.length > 0) {
-        const total = reviewList.reduce((acc, curr) => acc + curr.rating, 0);
-        avgRating = (total / reviewList.length).toFixed(1);
-        
-        // Generate header stars (read-only)
-        const fullStars = Math.floor(avgRating);
-        const hasHalf = avgRating % 1 >= 0.5;
-        for(let i=0; i<5; i++) {
-            if(i < fullStars) starDisplay += '<i class="fa-solid fa-star text-yellow-400"></i>';
-            else if(i === fullStars && hasHalf) starDisplay += '<i class="fa-solid fa-star-half-stroke text-yellow-400"></i>';
-            else starDisplay += '<i class="fa-regular fa-star text-gray-300"></i>';
-        }
-    } else {
-        starDisplay = '<span class="text-xs text-sub font-bold uppercase">No ratings yet</span>';
-    }
+    window.selectedRating = 0; 
 
-    const escrowFee = Math.floor(p.price_aquam * 0.05);
-    const isSeller = currentUser && p.seller_id === currentUser.id;
-
-    // 3. Render Content
     content.innerHTML = `
         <div class="flex justify-between items-start mb-4">
             <div>
-                <h2 class="text-2xl font-black text-[var(--text-main)] leading-tight">${p.title}</h2>
-                <div class="flex items-center gap-2 mt-1">
-                    <span class="text-sm font-bold">${starDisplay}</span>
-                    <span class="text-xs text-sub">(${reviewList.length} reviews)</span>
+                <h2 class="text-xl font-black">${p.title}</h2>
+                <div class="flex items-center gap-2">
+                    ${renderStarUI(avg)} 
+                    <span class="text-[10px] font-bold text-sub uppercase">${avg} (${revs?.length || 0} reviews)</span>
                 </div>
             </div>
-            <button onclick="closeModal('detailModal')" class="p-2 text-sub hover:bg-[var(--input-bg)] rounded-full"><i class="fa-solid fa-xmark"></i></button>
+            <button onclick="closeModal('detailModal')" class="p-2 text-sub"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <img src="${p.image_url}" class="w-full rounded-2xl mb-4 h-64 object-cover shadow-md">
-        
-        <p class="text-[var(--text-sub)] mb-6 font-medium leading-relaxed">${p.description || 'No description provided.'}</p>
-        
-        <div class="space-y-3 mb-6">
-            <div class="flex justify-between items-center p-4 bg-[var(--input-bg)] rounded-xl">
-                <span class="font-bold text-sub">Base Price</span>
-                <span class="font-black text-[var(--text-main)]">${p.price_aquam.toLocaleString()} AQUAM</span>
-            </div>
-            <div class="flex justify-between items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-                <span class="font-bold text-blue-600">Escrow Fee (5%)</span>
-                <span class="font-black text-blue-600">${escrowFee.toLocaleString()} AQUAM</span>
-            </div>
-        </div>
+        <img src="${p.image_url}" class="w-full rounded-2xl mb-4 h-52 object-cover">
 
-        <div class="mb-8 border-t border-[var(--border-color)] pt-4">
-            <h3 class="font-black text-sm uppercase text-sub mb-3">Customer Reviews</h3>
-            <div id="reviewsContainer" class="space-y-3 max-h-[200px] overflow-y-auto pr-2 mb-4 custom-scrollbar">
-                ${reviewList.length === 0 ? 
-                    `<p class="text-xs text-sub italic">No reviews yet.</p>` : 
-                    reviewList.map(r => `
-                        <div class="p-3 rounded-xl bg-[var(--input-bg)]">
-                            <div class="flex justify-between items-center mb-1">
-                                <div class="text-[10px] font-bold text-yellow-500">
-                                    ${Array(r.rating).fill('<i class="fa-solid fa-star"></i>').join('')}
-                                    ${Array(5 - r.rating).fill('<i class="fa-regular fa-star text-gray-300"></i>').join('')}
-                                </div>
-                                <span class="text-[10px] text-sub">${new Date(r.created_at).toLocaleDateString()}</span>
+        <div class="bg-[var(--input-bg)] rounded-2xl p-4 mb-6">
+            <h3 class="text-[10px] font-black uppercase text-sub mb-3 tracking-widest">Community Reviews</h3>
+            
+            <div class="space-y-4 max-h-40 overflow-y-auto no-scrollbar mb-4 border-b border-black/5 pb-2">
+                ${revs?.length ? revs.map(r => {
+                    // Split the comment into [Name, Text]. Fallback for old reviews.
+                    const parts = r.comment.split('|||');
+                    const name = parts.length > 1 ? parts[0] : "Verified Buyer";
+                    const commentText = parts.length > 1 ? parts[1] : r.comment;
+
+                    return `
+                        <div class="flex flex-col">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <span class="text-[11px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tight">${name}</span>
+                                ${renderStarUI(r.rating)}
                             </div>
-                            <p class="text-xs text-[var(--text-main)] font-medium">"${r.comment || ''}"</p>
+                            <p class="text-xs font-medium text-[var(--text-main)] leading-tight italic">"${commentText}"</p>
                         </div>
-                    `).join('')
-                }
+                    `;
+                }).join('') : '<p class="text-xs italic text-sub text-center py-2">No reviews yet.</p>'}
             </div>
 
-            ${!isSeller ? `
-            <div class="bg-[var(--input-bg)] p-4 rounded-xl border border-[var(--border-color)]">
-                <p class="text-xs font-bold uppercase text-sub mb-2">Write a Review</p>
-                
-                <div class="flex gap-2 mb-3 text-2xl cursor-pointer" id="starInputContainer">
-                    <i onclick="rateProduct(1)" class="fa-regular fa-star text-gray-400 hover:text-yellow-400 transition-colors" id="star-1"></i>
-                    <i onclick="rateProduct(2)" class="fa-regular fa-star text-gray-400 hover:text-yellow-400 transition-colors" id="star-2"></i>
-                    <i onclick="rateProduct(3)" class="fa-regular fa-star text-gray-400 hover:text-yellow-400 transition-colors" id="star-3"></i>
-                    <i onclick="rateProduct(4)" class="fa-regular fa-star text-gray-400 hover:text-yellow-400 transition-colors" id="star-4"></i>
-                    <i onclick="rateProduct(5)" class="fa-regular fa-star text-gray-400 hover:text-yellow-400 transition-colors" id="star-5"></i>
+            ${!userReview ? `
+                <div id="review-input-area">
+                    <div id="star-input-container" class="mb-2">
+                        ${renderStarUI(0, true, p.id)}
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="revText" placeholder="Add a comment..." class="flex-1 bg-white dark:bg-slate-700 rounded-lg px-3 py-2 text-xs outline-none border border-[var(--border-color)]">
+                        <button onclick="saveRating('${p.id}')" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-black">SEND</button>
+                    </div>
                 </div>
-
-                <textarea id="reviewText" placeholder="Share your thoughts..." class="w-full p-3 rounded-lg text-sm bg-[var(--bg-card)] border border-[var(--border-color)] outline-none focus:border-blue-500 mb-3"></textarea>
-                
-                <button onclick="submitReview('${p.id}')" id="submitReviewBtn" class="w-full bg-[var(--text-main)] text-[var(--bg-card)] py-3 rounded-xl font-bold text-sm">Post Review</button>
-            </div>
-            ` : ''}
+            ` : `
+                <div class="text-center p-2 bg-green-500/10 rounded-xl">
+                    <p class="text-[10px] font-bold text-green-600 uppercase">You have already rated this.</p>
+                </div>
+            `}
         </div>
 
-        ${isSeller ? 
-            `<div class="p-4 bg-yellow-50 text-yellow-700 rounded-xl text-center font-bold border border-yellow-200">This is your listing</div>` : 
-            `<div class="space-y-3 sticky bottom-0 bg-[var(--bg-card)] pt-2 border-t border-[var(--border-color)]">
-                <div class="grid grid-cols-2 gap-3 mt-2">
-                    ${p.can_pickup ? 
-                        `<button onclick="initiatePurchase('${p.id}', 'pickup')" class="p-4 border-2 border-[var(--border-color)] rounded-2xl font-black text-sm hover:border-blue-500 hover:text-blue-500 transition-all text-[var(--text-main)]">
-                            Pick-up <br> <span class="text-[10px] font-bold text-sub">+0 AQUAM</span>
-                        </button>` : ''}
-                    <button onclick="initiatePurchase('${p.id}', 'delivery')" class="p-4 border-2 border-[var(--border-color)] rounded-2xl font-black text-sm hover:border-blue-500 hover:text-blue-500 transition-all text-[var(--text-main)]">
-                        Delivery <br> <span class="text-[10px] font-bold text-sub">+${p.home_delivery_fee.toLocaleString()} AQUAM</span>
-                    </button>
-                </div>
-            </div>`
-        }
+        <div class="flex items-center justify-between border-t border-[var(--border-color)] pt-4">
+            <div>
+                <p class="text-[10px] font-bold text-sub uppercase">Price</p>
+                <p class="text-lg font-black text-blue-600">${p.price_aquam.toLocaleString()} AQUAM</p>
+            </div>
+            <button onclick="initiatePurchase('${p.id}', 'delivery')" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-black text-sm">BUY</button>
+        </div>
     `;
 }
 
-   
-let selectedRating = 0; // Tracks the star rating user wants to submit
 
-    async function initiatePurchase(productId, method) {
-    if (!currentUser) return alert("Please refresh page.");
+async function saveRating(productId) {
+    const commentInput = document.getElementById('revText');
+    const rating = window.selectedRating;
     
-    // 1. Fetch the product details INCLUDING the seller's wallet
-    const { data: p, error: fetchError } = await sb.from('products')
-        .select('*')
-        .eq('id', productId)
-        .single();
-    
-    if (fetchError || !p) return alert("Could not fetch product details.");
-    if (p.seller_id === currentUser.id) return alert("You cannot buy your own listing.");
-    if (!tonConnectUI.account) return alert("Please connect your wallet first.");
-    if (!p.seller_wallet_address) return alert("Seller has not provided a wallet address. Contact support.");
+    // Get current user's name from their profile
+    const profile = JSON.parse(localStorage.getItem('userProfile') || '{}');
+    const userName = profile.name || "Verified Buyer";
 
-    const basePrice = Math.floor(Number(p.price_aquam));
-    const deliveryFee = (method === 'delivery') ? Math.floor(Number(p.home_delivery_fee)) : 0;
-    const escrowFee = Math.floor(basePrice * 0.05);
-    const totalToLock = basePrice + deliveryFee + escrowFee;
+    if (rating === 0) return alert("Please tap a star to rate!");
 
-    // 2. Insert the Trade row with the seller's wallet address copied over
-    const { data: order, error: insertError } = await sb.from('trades').insert({
+    // Store as "Name ||| Comment"
+    const combinedComment = `${userName}|||${commentInput.value.trim() || 'No comment'}`;
+
+    const { error } = await sb.from('reviews').insert({
         product_id: productId,
-        seller_id: p.seller_id,
-        buyer_id: currentUser.id,
-        amount_token: basePrice,
-        delivery_fee: deliveryFee,
-        escrow_fee: escrowFee,
-        total_locked: totalToLock,
-        delivery_method: method,
-        buyer_wallet_address: tonConnectUI.account.address, 
-        seller_wallet_address: p.seller_wallet_address, // <--- TRANSFERS WALLET TO TRADE
-        status: 'AWAITING_LOCK'
-    }).select().single();
+        reviewer_id: currentUser.id,
+        rating: rating,
+        comment: combinedComment 
+    });
 
-    if (insertError) {
-        console.error(insertError);
-        return alert("Error creating order: " + insertError.message);
+    if (error) {
+        alert(error.message.includes("unique") ? "You already rated this!" : error.message);
+    } else {
+        window.selectedRating = 0;
+        const p = allProducts.find(item => item.id === productId);
+        openProductDetail(p); // Refresh modal
     }
-
-    closeModal('detailModal');
-    openTradeRoom(order.id);
 }
 
-    // --- MY ORDERS & LISTINGS ---
-    async function loadOrders() {
-        const container = document.getElementById('orders-list');
-        container.innerHTML = '<div class="loader mx-auto"></div>';
-        
-        const { data: orders } = await sb.from('trades')
-            .select('*, products(title, image_url)')
-            .or(`buyer_id.eq.${currentUser.id},seller_id.eq.${currentUser.id}`)
-            .order('created_at', { ascending: false });
 
-        container.innerHTML = orders?.length ? '' : '<p class="text-center py-10 text-sub font-bold uppercase text-xs">No orders yet</p>';
-        
-        orders?.forEach(o => {
-            const div = document.createElement('div');
-            div.className = "bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-color)] flex gap-3 items-center cursor-pointer mb-2 hover:bg-[var(--input-bg)]";
-            div.onclick = () => openTradeRoom(o.id);
-            div.innerHTML = `
-                <img src="${o.products?.image_url || ''}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
-                <div class="flex-1">
-                    <h4 class="text-sm font-black truncate text-[var(--text-main)]">${o.products?.title || 'Unknown Product'}</h4>
-                    <p class="text-[10px] font-bold uppercase text-blue-500">${o.status}</p>
-                </div>
-                <i class="fa-solid fa-chevron-right text-gray-300"></i>
-            `;
-            container.appendChild(div);
-        });
-    }
-
-    async function loadMyListings() {
-        const container = document.getElementById('listings-list');
-        container.innerHTML = '<div class="loader mx-auto"></div>';
-
-        const { data: listings } = await sb.from('products')
-            .select('*')
-            .eq('seller_id', currentUser.id)
-            .order('created_at', { ascending: false });
-
-        container.innerHTML = listings?.length ? '' : '<p class="text-center py-10 text-sub font-bold uppercase text-xs">You have no listings</p>';
-
-        listings?.forEach(p => {
-            const div = document.createElement('div');
-            div.className = "bg-[var(--bg-card)] p-4 rounded-2xl border border-[var(--border-color)] flex gap-3 items-center mb-2";
-            div.innerHTML = `
-                <img src="${p.image_url}" class="w-12 h-12 rounded-lg object-cover bg-gray-100">
-                <div class="flex-1">
-                    <h4 class="text-sm font-black truncate text-[var(--text-main)]">${p.title}</h4>
-                    <p class="text-[10px] font-bold uppercase text-sub">${p.price_aquam} AQUAM</p>
-                </div>
-                <button onclick="deleteListing('${p.id}')" class="text-red-500 p-2"><i class="fa-solid fa-trash"></i></button>
-            `;
-            container.appendChild(div);
-        });
-    }
-
-    async function deleteListing(id) {
-        if(!confirm("Delete this listing?")) return;
-        await sb.from('products').delete().eq('id', id);
-        loadMyListings();
-        loadMarketplace(); // Refresh market
-    }
-
-    // --- TRADE ROOM LOGIC ---
     async function openTradeRoom(tradeId) {
         activeTradeId = tradeId;
+        // Mark as read in local storage
+        localStorage.setItem(`lastViewed_${tradeId}`, Date.now());
+        
         document.getElementById('tradeModal').classList.remove('hidden');
         document.getElementById('messagesList').innerHTML = '';
-        
-        // If coming from notification, clear badge logic (simplified)
-        // document.getElementById('notif-badge').classList.add('hidden'); 
-
         syncTradeData();
         if (pollingInterval) clearInterval(pollingInterval);
         pollingInterval = setInterval(syncTradeData, 4000);
-        subscribeToTrade(tradeId);
+        
+        // Refresh orders list behind the scenes to update badge
+        if(!document.getElementById('view-orders').classList.contains('hidden')) {
+            loadOrders();
+        }
     }
 
+    // Reuse existing functions for trade logic...
     async function syncTradeData() {
         if (!activeTradeId) return;
-        
         const { data: trade } = await sb.from('trades').select('*, products(*)').eq('id', activeTradeId).single();
         const { data: messages } = await sb.from('chat_messages').select('*').eq('trade_id', activeTradeId).order('created_at', { ascending: true });
-
+        
         renderTradeUI(trade);
         
         const list = document.getElementById('messagesList');
-        const safeMessages = messages || []; 
-        
-        if (safeMessages.length !== list.children.length) {
+        if (messages && messages.length !== list.children.length) {
             list.innerHTML = '';
-            safeMessages.forEach(appendMessage);
+            messages.forEach(msg => {
+                const div = document.createElement('div');
+                if (msg.is_system_message) {
+                    div.className = "system-msg";
+                    div.innerText = msg.message_text;
+                } else {
+                    const isMe = msg.sender_id === currentUser.id;
+                    div.className = `chat-bubble ${isMe ? 'chat-me' : 'chat-them'}`;
+                    div.innerHTML = msg.image_url ? `<img src="${msg.image_url}" class="rounded-lg mb-1 max-w-full">` : '';
+                    div.innerHTML += `<p class="font-medium whitespace-pre-wrap">${msg.message_text || ''}</p>`;
+                }
+                list.appendChild(div);
+            });
             list.scrollTo(0, list.scrollHeight);
+            
+            // Update read time since we are viewing it
+            localStorage.setItem(`lastViewed_${activeTradeId}`, Date.now());
         }
     }
 
     function renderTradeUI(trade) {
         const isBuyer = trade.buyer_id === currentUser.id;
-        const isSeller = trade.seller_id === currentUser.id;
         document.getElementById('tradeStatusBadge').innerText = trade.status;
         document.getElementById('disputeBtn').classList.toggle('hidden', !['LOCKED', 'SHIPPED', 'DISPUTED'].includes(trade.status));
-
+        
         let html = `
             <div class="bg-[var(--bg-card)] p-4 rounded-2xl shadow-sm border border-[var(--border-color)]">
                 <div class="flex gap-3 mb-4">
                     <img src="${trade.products.image_url}" class="w-16 h-16 rounded-xl object-cover">
-                    <div>
-                        <h4 class="font-black text-sm text-[var(--text-main)]">${trade.products.title}</h4>
-                        <p class="text-xs text-sub">${trade.delivery_method === 'pickup' ? 'Pick-up' : 'Delivery'}</p>
-                    </div>
+                    <div><h4 class="font-black text-sm">${trade.products.title}</h4><p class="text-xs text-sub">${trade.delivery_method}</p></div>
                 </div>
-                <div class="space-y-1 text-xs font-bold border-t border-[var(--border-color)] pt-3 text-[var(--text-main)]">
-                    <div class="flex justify-between"><span>Price:</span><span>${trade.amount_token} AQUAM</span></div>
-                    <div class="flex justify-between text-blue-600"><span>Escrow Fee:</span><span>${trade.escrow_fee} AQUAM</span></div>
-                    <div class="flex justify-between"><span>Delivery:</span><span>${trade.delivery_fee} AQUAM</span></div>
-                    <div class="flex justify-between text-lg font-black border-t border-[var(--border-color)] mt-2 pt-2"><span>TOTAL:</span><span>${trade.total_locked} AQUAM</span></div>
-                </div>
-        `;
-
-        // STATUS BUTTONS
+                <div class="space-y-1 text-xs font-bold border-t pt-3">
+                     <div class="flex justify-between text-lg font-black"><span>TOTAL:</span><span>${trade.total_locked} AQUAM</span></div>
+                </div>`;
+                
         if (trade.status === 'AWAITING_LOCK') {
-            if (isBuyer) html += `<button id="lockBtn" onclick="depositEscrow('${trade.id}', ${trade.total_locked})" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-xl font-black shadow-lg">LOCK AQUAM IN ESCROW</button>`;
+            if (isBuyer) html += `<button id="lockBtn" onclick="depositEscrow('${trade.id}', ${trade.total_locked})" class="w-full mt-4 bg-blue-600 text-white py-4 rounded-xl font-black">LOCK AQUAM IN ESCROW</button>`;
             else html += `<p class="mt-4 text-center text-xs text-orange-500 font-bold uppercase">Awaiting Buyer Payment...</p>`;
-        } 
-        else if (trade.status === 'LOCKED') {
-            if (isSeller) html += `<button onclick="updateStatus('SHIPPED')" class="w-full mt-4 bg-green-600 text-white py-4 rounded-xl font-black shadow-lg">MARK AS SHIPPED</button>`;
-            else html += `<p class="mt-4 text-center text-xs text-blue-500 font-bold uppercase tracking-widest">Funds Locked. Waiting for Seller...</p>
-                         <button onclick="refundBuyer('${trade.id}')" class="w-full mt-2 border border-red-200 text-red-500 py-3 rounded-xl font-bold text-xs uppercase hover:bg-red-50">Cancel & Refund Me</button>`;
+        } else if (trade.status === 'LOCKED') {
+            if (!isBuyer) html += `<button onclick="updateStatus('SHIPPED')" class="w-full mt-4 bg-green-600 text-white py-4 rounded-xl font-black">MARK AS SHIPPED</button>`;
+            else html += `<p class="mt-4 text-center text-xs text-blue-500 font-bold uppercase">Funds Locked. Waiting for Seller...</p><button onclick="refundBuyer('${trade.id}')" class="w-full mt-2 text-red-500 font-bold text-xs uppercase">Cancel & Refund</button>`;
+        } else if (trade.status === 'SHIPPED') {
+            if (isBuyer) html += `<button onclick="confirmRelease()" class="w-full mt-4 bg-green-600 text-white py-4 rounded-xl font-black">CONFIRM RECEIPT</button>`;
+            else html += `<p class="mt-4 text-center text-xs text-green-500 font-bold uppercase">Item Dispatched.</p>`;
         }
-        else if (trade.status === 'SHIPPED') {
-            if (isBuyer) html += `<button onclick="confirmRelease()" class="w-full mt-4 bg-green-600 text-white py-4 rounded-xl font-black shadow-lg">CONFIRM RECEIPT & RELEASE</button>`;
-            else html += `<p class="mt-4 text-center text-xs text-green-500 font-bold uppercase">Item Dispatched. Awaiting Buyer...</p>`;
-        }
-        else if (trade.status === 'COMPLETED') {
-            html += `<div class="mt-4 p-4 bg-green-100 text-green-700 rounded-xl text-center font-black">ORDER COMPLETED</div>`;
-        }
-        else if (trade.status === 'CANCELLED') {
-            html += `<div class="mt-4 p-4 bg-red-100 text-red-700 rounded-xl text-center font-black">ORDER CANCELLED</div>`;
-        }
-
         html += `</div>`;
         document.getElementById('tradeInfoCard').innerHTML = html;
     }
 
-    // --- BLOCKCHAIN ACTIONS ---
     async function depositEscrow(tradeId, amount) {
+        // ... (Same Blockchain Logic as previous) ...
         const btn = document.getElementById('lockBtn');
-        btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Locking...`;
-
+        btn.disabled = true; btn.innerText = "Processing...";
         try {
             const wallet = tonConnectUI.account.address;
-            const res = await fetch(`https://tonapi.io/v2/accounts/${wallet}/jettons`);
+            const res = await fetch(`${TONAPI_URL}/accounts/${wallet}/jettons`);
             const data = await res.json();
             const aqua = data.balances.find(j => j.jetton.address.includes(AQUA_MASTER.split(':')[1]));
-            
             if(!aqua) throw new Error("AQUAM tokens not found.");
-
+            
             const sellerJettonWallet = new TonWeb.utils.Address(aqua.wallet_address.address).toString(true, true, true);
             const jettonAmount = BigInt(Math.floor(amount * 1e9));
-
             const cell = new TonWeb.boc.Cell();
-            cell.bits.writeUint(0xf8a7ea5, 32);
-            cell.bits.writeUint(0, 64);
+            cell.bits.writeUint(0xf8a7ea5, 32); cell.bits.writeUint(0, 64);
             cell.bits.writeCoins(jettonAmount);
             cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY));
             cell.bits.writeAddress(new TonWeb.utils.Address(wallet));
-            cell.bits.writeBit(0);
-            cell.bits.writeCoins(TonWeb.utils.toNano("0.05"));
-            cell.bits.writeBit(0);
-
-            const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+            cell.bits.writeBit(0); cell.bits.writeCoins(TonWeb.utils.toNano("0.05")); cell.bits.writeBit(0);
             
+            const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
             const result = await tonConnectUI.sendTransaction({
                 validUntil: Math.floor(Date.now()/1000) + 300,
                 messages: [{ address: sellerJettonWallet, amount: TonWeb.utils.toNano("0.1").toString(), payload: payload }]
             });
-
             if(result) {
                 await sb.from('trades').update({ status: 'LOCKED', tx_hash_deposit: result.boc }).eq('id', tradeId);
-                await sb.from('chat_messages').insert({ trade_id: tradeId, sender_id: 'SYSTEM', message_text: "🔒 Funds locked in escrow.", is_system_message: true });
+                await sb.from('chat_messages').insert({ trade_id: tradeId, sender_id: 'SYSTEM', message_text: "🔒 Funds locked.", is_system_message: true });
             }
-        } catch(e) {
-            alert(e.message || "Lock failed");
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = "LOCK AQUAM IN ESCROW";
-        }
+        } catch(e) { alert(e.message); btn.disabled = false; btn.innerText = "LOCK AQUAM"; }
     }
 
     async function confirmRelease() {
-        if(!confirm("Confirm Receipt? Funds will be released.")) return;
-        const btn = document.querySelector('button[onclick="confirmRelease()"]');
-        btn.disabled = true;
-        btn.innerHTML = "Releasing...";
-
+        if(!confirm("Release funds?")) return;
         try {
-            const response = await fetch(EDGE_FUNC_URL, {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "release_funds", trade_id: activeTradeId })
-            });
-            const result = await response.json();
-            if(result.success) {
-                alert("Funds released!");
-                syncTradeData();
-            } else throw new Error(result.error);
-        } catch (e) {
-            alert(e.message);
-            btn.disabled = false;
-            btn.innerHTML = "CONFIRM RECEIPT & RELEASE";
-        }
+            const response = await fetch(EDGE_FUNC_URL, { method: "POST", headers: { "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify({ action: "release_funds", trade_id: activeTradeId }) });
+            if((await response.json()).success) { alert("Funds released!"); syncTradeData(); }
+        } catch(e) { alert("Error releasing."); }
     }
 
     async function refundBuyer(tradeId) {
-        if(!confirm("Cancel order and refund wallet? 5% fee applies.")) return;
+        if(!confirm("Cancel & Refund?")) return;
         try {
-             const response = await fetch(EDGE_FUNC_URL, {
-                method: "POST",
-                headers: { "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
-                body: JSON.stringify({ action: "refund_buyer", trade_id: tradeId })
-            });
-            const result = await response.json();
-            if(result.success) alert("Refund initiated!");
-            else alert("Error: " + result.error);
-        } catch(e) { alert(e.message); }
+            const response = await fetch(EDGE_FUNC_URL, { method: "POST", headers: { "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" }, body: JSON.stringify({ action: "refund_buyer", trade_id: tradeId }) });
+            if((await response.json()).success) alert("Refund initiated.");
+        } catch(e) { alert("Error."); }
     }
 
-
-// Handles visual star clicking
-function rateProduct(n) {
-    selectedRating = n;
-    for (let i = 1; i <= 5; i++) {
-        const star = document.getElementById(`star-${i}`);
-        if (i <= n) {
-            star.classList.remove('fa-regular', 'text-gray-400');
-            star.classList.add('fa-solid', 'text-yellow-400');
-        } else {
-            star.classList.remove('fa-solid', 'text-yellow-400');
-            star.classList.add('fa-regular', 'text-gray-400');
-        }
-    }
-}
-
-// Handles submitting the review to Supabase
-async function submitReview(productId) {
-    if (selectedRating === 0) return alert("Please select a star rating.");
-    const comment = document.getElementById('reviewText').value.trim();
-    if (!comment) return alert("Please write a short comment.");
-    
-    const btn = document.getElementById('submitReviewBtn');
-    btn.disabled = true;
-    btn.innerText = "Posting...";
-
-    try {
-        const { error } = await sb.from('reviews').insert({
-            product_id: productId,
-            reviewer_id: currentUser.id,
-            rating: selectedRating,
-            comment: comment
+    // --- UTILS ---
+    async function loadMyListings() {
+        const container = document.getElementById('listings-list');
+        const { data: listings } = await sb.from('products').select('*').eq('seller_id', currentUser.id);
+        container.innerHTML = listings?.length ? '' : '<p class="text-center text-xs">No listings.</p>';
+        listings?.forEach(p => {
+            container.innerHTML += `<div class="bg-[var(--bg-card)] p-4 rounded-2xl border flex gap-3"><img src="${p.image_url}" class="w-12 h-12 rounded bg-gray-100"><div class="flex-1"><h4 class="text-sm font-bold">${p.title}</h4><p class="text-xs">${p.price_aquam} AQUAM</p></div></div>`;
         });
-
-        if (error) throw error;
-
-        // Reload the modal to show the new review
-        // We fetch the product data again or pass a minimal object if you prefer
-        // But the easiest way is to close and reopen or just re-call openProductDetail
-        // Since we need the full product object, let's just alert and close for now, 
-        // OR ideally, we just re-fetch the product to pass it back.
-        
-        alert("Review Posted!");
-        
-        // Quick way to refresh UI: close then re-open logic (requires holding product data)
-        // OR simpler: Just reload the page content
-        const { data: p } = await sb.from('products').select('*').eq('id', productId).single();
-        openProductDetail(p);
-
-    } catch (e) {
-        alert("Error posting review: " + e.message);
-        btn.disabled = false;
-        btn.innerText = "Post Review";
-    }
-}
-
-    // --- CHAT & UTILS ---
-    function appendMessage(msg) {
-        const list = document.getElementById('messagesList');
-        const div = document.createElement('div');
-        if (msg.is_system_message) {
-            div.className = "system-msg";
-            div.innerText = msg.message_text;
-        } else {
-            const isMe = msg.sender_id === currentUser.id;
-            div.className = `chat-bubble ${isMe ? 'chat-me' : 'chat-them'}`;
-            div.innerHTML = msg.image_url ? `<img src="${msg.image_url}" class="rounded-lg mb-1 max-w-full">` : '';
-            div.innerHTML += `<p class="font-medium">${msg.message_text || ''}</p>`;
-        }
-        list.appendChild(div);
     }
 
     async function sendMessage() {
         const input = document.getElementById('messageInput');
-        const text = input.value.trim();
-        if(!text || !activeTradeId) return;
+        if(!input.value.trim() || !activeTradeId) return;
+        await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: currentUser.id, message_text: input.value.trim() });
         input.value = '';
-        await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: currentUser.id, message_text: text });
     }
 
     async function handleChatImage(input) {
         const file = input.files[0];
         if(!file || !activeTradeId) return;
-        try {
-            const compressed = await imageCompression(file, { maxSizeMB: 0.5, maxWidthOrHeight: 1024 });
-            const path = `chats/${activeTradeId}/${Date.now()}.jpg`;
-            await sb.storage.from('p2p').upload(path, compressed);
-            const { data: { publicUrl } } = sb.storage.from('p2p').getPublicUrl(path);
-            await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: currentUser.id, image_url: publicUrl });
-        } catch(e) { alert("Upload failed"); }
-    }
-async function handleCreateProduct(e) {
-    e.preventDefault();
-    const btn = document.getElementById('submitProductBtn');
-    const walletInput = document.getElementById('pWallet').value.trim();
-
-    // Basic validation to ensure they aren't entering junk
-    if (walletInput.length < 10) {
-        return alert("Please enter a valid TON wallet address.");
-    }
-
-    btn.disabled = true;
-    btn.innerText = "Posting...";
-
-    try {
-        const file = document.getElementById('pImage').files[0];
-        const compressed = await imageCompression(file, { maxSizeMB: 0.8, maxWidthOrHeight: 1200 });
-        const path = `products/${currentUser.id}/${Date.now()}.jpg`;
-        
-        // Upload Image
+        const compressed = await imageCompression(file, { maxSizeMB: 0.5 });
+        const path = `chats/${activeTradeId}/${Date.now()}.jpg`;
         await sb.storage.from('p2p').upload(path, compressed);
         const { data: { publicUrl } } = sb.storage.from('p2p').getPublicUrl(path);
-
-        // Insert Product with Wallet
-        const { error } = await sb.from('products').insert({
-            seller_id: currentUser.id,
-            title: document.getElementById('pTitle').value,
-            description: document.getElementById('pDesc').value,
-            price_aquam: parseInt(document.getElementById('pPrice').value),
-            home_delivery_fee: parseInt(document.getElementById('pDelivery').value),
-            can_pickup: document.getElementById('pPickup').checked,
-            city: document.getElementById('pCity').value,
-            image_url: publicUrl,
-            seller_wallet_address: walletInput // <--- SAVING WALLET HERE
-        });
-
-        if (error) throw error;
-        
-        alert("Listing created successfully!");
-        closeModal('createModal');
-        loadMarketplace();
-        
-        // Clear form
-        e.target.reset();
-    } catch(e) {
-        alert("Error: " + e.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = "Post Listing";
+        await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: currentUser.id, image_url: publicUrl });
     }
-}
 
+    function toggleMenu() {
+        const menu = document.getElementById('sideMenu');
+        const overlay = document.getElementById('sideMenuOverlay');
+        menu.classList.toggle('translate-x-full');
+        overlay.classList.toggle('hidden');
+        if(!menu.classList.contains('translate-x-full')) loadBalances();
+    }
     
+    function showSection(id) {
+        ['view-market','view-orders','view-listings'].forEach(x => document.getElementById(x).classList.add('hidden'));
+        document.getElementById(`view-${id}`).classList.remove('hidden');
+        if(id === 'orders') loadOrders();
+        if(id === 'listings') loadMyListings();
+        document.getElementById('sideMenu').classList.add('translate-x-full');
+        document.getElementById('sideMenuOverlay').classList.add('hidden');
+    }
+    
+    function populateCities() {
+        const s = document.getElementById('filterCity');
+        [...new Set(allProducts.map(p => p.city))].forEach(c => { const o = document.createElement('option'); o.innerText=c; s.appendChild(o); });
+    }
+    
+    function handleSearch() {
+        const t = document.getElementById('searchInput').value.toLowerCase();
+        renderProducts(allProducts.filter(p => p.title.toLowerCase().includes(t)));
+    }
+    
+    function applyFilters() {
+        const c = document.getElementById('filterCity').value;
+        renderProducts(allProducts.filter(p => (c === 'all' || p.city === c)));
+        closeModal('filterModal');
+    }
+    
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); if(id==='tradeModal') { activeTradeId=null; clearInterval(pollingInterval); } }
     function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
-    function closeModal(id) { 
-        document.getElementById(id).classList.add('hidden'); 
-        if(id === 'tradeModal') {
-            activeTradeId = null;
-            clearInterval(pollingInterval);
-        }
-    }
-
+    function initDarkMode() { if(localStorage.getItem('theme') === 'dark') document.getElementById('darkModeToggle').checked = true; }
+    function toggleDarkMode() { document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light'); }
+    async function updateStatus(s) { await sb.from('trades').update({status:s}).eq('id', activeTradeId); await sb.from('chat_messages').insert({trade_id:activeTradeId,sender_id:'SYSTEM',message_text:`Status: ${s}`,is_system_message:true}); }
+    
     function subscribeToNotifications() {
-    sb.channel('global-notif').on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'chat_messages' 
-    }, payload => {
-        // If message is from the other person/system
-        if(payload.new.sender_id !== currentUser.id) {
-            document.getElementById('menu-notif-badge').classList.remove('hidden');
-            document.getElementById('cart-notif-dot').classList.remove('hidden'); // Show cart dot
-            
-            // If the side menu has a "NEW" badge on the order button
-            const orderBadge = document.getElementById('menu-order-badge');
-            if(orderBadge) orderBadge.classList.remove('hidden');
-        }
-    }).subscribe();
+        sb.channel('global-notif').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages' }, payload => {
+            if(payload.new.sender_id !== currentUser.id) {
+                document.getElementById('menu-notif-badge').classList.remove('hidden');
+                document.getElementById('cart-notif-dot').classList.remove('hidden');
+                document.getElementById('menu-order-badge').classList.remove('hidden');
+                // Refresh order list if visible to show the number badge immediately
+                if(!document.getElementById('view-orders').classList.contains('hidden')) loadOrders();
+            }
+        }).subscribe();
+    }
+    
+   // Global to track the star selection
+window.selectedRating = 0;
+
+// Use ONE consistent variable name
+window.selectedRating = 0;
+
+function renderStarUI(rating, isInput = false, productId = '') {
+    let html = '<div class="flex gap-1">';
+    for (let i = 1; i <= 5; i++) {
+        // Check against the global selection if it's the input mode
+        const isActive = i <= (isInput ? window.selectedRating : Math.round(rating));
+        
+        // We use a cleaner way to handle the click to avoid syntax errors
+        const clickAttr = isInput ? `onclick="setTempRating(${i}, '${productId}')"` : '';
+        const cursor = isInput ? 'cursor-pointer hover:scale-110' : '';
+        
+        html += `<i class="fa-star ${isActive ? 'fa-solid text-yellow-400' : 'fa-regular text-gray-300'} ${cursor} transition-transform" ${clickAttr}></i>`;
+    }
+    return html + '</div>';
 }
 
-// Update showSection to clear the dot when orders are opened
-function showSection(sectionId) {
-    ['view-market', 'view-orders', 'view-listings'].forEach(id => {
-        document.getElementById(id).classList.add('hidden');
-    });
-    
-    document.getElementById(`view-${sectionId}`).classList.remove('hidden');
-    
-    // Logic for Orders section
-    if(sectionId === 'orders') {
-        loadOrders();
-        document.getElementById('cart-notif-dot').classList.add('hidden'); // Hide dot
-    }
-
-    if(sectionId === 'listings') loadMyListings();
-
-    // Close menu if it was open
-    const menu = document.getElementById('sideMenu');
-    if (!menu.classList.contains('translate-x-full')) {
-        toggleMenu();
+function setTempRating(val, pid) {
+    window.selectedRating = val;
+    // Update ONLY the star container so the user doesn't lose their text input focus
+    const starContainer = document.getElementById('star-input-container');
+    if (starContainer) {
+        starContainer.innerHTML = renderStarUI(val, true, pid);
     }
 }
 
-    
-    function subscribeToTrade(tradeId) {
-        sb.channel(`trade-${tradeId}`).on('postgres_changes', { event: '*', schema: 'public', table: 'trades', filter: `id=eq.${tradeId}` }, syncTradeData).subscribe();
-    }
+// Function to handle clicking a star
+function setTempRating(val, pid) {
+    window.selectedRating = val;
+    // Only refresh the star section to avoid a full modal flicker
+    const starContainer = document.getElementById('star-input-container');
+    if (starContainer) starContainer.innerHTML = renderStarUI(val, true, pid);
+}
 
-    async function updateStatus(newStatus) {
-        await sb.from('trades').update({ status: newStatus }).eq('id', activeTradeId);
-        await sb.from('chat_messages').insert({ trade_id: activeTradeId, sender_id: 'SYSTEM', message_text: `Status changed to ${newStatus}`, is_system_message: true });
-    }
 
-    async function raiseDispute() {
-        if(!confirm("Open dispute?")) return;
-        updateStatus('DISPUTED');
-    }
-</script>
-
+    </script>
 </html>
+
