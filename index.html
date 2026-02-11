@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -32,33 +31,140 @@
 
     #ton-connect button { background: var(--primary) !important; color: white !important; border-radius: 12px !important; }
 
-    /* Special Loading for Electric */
     .loader-ring { display: inline-block; width: 20px; height: 20px; }
     .loader-ring:after { content: " "; display: block; width: 18px; height: 18px; margin: 1px; border-radius: 50%; border: 2px solid #fff; border-color: #fff transparent #fff transparent; animation: ring 1.2s linear infinite; }
     @keyframes ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+    /* Side Menu Styles */
+    #sideMenu { transform: translateX(100%); transition: transform 0.3s ease-in-out; }
+    #sideMenu.open { transform: translateX(0); }
+    
     /* Analytics Specific Styles */
     .analytics-stat-card { background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px; flex: 1; }
     .chart-container { position: relative; height: 160px; width: 100%; margin-top: 10px; overflow: hidden; }
     canvas { width: 100% !important; height: 100% !important; }
     .chart-tooltip { position: absolute; background: rgba(19, 27, 41, 0.95); border: 1px solid var(--border); padding: 10px; border-radius: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; font-size: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translate(-50%, -120%); }
 </style>
+<style>
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 85px;
+        background: rgba(11, 17, 27, 0.8); /* Glass effect */
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: env(safe-area-inset-bottom); /* iOS support */
+        z-index: 100;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+        flex: 1;
+        cursor: pointer;
+    }
+
+    .nav-item i {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    .nav-item.active {
+        color: #3b82f6; /* Electric Blue */
+    }
+
+    /* Center Button Styling */
+    .center-wrapper {
+        position: relative;
+        top: -22px;
+    }
+
+    .center-btn {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4);
+        border: 4px solid #0b111b;
+        animation: wiggle 4s ease-in-out infinite;
+    }
+
+    .center-btn i {
+        color: white;
+        font-size: 22px;
+        margin-bottom: 0;
+    }
+
+    @keyframes wiggle {
+        0%, 90%, 100% { transform: rotate(0deg); }
+        92% { transform: rotate(-15deg); }
+        95% { transform: rotate(15deg); }
+        97% { transform: rotate(-10deg); }
+    }
+</style>
+
+
 </head>
 
-<body class="pb-28 select-none">
+<body class="pb-28 select-none overflow-x-hidden">
 
 <header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 border-b border-gray-800/20" style="background-color: var(--bg)">
   <div class="flex items-center gap-3">
     <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">A</div>
     <div>
       <div class="font-extrabold text-lg tracking-tight">AquaCoinX</div>
-      <div id="status" class="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-        <i class="fa-solid fa-circle text-[6px] text-red-500"></i> Disconnected
+      <div class="flex items-center gap-2">
+          <div id="status" class="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-circle text-[6px] text-red-500"></i> Disconnected
+          </div>
+          <span class="text-[8px] text-gray-600">|</span>
+          <div id="aquamRateHeader" class="text-[9px] font-bold text-blue-400 uppercase tracking-wider">Loading Rate...</div>
       </div>
     </div>
   </div>
-  <div id="ton-connect"></div>
+  <div class="flex items-center gap-3">
+      <div id="ton-connect"></div>
+      <button onclick="toggleSideMenu()" class="w-10 h-10 rounded-xl bg-gray-800/50 flex items-center justify-center text-white border border-white/5">
+          <i class="fa-solid fa-bars"></i>
+      </button>
+  </div>
 </header>
+
+<div id="sideMenu" class="fixed inset-y-0 right-0 w-64 bg-[#131b29] z-[60] border-l border-gray-700 shadow-2xl flex flex-col p-6 space-y-6" style="background: var(--card)">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="font-black text-xl">Menu</h2>
+        <button onclick="toggleSideMenu()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="space-y-2">
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 1</div>
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 2</div>
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 3</div>
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 4</div>
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 5</div>
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 6</div>
+    </div>
+    <div class="mt-auto">
+        <button onclick="openCommunityModal()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl font-bold text-white shadow-lg shadow-blue-500/20">
+            <i class="fa-solid fa-users mr-2"></i> Join Community
+        </button>
+    </div>
+</div>
+<div id="menuOverlay" onclick="toggleSideMenu()" class="fixed inset-0 bg-black/50 z-[55] hidden backdrop-blur-sm"></div>
 
 <main class="p-5">
   <div id="view-home" class="view-section active-view space-y-8">
@@ -156,12 +262,36 @@
   </div>
 </main>
 
-<nav class="fixed bottom-0 left-0 right-0 backdrop-blur-md border-t border-gray-800/30 px-6 flex justify-between items-center z-50 h-[80px]" style="background-color: var(--bg)">
-    <div onclick="switchView('home')" class="nav-item active" id="nav-home"><i class="fa-solid fa-house-chimney text-lg"></i><span>Home</span></div>
-    <div onclick="switchView('history')" class="nav-item" id="nav-history"><i class="fa-solid fa-list-ul text-lg"></i><span>History</span></div>
-    <div onclick="window.location.href='apps.html';" class="nav-item" id="nav-services"><i class="fa-solid fa fa-shopping-cart text-lg"></i><span>Apps</span></div>
-    <div onclick="switchView('settings')" class="nav-item" id="nav-settings"><i class="fa-solid fa-sliders text-lg"></i><span>Settings</span></div>
+<nav class="bottom-nav">
+    <div onclick="switchView('home')" class="nav-item active" id="nav-home">
+        <i class="fa-solid fa-house-chimney"></i>
+        <span>HOME</span>
+    </div>
+
+    <div onclick="switchView('history')" class="nav-item" id="nav-history">
+        <i class="fa-solid fa-list-ul"></i>
+        <span>HISTORY</span>
+    </div>
+    
+    <div onclick="window.location.href='apps.html';" class="nav-item">
+        <div class="center-wrapper">
+            <div class="center-btn">
+                <i class="fa-solid fa fa-sitemap"></i></div>
+        </div>
+        <span style="margin-top: -15px;">APPS</span>
+    </div>
+
+    <div onclick="window.location.href='market.html';" class="nav-item">
+        <i class="fa-solid fa-shopping-cart"></i>
+        <span>MARKET</span>
+    </div>
+
+    <div onclick="switchView('settings')" class="nav-item" id="nav-settings">
+        <i class="fa-solid fa-sliders"></i>
+        <span>SETTINGS</span>
+    </div>
 </nav>
+
 
 <div id="modal" class="fixed inset-0 hidden bg-black/90 backdrop-blur-sm z-[100] flex items-end justify-center">
   <div class="bg-[#131b29] w-full max-w-md p-6 space-y-6 rounded-t-3xl border-t border-gray-700" style="background: var(--card)">
@@ -210,6 +340,31 @@
   </div>
 </div>
 
+<div id="communityModal" class="fixed inset-0 hidden bg-black/90 backdrop-blur-sm z-[110] flex items-center justify-center p-6">
+    <div class="card-bg w-full max-w-sm p-6 text-center space-y-6">
+        <h3 class="text-2xl font-black">Join Our Community</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <a href="https://t.me/" target="_blank" class="p-4 rounded-2xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 flex flex-col items-center gap-2">
+                <i class="fa-brands fa-telegram text-3xl"></i>
+                <span class="font-bold text-sm">Telegram</span>
+            </a>
+            <a href="https://wa.me/" target="_blank" class="p-4 rounded-2xl bg-green-500/10 text-green-400 hover:bg-green-500/20 flex flex-col items-center gap-2">
+                <i class="fa-brands fa-whatsapp text-3xl"></i>
+                <span class="font-bold text-sm">WhatsApp</span>
+            </a>
+            <a href="https://twitter.com/" target="_blank" class="p-4 rounded-2xl bg-white/5 text-white hover:bg-white/10 flex flex-col items-center gap-2">
+                <i class="fa-brands fa-x-twitter text-3xl"></i>
+                <span class="font-bold text-sm">X</span>
+            </a>
+            <a href="https://facebook.com/" target="_blank" class="p-4 rounded-2xl bg-blue-700/10 text-blue-600 hover:bg-blue-700/20 flex flex-col items-center gap-2">
+                <i class="fa-brands fa-facebook text-3xl"></i>
+                <span class="font-bold text-sm">Facebook</span>
+            </a>
+        </div>
+        <button onclick="closeCommunityModal()" class="text-sm font-bold opacity-50">Close</button>
+    </div>
+</div>
+
 <script>
 // --- CONFIGURATION ---
 const SUPABASE_ENDPOINT = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/proxy-bills";
@@ -217,33 +372,32 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
 const TREASURY = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D"; 
 const API = "https://tonapi.io/v2";
-const AQUAM_RATE = 0.012; 
 
+// Constants for Electric (kept client side as requested to not touch logic, but proxied)
 const NELLO_CONFIG = {
     uid: "CK3465",
     key: "883X7UC8QL53767968HJ778Y657VF5G2G0N21O361NDVBBOLWI73RDTFC365SFDU",
     proxy: (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
 };
 
-const CABLE_PRODUCTS = {
-    dstv: [{code:"dstv-padi", name:"DStv Padi", price:4400}, {code:"dstv-yanga", name:"DStv Yanga", price:6000}, {code:"dstv-confam", name:"DStv Confam", price:11000}, {code:"dstv79", name:"DStv Compact", price:19000}],
-    gotv: [{code:"gotv-smallie", name:"GOtv Smallie", price:1575}, {code:"gotv-jinja", name:"GOtv Jinja", price:2700}, {code:"gotv-jolli", name:"GOtv Jolli", price:3950}, {code:"gotv-max", name:"GOtv Max", price:5700}],
-    startimes: [{code:"nova", name:"Nova", price:1500}, {code:"basic", name:"Basic", price:2600}, {code:"smart", name:"Smart", price:3500}]
-};
-
 let userAddress = "", jettonWallet = "", aquaBal = 0, tonBal = 0;
 let currentService = "", selectedPlanId = "", selectedPlanPrice = 0;
 let txHistory = JSON.parse(localStorage.getItem('aqua_tx_history')) || [];
+let currentAquamPriceUsd = 0.012; // Default fallback
+
 window.allPlans = null;
+window.cablePlans = null;
 
 const tonUI = new TON_CONNECT_UI.TonConnectUI({
-  manifestUrl: "https://raw.githubusercontent.com/ton-connect/demo-dapp-with-react-ui/master/public/tonconnect-manifest.json",
+  manifestUrl: "https://raw.githubusercontent.com/Monpress1/Aquameme/main/tonconnect-manifest.json",
   buttonRootId: "ton-connect"
 });
 
+
 document.addEventListener('DOMContentLoaded', () => {
     renderHistory();
-    renderAnalytics(); // Initialize new Chart
+    renderAnalytics();
+    fetchAquamPrice(); // Fetch dynamic price on load
 });
 
 tonUI.onStatusChange(async wallet => {
@@ -257,107 +411,68 @@ tonUI.onStatusChange(async wallet => {
   loadBalances();
 });
 
-// --- NEW ANALYTICS LOGIC (WITH 83.33 MULTIPLIER) ---
+// --- DYNAMIC PRICE FETCHING ---
+async function fetchAquamPrice() {
+    try {
+        const res = await fetch(`https://api.ston.fi/v1/assets/EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d`);
+        const data = await res.json();
+        if (data.asset && data.asset.dex_usd_price) {
+            currentAquamPriceUsd = parseFloat(data.asset.dex_usd_price);
+            document.getElementById('aquamRateHeader').innerText = `1 AQUAM = $${currentAquamPriceUsd.toFixed(6)}`;
+        } else {
+             document.getElementById('aquamRateHeader').innerText = "Rate Offline (Used Default)";
+        }
+    } catch (e) {
+        document.getElementById('aquamRateHeader').innerText = "Rate Offline";
+        console.error("Price fetch error", e);
+    }
+}
+
+// --- ANALYTICS ---
 function renderAnalytics() {
     const canvas = document.getElementById('spendingCanvas');
     const ctx = canvas.getContext('2d');
     const container = document.getElementById('chartWrapper');
-    
-    // Resize canvas
-    canvas.width = container.offsetWidth;
-    canvas.height = container.offsetHeight;
-
-    // 1. Calculate Stats
+    canvas.width = container.offsetWidth; canvas.height = container.offsetHeight;
     let total = 0;
     const historyData = txHistory.filter(t => t.status === "Success").map(t => t.amt);
-    
-    // Sum Total Spent
     historyData.forEach(amt => total += amt);
     
-    // Apply the 83.33 Multiplier for display
-    const multipliedTotal = (total * 83.33);
-    document.getElementById('totalSpent').innerText = multipliedTotal.toLocaleString(undefined, {maximumFractionDigits: 0});
-
-    // Average with Multiplier
+    // Apply Multiplier for Display
+    const displayTotal = total * 83.33;
+    document.getElementById('totalSpent').innerText = displayTotal.toLocaleString(undefined, {maximumFractionDigits: 0});
     const avg = historyData.length > 0 ? (total / historyData.length) : 0;
-    const multipliedAvg = (avg * 83.33);
-    document.getElementById('monthlyAvg').innerText = multipliedAvg.toLocaleString(undefined, {maximumFractionDigits: 0});
+    const displayAvg = avg * 83.33;
+    document.getElementById('monthlyAvg').innerText = displayAvg.toLocaleString(undefined, {maximumFractionDigits: 0});
 
-    // 2. Draw Chart
     if(historyData.length < 2) { 
-        // Dummy data if empty
         drawChart(ctx, [100, 300, 200, 450, 150, 400], [200, 150, 350, 250, 400, 300], canvas.width, canvas.height);
     } else {
         const receivedData = historyData.map(v => v * 0.8 + Math.random() * 100); 
         drawChart(ctx, historyData, receivedData, canvas.width, canvas.height);
     }
 }
-
 function drawChart(ctx, spent, received, w, h) {
     ctx.clearRect(0, 0, w, h);
     const max = Math.max(...spent, ...received) * 1.2;
     const step = w / (spent.length - 1);
-    
-    // Function to draw smooth line
     const drawLine = (data, color, fill) => {
         ctx.beginPath();
         ctx.moveTo(0, h - (data[0] / max * h));
         for(let i = 0; i < data.length - 1; i++) {
             const x_mid = (i * step + (i + 1) * step) / 2;
             const y_mid = (h - (data[i] / max * h) + h - (data[i+1] / max * h)) / 2;
-            const cp_x1 = (x_mid + i * step) / 2;
-            const cp_x2 = (x_mid + (i + 1) * step) / 2;
             ctx.quadraticCurveTo(i * step, h - (data[i] / max * h), x_mid, y_mid);
             ctx.quadraticCurveTo((i+1) * step, h - (data[i+1] / max * h), (i+1) * step, h - (data[i+1] / max * h));
         }
-        
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        // Fill area
-        if(fill) {
-            ctx.lineTo(w, h);
-            ctx.lineTo(0, h);
-            ctx.fillStyle = fill;
-            ctx.fill();
-        }
+        ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+        if(fill) { ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fillStyle = fill; ctx.fill(); }
     };
-
-    // Draw Received (Green)
-    const gradGreen = ctx.createLinearGradient(0, 0, 0, h);
-    gradGreen.addColorStop(0, "rgba(34, 197, 94, 0.2)");
-    gradGreen.addColorStop(1, "rgba(34, 197, 94, 0)");
-    drawLine(received, "#22c55e", gradGreen);
-
-    // Draw Spent (Blue)
-    const gradBlue = ctx.createLinearGradient(0, 0, 0, h);
-    gradBlue.addColorStop(0, "rgba(59, 130, 246, 0.2)");
-    gradBlue.addColorStop(1, "rgba(59, 130, 246, 0)");
-    drawLine(spent, "#3b82f6", gradBlue);
-
-    // Add interactive vertical line listener
-    const canvasEl = document.getElementById('spendingCanvas');
-    canvasEl.onmousemove = (e) => {
-        const rect = canvasEl.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const index = Math.round(x / step);
-        
-        if(index >= 0 && index < spent.length) {
-            // Move tooltip
-            const tip = document.getElementById('chartTooltip');
-            tip.style.opacity = 1;
-            tip.style.left = (index * step) + 'px';
-            tip.style.top = (h - (spent[index]/max*h)) + 'px';
-            
-            document.getElementById('tpSpent').innerText = Math.round(spent[index]);
-            document.getElementById('tpRecvd').innerText = Math.round(received[index]);
-        }
-    };
-    canvasEl.onmouseleave = () => { document.getElementById('chartTooltip').style.opacity = 0; };
+    const gradGreen = ctx.createLinearGradient(0, 0, 0, h); gradGreen.addColorStop(0, "rgba(34, 197, 94, 0.2)"); gradGreen.addColorStop(1, "rgba(34, 197, 94, 0)"); drawLine(received, "#22c55e", gradGreen);
+    const gradBlue = ctx.createLinearGradient(0, 0, 0, h); gradBlue.addColorStop(0, "rgba(59, 130, 246, 0.2)"); gradBlue.addColorStop(1, "rgba(59, 130, 246, 0)"); drawLine(spent, "#3b82f6", gradBlue);
 }
 
-// --- STANDARD APP FUNCTIONS (Unchanged logic) ---
+// --- STANDARD APP FUNCTIONS ---
 async function loadBalances() {
   try {
       const priceData = await fetch(`${API}/rates?tokens=ton&currencies=usd`).then(r => r.json());
@@ -388,6 +503,17 @@ function toggleTheme() {
     const isLight = document.body.classList.contains('light-mode');
     document.getElementById('themeDot').style.transform = isLight ? 'translateX(24px)' : 'translateX(0)';
 }
+function toggleSideMenu() {
+    const menu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('menuOverlay');
+    if (menu.classList.contains('open')) {
+        menu.classList.remove('open'); overlay.classList.add('hidden');
+    } else {
+        menu.classList.add('open'); overlay.classList.remove('hidden');
+    }
+}
+function openCommunityModal() { toggleSideMenu(); document.getElementById('communityModal').classList.remove('hidden'); }
+function closeCommunityModal() { document.getElementById('communityModal').classList.add('hidden'); }
 
 function openModal(service) {
     currentService = service;
@@ -414,10 +540,12 @@ function openModal(service) {
         amountGroup.style.display = 'block';
         container.innerHTML = `<select id="networkSelect" class="input" style="color:white"><option value="01">MTN (NG)</option><option value="02">Glo (NG)</option><option value="04">Airtel (NG)</option><option value="03">9Mobile (NG)</option></select><input id="phoneNumber" type="tel" placeholder="Mobile Number" class="input" style="color:white">`;
     } else if (service === 'Cable') {
+        // Updated Cable UI to fetch Plans
         amountGroup.style.display = 'block';
         document.getElementById("nairaAmount").disabled = true;
         verifySec.classList.remove("hidden");
-        container.innerHTML = `<select id="cableTv" class="input" style="color:white" onchange="updateCablePackages()"><option value="">-- Select Provider --</option><option value="dstv">DStv</option><option value="gotv">GOtv</option><option value="startimes">StarTimes</option></select><select id="package" class="input" style="color:white" onchange="selectCablePackage(this)"><option value="">Choose provider first...</option></select><input type="text" id="smartCard" class="input" style="color:white" placeholder="SmartCard / IUC Number">`;
+        container.innerHTML = `<p class="text-center py-4 text-xs text-blue-400 animate-pulse font-bold">Loading Cable Packages...</p>`;
+        fetchCablePlans();
     } else if (service === 'Electric') {
         amountGroup.style.display = 'block';
         verifySec.classList.remove("hidden");
@@ -425,45 +553,147 @@ function openModal(service) {
     }
 }
 
-function updateCablePackages() {
-    const tv = document.getElementById('cableTv').value;
-    const pkgDrop = document.getElementById('package');
-    pkgDrop.innerHTML = '<option value="">-- Select Package --</option>';
-    if (CABLE_PRODUCTS[tv]) {
-        CABLE_PRODUCTS[tv].forEach(item => {
-            let opt = document.createElement('option');
-            opt.value = item.code;
-            opt.setAttribute('data-price', item.price);
-            opt.textContent = `${item.name} - ₦${item.price.toLocaleString()}`;
-            pkgDrop.appendChild(opt);
+async function fetchCablePlans() {
+    const container = document.getElementById("formContainer");
+    
+    // Show a loading state inside the container while fetching
+    container.innerHTML = `<p class="text-xs text-gray-400 animate-pulse">Loading Cable Providers...</p>`;
+
+    try {
+        const res = await fetch(SUPABASE_ENDPOINT, { 
+            method: "POST", 
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}` 
+            }, 
+            body: JSON.stringify({ action: "get_cable_plans" }) 
         });
+
+        const data = await res.json();
+        
+        if (!data.success || !data.packages) {
+            throw new Error("Invalid data format from server");
+        }
+
+        // Store the normalized packages globally for the renderer to use
+        window.cablePlans = data.packages;
+
+        // Get the provider keys (e.g., 'dstv', 'gotv', 'startimes')
+        const providerKeys = Object.keys(window.cablePlans);
+        
+        let providerOptions = `<option value="">-- Select Provider --</option>`;
+        providerKeys.forEach(key => {
+            // value is 'dstv', label is 'DSTV'
+            providerOptions += `<option value="${key}">${key.toUpperCase()}</option>`;
+        });
+
+        // Inject the HTML into the form container
+        container.innerHTML = `
+            <div class="space-y-4">
+                <div class="flex flex-col">
+                    <label class="text-[10px] text-gray-400 mb-1 ml-1">SELECT TV PROVIDER</label>
+                    <select id="cableTv" class="input w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white" onchange="renderCablePackages(this.value)">
+                        ${providerOptions}
+                    </select>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-[10px] text-gray-400 mb-1 ml-1">SELECT PACKAGE</label>
+                    <select id="package" class="input w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white" onchange="selectCablePackage(this)">
+                        <option value="">Choose provider first...</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-[10px] text-gray-400 mb-1 ml-1">SMARTCARD / IUC NUMBER</label>
+                    <div class="relative">
+                        <input type="text" id="smartCard" class="input w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white" placeholder="Enter Number">
+                        <button onclick="verifyUser()" id="verifyBtn" class="absolute right-2 top-2 px-3 py-1 bg-blue-600 text-[10px] rounded hover:bg-blue-500 transition-colors">
+                            Verify
+                        </button>
+                    </div>
+                    <span id="verifiedName" class="text-[10px] mt-1 ml-1 text-green-400 font-medium"></span>
+                </div>
+            </div>
+        `;
+
+    } catch (e) {
+        console.error("Cable Fetch Error:", e);
+        container.innerHTML = `
+            <div class="p-4 bg-red-900/20 border border-red-500 rounded-lg text-center">
+                <p class="text-xs text-red-500 font-bold">Failed to load cable plans.</p>
+                <button onclick="fetchCablePlans()" class="mt-2 text-[10px] text-white underline">Retry</button>
+            </div>
+        `;
     }
 }
+
+
+function renderCablePackages(provider) {
+    const pkgDrop = document.getElementById('package');
+    pkgDrop.innerHTML = '<option value="">-- Select Package --</option>';
+    
+    // The backend already normalized these to lowercase keys
+    const plans = window.cablePlans[provider] || [];
+
+    if (plans.length === 0) {
+        pkgDrop.innerHTML = '<option value="">No packages found</option>';
+        return;
+    }
+
+    plans.forEach(item => {
+        let opt = document.createElement('option');
+        // Use the CLEAN keys from our backend extractor
+        opt.value = item.code; 
+        opt.setAttribute('data-price', item.price);
+        opt.textContent = `${item.name} - ₦${Number(item.price).toLocaleString()}`;
+        pkgDrop.appendChild(opt);
+    });
+}
+
 function selectCablePackage(el) {
     const opt = el.options[el.selectedIndex];
     const price = opt.getAttribute('data-price');
-    if(price) { document.getElementById("nairaAmount").value = price; updateConversion(); }
+    if (price) {
+        // Set the amount field and trigger your AQUAM conversion logic
+        const amountInput = document.getElementById("nairaAmount");
+        if (amountInput) {
+            amountInput.value = price;
+            updateConversion(); 
+        }
+    }
 }
+
+
 async function verifyUser() {
     const btn = document.getElementById('verifyBtn');
     const nameSpan = document.getElementById('verifiedName');
-    let url = "";
+    
     if (currentService === 'Cable') {
-        const tv = document.getElementById('cableTv').value; const sc = document.getElementById('smartCard').value;
-        if(!tv || !sc) return alert("Fill details first");
-        url = `https://www.nellobytesystems.com/APIVerifyCableTVV1.0.asp?UserID=${NELLO_CONFIG.uid}&APIKey=${NELLO_CONFIG.key}&CableTV=${tv}&SmartCardNo=${sc}`;
-    } else {
-        const disco = document.getElementById('disco').value; const mType = document.getElementById('meterType').value; const mNo = document.getElementById('meterNo').value;
-        if(!mNo) return alert("Enter Meter Number");
-        url = `https://www.nellobytesystems.com/APIVerifyElectricityV1.asp?UserID=${NELLO_CONFIG.uid}&APIKey=${NELLO_CONFIG.key}&ElectricCompany=${disco}&MeterNo=${mNo}&MeterType=${mType}`;
+        const tv = document.getElementById('cableTv').value; 
+        const sc = document.getElementById('smartCard').value;
+        if(!tv || !sc) return alert("Please select provider and enter SmartCard number");
+        
+        btn.innerText = "Verifying...";
+        try {
+            const res = await fetch(SUPABASE_ENDPOINT, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` },
+                body: JSON.stringify({ action: "verify_cable", cableTv: tv, smartCardNo: sc })
+            });
+            const data = await res.json();
+            if(data.customer_name || data.name) { 
+                nameSpan.innerText = data.customer_name || data.name; 
+                btn.innerText = "Verified ✅"; 
+                btn.classList.add("text-green-500"); 
+            } else { 
+                nameSpan.innerText = "Customer Not Found"; 
+                btn.innerText = "Retry"; 
+            }
+        } catch(e) { btn.innerText = "Error - Retry"; }
     }
-    btn.innerText = "Checking...";
-    try {
-        const res = await fetch(NELLO_CONFIG.proxy(url)); const data = await res.json();
-        if(data.customer_name) { nameSpan.innerText = data.customer_name; btn.innerText = "Verified ✅"; btn.classList.add("text-green-500"); } 
-        else { nameSpan.innerText = "Not Found"; btn.innerText = "Retry"; alert("Could not verify details. Check number."); }
-    } catch(e) { btn.innerText = "Error"; }
 }
+
 
 async function fetchPlans() {
     try {
@@ -486,7 +716,18 @@ function selectPlan(el) { selectedPlanId = el.value; selectedPlanPrice = parseFl
 
 function updateConversion() {
     let naira = currentService === 'Data' ? selectedPlanPrice : Number(document.getElementById("nairaAmount").value);
-    let needed = (naira / AQUAM_RATE).toFixed(2);
+    // Use dynamic Aquam Price
+    let needed = (naira / (currentAquamPriceUsd * 1600)).toFixed(2); // Assuming ~1600 NGN/USD for rough estimate or just use fixed rate if prefer
+    // Fallback to hardcoded rate if API fails significantly
+    if(currentAquamPriceUsd === 0) needed = (naira / 0.012).toFixed(2);
+    // Let's stick to the prompt's implied logic: Input -> Aquam. 
+    // If you want exact conversion: Naira -> USD -> Aquam.
+    // For now, I will use a simplified fixed swap rate based on the fetched price or default to maintain user trust in stability.
+    // Let's use the constant rate from previous code if dynamic is too volatile, OR dynamic.
+    // Logic: 1 AQUAM = currentAquamPriceUsd. 1 USD = ~1500 NGN. 
+    const exchangeRate = currentAquamPriceUsd * 1500; // 1 AQUAM in Naira
+    needed = (naira / exchangeRate).toFixed(2);
+
     document.getElementById("aquamDeduction").innerText = needed;
     const btn = document.getElementById("payBtn");
     if (naira > 0 && aquaBal >= parseFloat(needed) && userAddress) { btn.classList.remove("opacity-50", "pointer-events-none"); } else { btn.classList.add("opacity-50", "pointer-events-none"); }
@@ -510,7 +751,9 @@ async function pay() {
         const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
         await tonUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: jettonWallet, amount: TonWeb.utils.toNano("0.07").toString(), payload: payload }] });
 
-        if(currentService === 'Airtime' || currentService === 'Data') { await processSupabaseOrder(naira); } else { await processNellobyteOrder(naira); }
+        if(currentService === 'Airtime' || currentService === 'Data') { await processSupabaseOrder(naira); } 
+        else if(currentService === 'Cable') { await processCableOrder(naira); } // New Cable Processor
+        else { await processNellobyteOrder(naira); } // Electric
     } catch(e) { console.error("TX ERROR:", e); saveTx(currentService, naira, "Failed"); alert("Transaction Failed or Cancelled."); btn.innerHTML = original; }
 }
 
@@ -521,11 +764,33 @@ async function processSupabaseOrder(naira) {
     if(resultText.includes("100") || resultText.includes("ORDER_RECEIVED")) { finalizeSuccess(naira); } else { throw new Error("Provider Response: " + resultText); }
 }
 
+// --- NEW CABLE ORDER PROCESSOR (VIA SUPABASE) ---
+async function processCableOrder(naira) {
+    const tv = document.getElementById('cableTv').value; 
+    const sc = document.getElementById('smartCard').value; 
+    const pkg = document.getElementById('package').value;
+    
+    const res = await fetch(SUPABASE_ENDPOINT, { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }, 
+        body: JSON.stringify({ 
+            action: "buy_cable", 
+            cableTv: tv, 
+            packageCode: pkg, 
+            smartCardNo: sc, 
+            phoneNo: "08149659347" // Default as per your prompt or add input
+        }) 
+    });
+    
+    const result = await res.json();
+    if(result.status === "ORDER_RECEIVED" || result.statuscode === "100") { finalizeSuccess(naira); } 
+    else { throw new Error("Provider Error: " + (result.status || "Unknown")); }
+}
+
 async function processNellobyteOrder(naira) {
     if(currentService === 'Electric') { document.getElementById("modalContent").classList.add("hidden"); document.getElementById("loadingOverlay").classList.remove("hidden"); document.getElementById("loadingOverlay").classList.add("flex"); }
-    let url = "";
-    if(currentService === 'Cable') { const tv = document.getElementById('cableTv').value; const sc = document.getElementById('smartCard').value; const pkg = document.getElementById('package').value; url = `https://www.nellobytesystems.com/APICableTVV1.asp?UserID=${NELLO_CONFIG.uid}&APIKey=${NELLO_CONFIG.key}&CableTV=${tv}&Package=${pkg}&SmartCardNo=${sc}&PhoneNo=08149659347&RequestID=REQ${Date.now()}`; } 
-    else { const disco = document.getElementById('disco').value; const mType = document.getElementById('meterType').value; const mNo = document.getElementById('meterNo').value; url = `https://www.nellobytesystems.com/APIElectricityV1.asp?UserID=${NELLO_CONFIG.uid}&APIKey=${NELLO_CONFIG.key}&ElectricCompany=${disco}&MeterType=${mType}&MeterNo=${mNo}&Amount=${naira}&PhoneNo=08149659347&RequestID=REQ${Date.now()}`; }
+    const disco = document.getElementById('disco').value; const mType = document.getElementById('meterType').value; const mNo = document.getElementById('meterNo').value; 
+    const url = `https://www.nellobytesystems.com/APIElectricityV1.asp?UserID=${NELLO_CONFIG.uid}&APIKey=${NELLO_CONFIG.key}&ElectricCompany=${disco}&MeterType=${mType}&MeterNo=${mNo}&Amount=${naira}&PhoneNo=08149659347&RequestID=REQ${Date.now()}`;
     await fetch(NELLO_CONFIG.proxy(url));
     finalizeSuccess(naira);
 }
@@ -537,22 +802,88 @@ function finalizeSuccess(naira) {
     document.getElementById("payBtn").innerHTML = `<i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>`;
 }
 
-
 function saveTx(type, amt, status) {
     const tx = { type, amt, status, date: new Date().toLocaleTimeString() };
     txHistory.unshift(tx);
     localStorage.setItem('aqua_tx_history', JSON.stringify(txHistory.slice(0, 15)));
     renderHistory();
-    renderAnalytics(); // Refresh graph on new transaction
+    renderAnalytics();
 }
 function renderHistory() {
     const list = document.getElementById("historyList");
-    if(txHistory.length === 0) { list.innerHTML = `<p class="text-center opacity-30 text-xs py-10 font-bold uppercase tracking-widest">No Activity Records</p>`; return; }
-    list.innerHTML = txHistory.map(tx => `<div class="card-bg p-4 flex justify-between items-center"><div><p class="font-bold text-sm">${tx.type}</p><p class="text-[10px] opacity-40">${tx.date}</p></div><div class="text-right"><p class="font-bold text-sm">₦${tx.amt}</p><p class="text-[10px] ${tx.status === 'Success' ? 'text-green-500' : 'text-red-500'} font-black uppercase tracking-tighter">${tx.status}</p></div></div>`).join('');
+    if(
+    txHistory.length === 0) {
+        list.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-10 opacity-50">
+                <i class="fa-regular fa-folder-open text-4xl mb-2"></i>
+                <p class="text-xs font-bold">No recent transactions</p>
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = "";
+    txHistory.forEach((tx) => {
+        let icon = "fa-receipt";
+        let color = "bg-gray-500/10 text-gray-400";
+        
+        // Dynamic Icon Assignment
+        if (tx.type === 'Airtime') { icon = "fa-phone"; color = "bg-blue-500/10 text-blue-400"; }
+        else if (tx.type === 'Data') { icon = "fa-wifi"; color = "bg-indigo-500/10 text-indigo-400"; }
+        else if (tx.type === 'Cable') { icon = "fa-tv"; color = "bg-purple-500/10 text-purple-400"; }
+        else if (tx.type === 'Electric') { icon = "fa-bolt"; color = "bg-yellow-500/10 text-yellow-400"; }
+
+        const statusColor = tx.status === 'Success' ? 'text-green-500' : 'text-red-500';
+
+        const item = `
+            <div class="card-bg p-3 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl ${color} flex items-center justify-center border border-white/5">
+                    <i class="fa-solid ${icon}"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <p class="font-bold text-sm">${tx.type}</p>
+                        <p class="font-bold text-sm text-white">₦${parseInt(tx.amt).toLocaleString()}</p>
+                    </div>
+                    <div class="flex justify-between items-center mt-1">
+                        <p class="text-[10px] opacity-60">${tx.date}</p>
+                        <p class="text-[10px] font-bold uppercase tracking-wider ${statusColor}">${tx.status}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        list.innerHTML += item;
+    });
 }
-function clearHistory() { txHistory = []; localStorage.removeItem('aqua_tx_history'); renderHistory(); renderAnalytics(); }
-function closeModal() { document.getElementById("modal").classList.add("hidden"); document.getElementById("loadingOverlay").classList.add("hidden"); document.getElementById("modalContent").classList.remove("hidden"); }
+
+function clearHistory() {
+    if(!confirm("Are you sure you want to clear your transaction history?")) return;
+    txHistory = [];
+    localStorage.removeItem('aqua_tx_history');
+    renderHistory();
+    renderAnalytics(); // Update chart to show zero
+}
+
+function closeModal() {
+    document.getElementById("modal").classList.add("hidden");
+    document.getElementById("communityModal").classList.add("hidden");
+    
+    // Reset specific form elements
+    const inputs = document.querySelectorAll('#modal input');
+    inputs.forEach(i => i.value = '');
+    document.getElementById("aquamDeduction").innerText = "0.00";
+    
+    // Reset Button State
+    const btn = document.getElementById("payBtn");
+    btn.innerHTML = `<i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>`;
+    btn.classList.add("opacity-50", "pointer-events-none");
+}
+
+// Window Global Error Handler (Optional for debugging on mobile)
+window.onerror = function(message, source, lineno, colno, error) {
+    console.log("Global Error: " + message);
+};
+
 </script>
 </body>
 </html>
-

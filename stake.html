@@ -92,75 +92,87 @@
         }
 
         /* --- Bottom Navigation --- */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #0b111b;
-            border-top: 1px solid #1f2937;
-            display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            padding-bottom: 20px;
-            padding-top: 12px;
-            z-index: 50;
-        }
+     .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    /* Glassmorphism Effect */
+    background: rgba(11, 17, 27, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0 25px 0; /* Extra bottom padding for modern edge-to-edge screens */
+    z-index: 100;
+}
 
-        .nav-item {
-            display: flex;
-            flex-col: column;
-            flex-direction: column;
-            align-items: center;
-            color: #64748b;
-            font-size: 10px;
-            font-weight: 600;
-            gap: 4px;
-            width: 20%;
-        }
+.nav-item {
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    flex: 1;
+}
 
-        .nav-item.active { color: white; }
-        .nav-item i { font-size: 18px; margin-bottom: 2px; }
+.nav-item i {
+    font-size: 20px;
+    margin-bottom: 4px;
+}
 
-        /* Center Spin Button */
-        .spin-btn-wrapper {
-            position: relative;
-            top: -25px; /* Push it up */
-        }
-        
-        .spin-btn {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
-            border: 4px solid #0b111b; /* Matches body bg to look cut out */
-        }
+.nav-item.active {
+    color: #60a5fa;
+}
 
-        .spin-icon {
-            font-size: 24px;
-            color: white;
-            animation: spin-slow 3s linear infinite;
-        }
+/* Center Apps Button */
+.nav-center-wrapper {
+    position: relative;
+    top: -20px; /* Floating effect */
+    transition: transform 0.3s ease;
+}
 
-        @keyframes spin-slow {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
+.center-btn {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
+    border: 5px solid #0b111b;
+    animation: wiggle 3s ease-in-out infinite; /* Wiggle Effect */
+}
 
-        /* --- Utility --- */
-        .glass-panel {
-            background: #111827;
-            border: 1px solid #1f2937;
-            border-radius: 20px;
-        }
+.center-btn i {
+    font-size: 24px;
+    color: white;
+}
 
-        /* Hide Scrollbar */
-        ::-webkit-scrollbar { display: none; }
-        
+/* Keyframes */
+@keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    15% { transform: rotate(-10deg); }
+    30% { transform: rotate(10deg); }
+    45% { transform: rotate(-5deg); }
+    60% { transform: rotate(5deg); }
+    75% { transform: rotate(0deg); }
+}
+
+/* Utility for glass panels in your content */
+.glass-panel {
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+}
+
         /* TonConnect Button Customization */
         #ton-connect button {
             background: white !important;
@@ -177,11 +189,11 @@
     <div class="w-full max-w-md flex justify-between items-center p-5 pt-6">
         <div>
             <h1 class="text-2xl font-black italic tracking-tighter text-[#3b82f6]">AQUAM<span class="text-white">Stake</span></h1>
-            <p class="text-[9px] font-bold tracking-[0.3em] text-gray-500 uppercase">Staking Portal</p>
+            <p class="text-[9px] font-bold tracking-[0.3em] text-gray-500 uppercase">Staking/investment</p>
         </div>
         <div class="flex items-center gap-3">
             <button class="w-9 h-9 rounded-full bg-[#111827] border border-gray-800 flex items-center justify-center text-gray-400">
-                <i class="fa fa-cog"></i>
+                
             </button>
             <div id="ton-connect"></div>
         </div>
@@ -213,10 +225,15 @@
             </div>
             
             <div class="hidden">
-                 <span id="totalExpectedInterest">0</span>
-                 <span id="totalWithdrawn">0</span>
-                 <button id="endStakeBtn" onclick="openEndStakeModal()">End</button>
-            </div>
+     <span id="totalExpectedInterest">0</span>
+     <span id="totalWithdrawn">0</span>
+</div>
+
+<button id="endStakeBtn" onclick="openEndStakeModal()" 
+        class="hidden mt-4 w-full bg-green-500 hover:bg-green-600 text-white py-3 rounded-xl font-bold text-xs uppercase shadow-lg transition-all border border-green-400">
+    <i class="fa fa-unlock mr-2"></i> Unstake & Claim
+</button>
+
         </div>
 
         <div class="glass-panel p-5 flex items-center justify-between">
@@ -242,7 +259,7 @@
                     <ul class="text-[9px] text-gray-400 space-y-1.5 font-medium">
                         <li><i class="fa fa-check text-green-500 mr-1"></i> 30% Fixed APY</li>
                         <li><i class="fa fa-check text-green-500 mr-1"></i> Daily Withdraws</li>
-                        <li><i class="fa fa-check text-green-500 mr-1"></i> Min: $100</li>
+                        <li><i class="fa fa-check text-green-500 mr-1"></i> stake: $10-$100</li>
                         <li><i class="fa fa-check text-green-500 mr-1"></i> interest: 30% </li>
                     </ul>
                 </div>
@@ -258,7 +275,7 @@
                     <ul class="text-[9px] text-gray-500 space-y-1.5 font-medium">
                         <li><i class="fa fa-check text-orange-500 mr-1"></i> High Priority</li>
                         <li><i class="fa fa-check text-orange-500 mr-1"></i> Daily Withdraws</li>
-                        <li><i class="fa fa-check text-orange-500 mr-1"></i> Min: $10,000</li>
+                        <li><i class="fa fa-check text-orange-500 mr-1"></i> Stake: $100-$1000</li>
                         <li><i class="fa fa-check text-orange-500 mr-1"></i> interest: 60% </li>
                     </ul>
                 </div>
@@ -268,12 +285,12 @@
         <div class="glass-panel p-5 space-y-4">
             <div class="flex justify-between items-center">
                 <span class="text-xs font-bold text-gray-400">Amount (USD)</span>
-                <span class="text-[9px] font-mono text-blue-400" id="liveRate">1 AQUA = $0.0000</span>
+                <span class="text-[9px] font-mono text-blue-400" id="liveRate">AQUAMEME</span>
             </div>
 
             <div class="relative">
                 <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-                <input type="number" id="usdInput" placeholder="1000" oninput="calculateTokens()" 
+                <input type="number" id="usdInput" placeholder="10 - 100" oninput="calculateTokens()" 
                        class="w-full custom-input rounded-xl p-3 pl-8 font-bold text-lg">
             </div>
 
@@ -291,36 +308,39 @@
         </div>
 
     </div>
+<nav class="bottom-nav">
+    <a href="index.html" class="nav-item">
+        <i class="fa fa-home"></i>
+        <span>HOME</span>
+    </a>
 
-    <div class="bottom-nav">
-        <div class="nav-item">
-            <i class="fa fa-home"></i>
-            <span>HOME</span>
-        </div>
-        <div class="nav-item">
-            <i class="fa fa-exchange-alt"></i>
-            <span>SWAP</span>
-        </div>
-        
-        <div class="nav-item">
-            <div class="spin-btn-wrapper">
-                <div class="spin-btn">
-                    <i class="fa fa-sync spin-icon"></i>
-                </div>
+    <a href="dex.html" class="nav-item">
+        <i class="fa fa-sync-alt"></i>
+        <span>SWAP</span>
+    </a>
+    
+    <a href="apps.html" class="nav-item">
+        <div class="nav-center-wrapper">
+            <div class="center-btn">
+                <i class="fa fa-sitemap"></i>
             </div>
-            <span class="text-blue-400 relative -top-1">STAKE</span>
         </div>
+        <span style="margin-top: -15px;">APPS</span>
+    </a>
 
-        <div class="nav-item active">
-            <i class="fa fa-chart-line text-blue-400"></i>
-            <span class="text-blue-400">MARKET</span>
-        </div>
-        <div class="nav-item">
-            <i class="fa fa-wallet"></i>
-            <span>WALLET</span>
-        </div>
-    </div>
+    <a href="s2w.html" class="nav-item">
+        <i class="fa fa-dharmachakra"></i>
+        <span>SPIN</span>
+    </a>
 
+    <a href="market.html" class="nav-item">
+        <i class="fa fa-shopping-cart"></i>
+        <span>MARKET</span>
+    </a>
+</nav>
+
+
+    
     <div id="endStakeModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
         <div class="glass-panel w-full max-w-sm p-6 relative">
             <button onclick="closeEndStakeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
@@ -344,10 +364,15 @@
     </div>
 
 <script>
-    // --  CONFIGURATION ---
-    const TREASURY_WALLET = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D";
-    const SUPABASE_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/Pay";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+    let isBalanceLoaded = false; 
+let userTokenBalance = 0;
+
+    // --- 1. CONFIGURATION (UPDATED) ---
+const TREASURY_WALLET = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D";
+const SUPABASE_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/Pay";
+
+// Use the key from your working reference script
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
 
     // --- GLOBAL STATE ---
     let userWalletAddress = null;
@@ -379,207 +404,678 @@
         
         const input = document.getElementById('usdInput');
         if(input) {
-            input.placeholder = (tier === 'aquastaker') ? "100" : "10,000";
+            input.placeholder = (tier === 'aquastaker') ? "10-100" : "100-1000";
         }
         window.calculateTokens(); 
     }
 
-    // --- 2. WALLET STATUS & DATA SYNC ---
+      // --- 2. WALLET STATUS & DATA SYNC ---
     tonUI.onStatusChange(wallet => {
         if (wallet) {
             userWalletAddress = wallet.account.address;
             friendlyAddress = new TonWeb.utils.Address(userWalletAddress).toString(true, true, false);
             
+            // UI Updates
             const stakeBtn = document.getElementById('stakeBtn');
             if(stakeBtn) {
-                stakeBtn.innerText = "ENTER AMOUNT";
+                stakeBtn.innerText = "REFRESHING BALANCE..."; // Set temporary text
                 stakeBtn.disabled = true;
-                // Change style to active blue when wallet connected but waiting for input
                 stakeBtn.classList.remove('bg-[#1e293b]', 'text-gray-400');
                 stakeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-lg');
             }
-            fetchUserData(); 
+
+            // TRIGGER DATA FETCHES
+            fetchUserData();          // 1. Get DB Staking History
+            fetchUserJettonBalance(); // 2. <--- ADD THIS LINE (Get Wallet Balance)
+
         } else {
             resetDashboard();
         }
     });
+    
 
-    async function fetchUserData() {
-        if(!friendlyAddress) return;
-        try {
-            const response = await fetch(SUPABASE_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "apikey": SUPABASE_KEY,
-                    "Authorization": `Bearer ${SUPABASE_KEY}`
-                },
-                body: JSON.stringify({ action: "get_user_stats", wallet: friendlyAddress })
-            });
-            const data = await response.json();
-            if (data && data.success) {
-                activeStake = data.stakeData;
-                updateDashboardUI();
+        // --- 2. WALLET STATUS & DATA SYNC (DIRECT FROM DB) ---
+    
+        // --- 1. DATA SYNC (DIRECT FROM DB) ---
+    // --- 1. GLOBAL STATE UPDATES ---
+let isProcessing = false; // Prevents double-clicks and overlapping fetches
+
+async function fetchUserData() {
+    // Stop fetching if we are currently mid-transaction or no wallet
+    if (!friendlyAddress || isProcessing) return;
+    
+    const SUPABASE_REST_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/rest/v1";
+
+    try {
+        const response = await fetch(`${SUPABASE_REST_URL}/stakes?wallet_address=eq.${friendlyAddress}&status=eq.active&order=created_at.desc`, {
+            method: "GET",
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
             }
-        } catch (e) { console.error("Sync Error:", e); }
-    }
+        });
 
+        const stakes = await response.json();
+
+        if (stakes && stakes.length > 0) {
+            const stake = stakes[0]; 
+
+            const now = new Date();
+            const start = new Date(stake.created_at.replace(' ', 'T'));
+            const end = new Date(stake.end_date.replace(' ', 'T'));
+            
+            const diffTime = end - now;
+            const daysLeft = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+
+            const totalDays = stake.lock_period_days;
+            const totalInterest = parseFloat(stake.total_expected_interest);
+            const withdrawn = parseFloat(stake.total_withdrawn || 0);
+            
+            const dailyRate = totalInterest / totalDays;
+            const millisElapsed = now - start;
+            const daysElapsed = millisElapsed / (1000 * 60 * 60 * 24);
+            
+            let earned = dailyRate * daysElapsed;
+            if (earned > totalInterest) earned = totalInterest; 
+            
+            const pendingReward = Math.max(0, earned - withdrawn);
+
+            // --- CRITICAL: Save the stake ID here ---
+            activeStake = {
+                id: stake.id, 
+                stakedAmount: parseFloat(stake.initial_investment),
+                daysLeft: daysLeft,
+                pendingReward: pendingReward,
+                totalExpected: totalInterest,
+                totalWithdrawn: withdrawn,
+                hasActiveStake: true,
+                tier: stake.tier_name,
+                endDate: stake.end_date
+            };
+
+            updateDashboardUI();
+        } else {
+            resetDashboard();
+        }
+    } catch (e) { 
+        console.error("Fetch Error:", e); 
+    }
+}
+
+
+
+
+async function fetchUserJettonBalance() {
+    if (!userWalletAddress) return;
+    
+    // 1. Initialize TonWeb with a reliable provider
+    const tonweb = new TonWeb(new TonWeb.HttpProvider('https://toncenter.com/api/v2/jsonRPC'));
+    const AQUAM_MASTER_ADDRESS = "EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d";
+
+    try {
+        console.log("Checking AQUAM balance for:", userWalletAddress);
+        
+        const jettonMinter = new TonWeb.token.jetton.JettonMinter(tonweb.provider, {
+            address: AQUAM_MASTER_ADDRESS
+        });
+        
+        // 2. Get the specific Jetton Wallet for this user
+        const jettonWalletAddress = await jettonMinter.getJettonWalletAddress(new TonWeb.utils.Address(userWalletAddress));
+        const jettonWalletAddrString = jettonWalletAddress.toString(true, true, true);
+        
+        // 3. Call the contract
+        const data = await tonweb.provider.call(jettonWalletAddrString, 'get_wallet_data');
+        
+        if (data && data.stack) {
+            let balanceRaw;
+            
+            // 4. HEX CONVERSION (Crucial part that was missing)
+            // Some RPCs return ["num", "0x123"], others return ["num", "12345"]
+            const balanceData = data.stack[0][1];
+            if (balanceData.toString().startsWith('0x')) {
+                balanceRaw = BigInt(balanceData); // Handle Hex
+            } else {
+                balanceRaw = BigInt(balanceData); // Handle Decimal string
+            }
+
+            // 5. Convert from Nano (9 decimals) to readable AQUAM
+            userTokenBalance = Number(balanceRaw) / 1000000000; 
+            isBalanceLoaded = true; 
+            
+            console.log("AQUAM Balance Loaded:", userTokenBalance);
+        }
+    } catch (e) {
+        console.error("Balance fetch failed. Wallet may not have AQUAM yet:", e);
+        // If the wallet has NEVER held the token, the contract call will fail.
+        // In this case, the balance is effectively 0.
+        userTokenBalance = 0;
+        isBalanceLoaded = true; 
+    }
+    
+    // 6. Refresh the UI
+    if (typeof calculateTokens === "function") {
+        calculateTokens();
+    }
+}
+
+    // --- 2. UI UPDATE (WITH HARD-TARGETED SELECTORS) ---
     function updateDashboardUI() {
+        // A. Standard Stats
         const dashBal = document.getElementById('dashboardBalance');
         const usdBal = document.getElementById('usdBalance');
+        const pendRew = document.getElementById('pendingReward');
+        
         if(dashBal) dashBal.innerText = `${activeStake.stakedAmount.toFixed(2)} AQUAM`;
         if(usdBal) usdBal.innerText = (activeStake.stakedAmount * currentPrice).toFixed(2);
-        
-        const pendRew = document.getElementById('pendingReward');
-        const expInt = document.getElementById('totalExpectedInterest');
-        const totWith = document.getElementById('totalWithdrawn');
         if(pendRew) pendRew.innerHTML = `${activeStake.pendingReward.toFixed(2)} <span class="text-xs text-gray-500">AQUAM</span>`;
-        if(expInt) expInt.innerText = `${activeStake.totalExpected.toFixed(2)} AQUAM`;
-        if(totWith) totWith.innerText = `${activeStake.totalWithdrawn.toFixed(2)} AQUAM`;
 
-        const maxDays = (currentTier === 'otc') ? 180 : 90;
-        const progress = Math.min(100, Math.max(0, ((maxDays - activeStake.daysLeft) / maxDays) * 100));
+        // B. Progress Bar & Days Left
+        const maxDays = (activeStake.tier === 'otc') ? 180 : 90;
+        const daysElapsed = maxDays - activeStake.daysLeft;
+        const progress = Math.min(100, Math.max(0, (daysElapsed / maxDays) * 100));
         
         const progBar = document.getElementById('progressBar');
         const daysDisp = document.getElementById('daysLeftDisplay');
-        const endBtn = document.getElementById('endStakeBtn');
-        const penWarn = document.getElementById('penaltyWarning');
-
         if(progBar) progBar.style.width = `${progress}%`;
+        if(daysDisp) daysDisp.innerText = `${activeStake.daysLeft} Days Left`;
+
+        // C. TIER & LOCK DATE LABELS (Using specific selectors since IDs are missing)
+        const footerRow = document.querySelector('.balance-card div.border-t');
+        if (footerRow) {
+            const tierLabel = footerRow.querySelector('span:first-child');
+            const dateLabel = footerRow.querySelector('span:last-child');
+
+            if (activeStake.hasActiveStake) {
+                // Set Tier Text
+                if (tierLabel) {
+                    const displayTier = activeStake.tier === 'otc' ? "AQUA OTC" : "AQUASTAKER";
+                    tierLabel.innerText = `${displayTier} TIER`;
+                    tierLabel.classList.remove('opacity-50');
+                    tierLabel.style.color = "#60a5fa"; // Bright blue
+                }
+
+                // Set Lock Date
+                if (dateLabel && activeStake.endDate) {
+                    // Clean up the date string from DB
+                    const cleanDate = activeStake.endDate.split(' ')[0]; 
+                    const [year, month, day] = cleanDate.split('-');
+                    const dateObj = new Date(year, month - 1, day);
+                    
+                    const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                        month: 'short', day: 'numeric', year: 'numeric' 
+                    });
+                    
+                    dateLabel.innerText = `LOCKED UNTIL ${formattedDate.toUpperCase()}`;
+                    dateLabel.classList.remove('opacity-50');
+                    dateLabel.style.color = "white";
+                }
+            }
+        }
+
+        // D. Show/Hide Maturity Button
+        const endBtn = document.getElementById('endStakeBtn');
+        if(endBtn) {
+            if(activeStake.daysLeft <= 0 && activeStake.hasActiveStake) {
+                endBtn.classList.remove('hidden');
+                // Optional: style it to be visible inside the balance card
+                endBtn.className = "mt-4 w-full bg-green-500 text-white py-2 rounded-lg font-bold text-xs uppercase";
+            } else {
+                endBtn.classList.add('hidden');
+            }
+        }
+    }
+
+
+   function updateDashboardUI() {
+    // 1. Update Main Balances
+    const dashBal = document.getElementById('dashboardBalance');
+    const usdBal = document.getElementById('usdBalance');
+    if(dashBal) dashBal.innerText = `${activeStake.stakedAmount.toFixed(2)} AQUAM`;
+    if(usdBal) usdBal.innerText = (activeStake.stakedAmount * currentPrice).toFixed(2);
+    
+    
+        const pendRew = document.getElementById('pendingReward');
+    const expInt = document.getElementById('totalExpectedInterest');
+    const totWith = document.getElementById('totalWithdrawn');
+
+    // Updates the live reward with 9 decimals and the other stats with 2
+    if(pendRew) pendRew.innerHTML = `${(activeStake.pendingReward || 0).toFixed(9)} <span class="text-xs text-gray-500">AQUAM</span>`;
+    if(expInt) expInt.innerText = `${(activeStake.totalExpected || 0).toFixed(2)} AQUAM`;
+    if(totWith) totWith.innerText = `${(activeStake.totalWithdrawn || 0).toFixed(2)} AQUAM`;
+
+
+    // 3. Progress Bar Logic
+    const maxDays = (activeStake.tier === 'otc') ? 180 : 90;
+    const progress = Math.min(100, Math.max(0, ((maxDays - activeStake.daysLeft) / maxDays) * 100));
+    
+    const progBar = document.getElementById('progressBar');
+    const daysDisp = document.getElementById('daysLeftDisplay');
+    const endBtn = document.getElementById('endStakeBtn');
+    const penWarn = document.getElementById('penaltyWarning');
+
+    if(progBar) progBar.style.width = `${progress}%`;
+    
+    // 4. Maturity Display
+    if(activeStake.daysLeft <= 0 && activeStake.hasActiveStake) {
+        if(daysDisp) daysDisp.innerText = "MATURE";
+        if(endBtn) endBtn.classList.remove('hidden');
+        if(penWarn) penWarn.classList.add('hidden');
+    } else {
+        if(daysDisp) daysDisp.innerText = `${activeStake.daysLeft || 0} Days Left`;
+        if(endBtn) endBtn.classList.add('hidden');
+        if(penWarn) penWarn.classList.remove('hidden');
+    }
+
+    // 5. TIER & DATE DISPLAY (FIXED FOR INVALID DATE)
+    const cardFooter = document.querySelector('.balance-card div.border-t');
+    if (cardFooter && activeStake.hasActiveStake) {
+        const tierLabel = cardFooter.querySelector('span:first-child');
+        const dateLabel = cardFooter.querySelector('span:last-child');
+
+        if (tierLabel) {
+            tierLabel.innerText = activeStake.tier === 'otc' ? "AQUA OTC TIER" : "AQUASTAKER TIER";
+            tierLabel.classList.remove('opacity-50');
+            tierLabel.style.color = "#93c5fd"; 
+        }
+
+        if (dateLabel && activeStake.endDate) {
+            try {
+                // Step 1: Replace space with 'T' to make it ISO compliant
+                // This converts "2026-05-12 11:15..." to "2026-05-12T11:15..."
+                let dateString = activeStake.endDate.replace(/\s/, 'T');
+                let dateObj = new Date(dateString);
+
+                // Step 2: Fallback if step 1 fails (common on some mobile browsers)
+                if (isNaN(dateObj.getTime())) {
+                    const parts = activeStake.endDate.split(' ')[0].split('-');
+                    dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                }
+                
+                const formattedDate = dateObj.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                });
+                
+                dateLabel.innerText = `LOCKED UNTIL ${formattedDate.toUpperCase()}`;
+                dateLabel.classList.remove('opacity-50');
+                dateLabel.style.color = "#ffffff";
+            } catch (e) {
+                console.error("Date Parsing Error:", e);
+                dateLabel.innerText = "DATE ERROR";
+            }
+        }
+    }
+}
+
+
+  window.attemptWithdrawal = async function() {
+    if (isProcessing) return;
+    if (!userWalletAddress) return showToast("Connect Wallet First");
+    
+    // 1. CALCULATE DOLLAR VALUE
+    const amountToWithdraw = activeStake.pendingReward;
+    const usdValue = amountToWithdraw * currentPrice;
+    const minUsdThreshold = 1.00; // $1.00 Minimum
+
+    // 2. CHECK THRESHOLD
+    if (usdValue < minUsdThreshold) {
+        // Calculate how much more they need for a better UX
+        const tokensNeeded = (minUsdThreshold / currentPrice) - amountToWithdraw;
+        return showToast(`Min. withdrawal is $1.00 (~${tokensNeeded.toFixed(2)} more AQUAM needed)`);
+    }
+
+    if(!confirm(`Withdraw ${amountToWithdraw.toFixed(4)} AQUAM (~$${usdValue.toFixed(2)})?`)) return;
+
+    // --- REST OF THE FUNCTION REMAINS THE SAME ---
+    isProcessing = true;
+    const btn = document.querySelector('button[onclick="attemptWithdrawal()"]');
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> SYNCING...';
+    btn.disabled = true;
+
+    try {
+        await sendBackendPayout(amountToWithdraw, friendlyAddress, "interest");
+
+        const SUPABASE_REST_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/rest/v1";
+        const newWithdrawnTotal = (activeStake.totalWithdrawn + amountToWithdraw);
+
+        const response = await fetch(`${SUPABASE_REST_URL}/stakes?id=eq.${activeStake.id}`, {
+            method: "PATCH",
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json",
+                "Prefer": "return=minimal"
+            },
+            body: JSON.stringify({ 
+                total_withdrawn: newWithdrawnTotal.toFixed(4)
+            })
+        });
+
+        if (!response.ok) throw new Error("Database update failed");
+
+        activeStake.totalWithdrawn = newWithdrawnTotal;
+        activeStake.pendingReward = 0;
+        updateDashboardUI();
         
-        if(activeStake.daysLeft <= 0 && activeStake.hasActiveStake) {
-            if(daysDisp) daysDisp.innerText = "MATURE";
-            if(endBtn) endBtn.classList.remove('hidden');
-            if(penWarn) penWarn.classList.add('hidden');
-        } else {
-            if(daysDisp) daysDisp.innerText = `${activeStake.daysLeft || 0} Days Left`;
-            if(endBtn) endBtn.classList.add('hidden');
-            if(penWarn) penWarn.classList.remove('hidden');
-        }
-    }
+        showToast("Rewards Withdrawn!");
+        setTimeout(() => { isProcessing = false; fetchUserData(); }, 2000);
 
-    // --- 3. WITHDRAWAL LOGIC ---
-    window.attemptWithdrawal = async function() {
-        if (!userWalletAddress) return showToast("Connect Wallet First");
-        const minTokens = 10 / currentPrice;
-        if (activeStake.pendingReward < minTokens) return showToast(`Min Withdraw: $10 (${minTokens.toFixed(1)} AQUAM)`);
-
-        let penaltyUSD = 0;
-        let confirmMsg = "Confirm withdrawal of interest?";
-        if (activeStake.daysLeft > 0) {
-            penaltyUSD = 5; 
-            confirmMsg = `WARNING: Early Withdrawal!\nA $5 penalty will be applied. Proceed?`;
-        }
-
-        if(!confirm(confirmMsg)) return;
-
-        const btn = document.querySelector('button[onclick="attemptWithdrawal()"]');
-        const oldHtml = btn.innerHTML;
-        btn.innerHTML = '<i class="fa fa-spinner fa-spin"></i>';
-
-        try {
-            const response = await fetch(SUPABASE_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
-                body: JSON.stringify({ action: "withdraw_interest", wallet: friendlyAddress, penalty_usd: penaltyUSD })
-            });
-            const result = await response.json();
-            if(result.success) {
-                showToast("Withdrawal Success!");
-                fetchUserData(); 
-            }
-        } catch (e) { showToast("Connection Error"); }
+    } catch (e) {
+        showToast("Withdrawal Failed: " + e.message);
+        isProcessing = false;
+    } finally {
         btn.innerHTML = oldHtml;
+        btn.disabled = false;
     }
+};
 
-    // --- 4. END STAKE MODAL LOGIC ---
-    window.openEndStakeModal = function() {
-        document.getElementById('endStakeModal').classList.remove('hidden');
-        document.getElementById('withdrawalWalletInput').value = friendlyAddress;
-    }
+   
+// --- MODAL CONTROLS (GLOBAL) ---
 
-    window.closeEndStakeModal = function() {
-        document.getElementById('endStakeModal').classList.add('hidden');
-    }
-
-    window.confirmEndStake = async function() {
-        const targetAddr = document.getElementById('withdrawalWalletInput').value;
-        if(!targetAddr || targetAddr.length < 10) return showToast("Invalid Wallet");
-        closeEndStakeModal();
-        showToast("Processing Final Withdrawal...");
-        try {
-            const response = await fetch(SUPABASE_URL, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` },
-                body: JSON.stringify({ action: "end_stake", wallet: friendlyAddress, destination: targetAddr })
-            });
-            const result = await response.json();
-            if(result.success) {
-                showToast("Released!");
-                setTimeout(() => location.reload(), 2000);
-            }
-        } catch (e) { showToast("Network Error"); }
-    }
-
-    // --- 5. STAKING TRANSACTION ---
-    window.processStaking = async function() {
-        if (!userWalletAddress) return tonUI.openModal();
-        const usdVal = parseFloat(document.getElementById('usdInput').value);
-        if(!usdVal || usdVal <= 0) return showToast("Enter Valid Amount");
-
-        try {
-            const amountInNano = ((usdVal / currentPrice) * 1000000000).toFixed(0);
-            
-            const cell = new TonWeb.boc.Cell();
-            cell.bits.writeUint(0, 32); 
-            cell.bits.writeString(`Deposit:${currentTier}`);
-            const payloadBoc = await cell.toBoc();
-            const payloadBase64 = TonWeb.utils.bytesToBase64(payloadBoc);
-
-            const transaction = {
-                validUntil: Math.floor(Date.now() / 1000) + 300,
-                messages: [{
-                    address: TREASURY_WALLET,
-                    amount: amountInNano.toString(),
-                    payload: payloadBase64
-                }]
-            };
-
-            showToast("Opening Wallet...");
-            await tonUI.sendTransaction(transaction);
-            showToast("Transaction Sent!");
-            setTimeout(fetchUserData, 5000);
-        } catch(e) {
-            console.error(e);
-            showToast("Cancelled or Error");
+window.openEndStakeModal = function() {
+    const modal = document.getElementById('endStakeModal');
+    const input = document.getElementById('withdrawalWalletInput');
+    
+    if (modal) {
+        modal.classList.remove('hidden');
+        // Pre-fill with user's address for convenience
+        if (input && friendlyAddress) {
+            input.value = friendlyAddress;
         }
     }
+};
+
+window.closeEndStakeModal = function() {
+    const modal = document.getElementById('endStakeModal');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.pasteAddress = async function() {
+    try {
+        const text = await navigator.clipboard.readText();
+        const input = document.getElementById('withdrawalWalletInput');
+        if (input) input.value = text;
+    } catch(e) { 
+        showToast("Clipboard access denied"); 
+    }
+};
+
+// --- UPDATED CONFIRM END STAKE ---
+window.confirmEndStake = async function() {
+    if (isProcessing) return;
+    const targetAddr = document.getElementById('withdrawalWalletInput').value;
+    if(!targetAddr || targetAddr.length < 10) return showToast("Invalid Wallet");
+
+    const principal = activeStake.stakedAmount || 0;
+    const rewards = activeStake.pendingReward || 0;
+    const totalToWithdraw = principal + rewards;
+
+    isProcessing = true;
+    closeEndStakeModal();
+    showToast("Processing Final Payout...");
+
+    try {
+        // 1. Send Payout
+        await sendBackendPayout(totalToWithdraw, targetAddr, "principal_exit");
+
+        // 2. FORCE CLOSE STAKE IN SUPABASE
+        const SUPABASE_REST_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/rest/v1";
+        
+        const response = await fetch(`${SUPABASE_REST_URL}/stakes?id=eq.${activeStake.id}`, {
+            method: "PATCH",
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ 
+                status: "withdrawn", // This prevents the stake from loading again
+                total_withdrawn: (activeStake.totalWithdrawn + rewards).toFixed(4)
+            })
+        });
+
+        if (response.ok) {
+            showToast("Stake Successfully Closed");
+            resetDashboard(); 
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            throw new Error("DB Status Update Failed");
+        }
+
+    } catch (e) {
+        showToast(`Error: ${e.message}`);
+        isProcessing = false;
+    }
+};
+
+
+// --- 5. STAKING TRANSACTION (COMPLETE FIXED VERSION) ---
+window.processStaking = async function() {
+    // 1. Basic Validation
+    if (!userWalletAddress) return tonUI.openModal();
+    const usdVal = parseFloat(document.getElementById('usdInput').value);
+    if(!usdVal || usdVal <= 0) return showToast("Enter Valid Amount");
+
+    const AQUAM_MASTER_ADDRESS = "EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d";
+    const SUPABASE_REST_URL = "https://ptllbgdixhesptlkqrqa.supabase.co/rest/v1";
+    
+    try {
+        showToast("Preparing Transaction...");
+        const tonweb = new TonWeb();
+
+        // 2. Calculate Values
+        const tokenAmount = usdVal / currentPrice;
+        const amountInNano = BigInt(Math.floor(tokenAmount * 1000000000));
+        const lockDays = (currentTier === 'otc') ? 180 : 90;
+        const interestRate = (currentTier === 'otc') ? 0.60 : 0.30;
+        const expectedInterest = tokenAmount * interestRate;
+        
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + lockDays);
+
+        // 3. Get User's Jetton Wallet Address
+        const jettonMinter = new TonWeb.token.jetton.JettonMinter(tonweb.provider, {
+            address: AQUAM_MASTER_ADDRESS
+        });
+        const jettonWalletAddress = await jettonMinter.getJettonWalletAddress(new TonWeb.utils.Address(userWalletAddress));
+
+        // 4. Create Jetton Transfer Payload
+        const commentCell = new TonWeb.boc.Cell();
+        commentCell.bits.writeUint(0, 32); 
+        commentCell.bits.writeString(`Deposit:${currentTier}`);
+
+        const payload = new TonWeb.boc.Cell();
+        payload.bits.writeUint(0xf8a7ea5, 32); 
+        payload.bits.writeUint(0, 64);         
+        payload.bits.writeCoins(amountInNano); 
+        payload.bits.writeAddress(new TonWeb.utils.Address(TREASURY_WALLET)); 
+        payload.bits.writeAddress(new TonWeb.utils.Address(userWalletAddress)); 
+        payload.bits.writeBit(false);          
+        payload.bits.writeCoins(TonWeb.utils.toNano('0.01')); 
+        payload.bits.writeBit(true);           
+        payload.refs.push(commentCell);        
+
+        const payloadBoc = await payload.toBoc();
+        const payloadBase64 = TonWeb.utils.bytesToBase64(payloadBoc);
+
+        // 5. Construct & Send Blockchain Transaction
+        const transaction = {
+            validUntil: Math.floor(Date.now() / 1000) + 300,
+            messages: [{
+                address: jettonWalletAddress.toString(true, true, true), 
+                amount: TonWeb.utils.toNano('0.1').toString(), 
+                payload: payloadBase64 
+            }]
+        };
+
+        showToast("Confirm in Wallet...");
+        await tonUI.sendTransaction(transaction);
+        
+        // 6. DATABASE UPDATE 
+        showToast("Syncing with Database...");
+
+        // A. Ensure User exists in 'users' table (using Upsert logic)
+        const userSync = await fetch(`${SUPABASE_REST_URL}/users`, {
+            method: "POST",
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json",
+                "Prefer": "resolution=merge-duplicates"
+            },
+            body: JSON.stringify({ 
+                wallet_address: friendlyAddress,
+                last_seen_at: new Date().toISOString()
+            })
+        });
+
+        if (!userSync.ok) {
+            const errTxt = await userSync.text();
+            console.error("User Sync Fail:", errTxt);
+            throw new Error(`User Table Error: ${userSync.status}`);
+        }
+
+        // B. Insert record into 'stakes' table
+        const stakeResponse = await fetch(`${SUPABASE_REST_URL}/stakes`, {
+            method: "POST",
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json",
+                "Prefer": "return=representation" // Asks DB to send back the row created
+            },
+            body: JSON.stringify({
+                wallet_address: friendlyAddress,
+                tier_name: currentTier,
+                initial_investment: tokenAmount,
+                total_expected_interest: expectedInterest,
+                lock_period_days: lockDays,
+                end_date: endDate.toISOString(),
+                status: 'active'
+            })
+        });
+
+        if (stakeResponse.ok) {
+            showToast("Stake Successfully Recorded!");
+            // Delay slightly to let Supabase process before refreshing
+            setTimeout(() => {
+                if(typeof fetchUserData === 'function') fetchUserData();
+            }, 1500);
+        } else {
+            const stakeErr = await stakeResponse.json();
+            console.error("Stake Insert Fail:", stakeErr);
+            showToast(`DB Error: ${stakeErr.message || stakeResponse.status}`);
+        }
+
+    } catch(e) {
+        console.error("Process Error:", e);
+        showToast(e.message.includes("User rejected") ? "Cancelled" : `Error: ${e.message}`);
+    }
+}
+
+// --- UNIVERSAL PAYOUT FUNCTION (Matches Reference Script) ---
+async function sendBackendPayout(amount, recipientAddr, type) {
+    if (!amount || amount <= 0) throw new Error("Invalid Amount");
+    if (!recipientAddr) throw new Error("Invalid Address");
+
+    // Ensure we send the 'UQ...' format (Non-bounceable) exactly like the reference
+    // (isUserFriendly=true, isUrlSafe=true, isBounceable=false)
+    const safeAddress = new TonWeb.utils.Address(recipientAddr).toString(true, true, false);
+
+    console.log(`Processing ${type}: Sending ${amount} AQUAM to ${safeAddress}`);
+
+    const response = await fetch(SUPABASE_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`
+        },
+        body: JSON.stringify({
+            action: "withdraw_aquam", // The action your backend knows
+            amount: amount.toFixed(4), // Ensure it's a string/number formatted correctly
+            recipient: safeAddress,
+            reason: type // passing 'interest' or 'principal' so backend can log it
+        })
+    });
+
+    const result = await response.json();
+    
+    if (!response.ok || !result.success) {
+        throw new Error(result.error || "Transfer Failed");
+    }
+    
+    return result;
+}
+
 
     // --- UTILITIES ---
     window.calculateTokens = function() {
-        const usd = parseFloat(document.getElementById('usdInput').value) || 0;
-        document.getElementById('aquamPreview').innerText = `${(usd / currentPrice).toFixed(2)} AQUAM`;
-        const stakeBtn = document.getElementById('stakeBtn');
-        
-        if(userWalletAddress && stakeBtn) {
-            if(currentTier === 'otc' && usd < 10000) {
-                stakeBtn.disabled = true;
-                stakeBtn.innerText = "Min: $10,000";
-                stakeBtn.classList.remove('bg-blue-600', 'text-white');
-                stakeBtn.classList.add('bg-[#1e293b]', 'text-gray-400');
-            } else if(usd < 0.1) {
-                stakeBtn.disabled = true;
-                stakeBtn.innerText = "Min: $100";
-                stakeBtn.classList.remove('bg-blue-600', 'text-white');
-                stakeBtn.classList.add('bg-[#1e293b]', 'text-gray-400');
-            } else {
-                stakeBtn.disabled = false;
-                stakeBtn.innerText = "CONFIRM STAKE";
-                stakeBtn.classList.add('bg-blue-600', 'text-white');
-                stakeBtn.classList.remove('bg-[#1e293b]', 'text-gray-400');
-            }
-        }
+    const usdInput = document.getElementById('usdInput');
+    const usdVal = parseFloat(usdInput.value) || 0;
+    const tokenPreview = document.getElementById('aquamPreview');
+    const stakeBtn = document.getElementById('stakeBtn');
+    
+    if (!usdInput || !stakeBtn) return;
+
+    // 1. Calculate Required Tokens
+    // Formula: $requiredTokens = usdVal / currentPrice$
+    const requiredTokens = usdVal / (currentPrice || 0.00001); 
+    tokenPreview.innerText = `${requiredTokens.toFixed(2)} AQUAM`;
+
+    // 2. Wallet Connection Check
+    if (!userWalletAddress) {
+        stakeBtn.disabled = false;
+        stakeBtn.innerText = "CONNECT WALLET";
+        return;
     }
+
+    // 3. Existing Stake Check
+    if (activeStake && activeStake.hasActiveStake) {
+        stakeBtn.disabled = true;
+        stakeBtn.innerText = "STAKE ALREADY ACTIVE";
+        stakeBtn.className = "w-full py-4 rounded-xl font-bold transition-all bg-gray-700 text-gray-400 cursor-not-allowed";
+        return;
+    }
+
+    // 4. Loading State Check
+    if (!isBalanceLoaded) {
+        stakeBtn.disabled = true;
+        stakeBtn.innerText = "REFRESHING BALANCE...";
+        return;
+    }
+
+    // 5. Insufficient Balance Check
+    if (usdVal > 0 && requiredTokens > userTokenBalance) {
+        stakeBtn.disabled = true;
+        stakeBtn.innerText = "INSUFFICIENT AQUAM";
+        stakeBtn.className = "w-full py-4 rounded-xl font-bold transition-all bg-red-900/50 text-red-500 border border-red-500";
+        return;
+    }
+
+    // 6. Tier Minimums
+    const minUsd = (currentTier === 'otc') ? 100 : 10;
+    if (usdVal < minUsd && usdVal > 0) {
+        stakeBtn.disabled = true;
+        stakeBtn.innerText = `MINIMUM $${minUsd}`;
+        stakeBtn.className = "w-full py-4 rounded-xl font-bold transition-all bg-slate-800 text-slate-500";
+        return;
+    }
+
+    // 7. Ready to Stake
+    if (usdVal >= minUsd) {
+        stakeBtn.disabled = false;
+        stakeBtn.innerText = "CONFIRM STAKE";
+        stakeBtn.className = "w-full py-4 rounded-xl font-bold transition-all bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20";
+    } else {
+        stakeBtn.disabled = true;
+        stakeBtn.innerText = "ENTER AMOUNT";
+        stakeBtn.className = "w-full py-4 rounded-xl font-bold transition-all bg-slate-800 text-slate-500";
+    }
+}
 
     async function fetchPrice() {
         try {
@@ -608,16 +1104,31 @@
     }
 
     function resetDashboard() {
-        document.getElementById('stakeBtn').innerText = "Connect Wallet";
-        document.getElementById('stakeBtn').classList.remove('bg-blue-600', 'text-white');
-        document.getElementById('stakeBtn').classList.add('bg-[#1e293b]', 'text-gray-400');
-        
-        document.getElementById('dashboardBalance').innerText = "0.00 AQUAM";
-        activeStake = { stakedAmount:0, daysLeft:90, pendingReward:0, totalExpected:0, totalWithdrawn:0, hasActiveStake: false };
-    }
+    // Clear Labels
+    if(document.getElementById('dashboardBalance')) document.getElementById('dashboardBalance').innerText = "0.00 AQUAM";
+    if(document.getElementById('usdBalance')) document.getElementById('usdBalance').innerText = "0.00";
+    if(document.getElementById('pendingReward')) document.getElementById('pendingReward').innerHTML = '0.00 <span class="text-xs text-gray-500">AQUAM</span>';
+    
+    // Reset Progress Bar
+    if(document.getElementById('progressBar')) document.getElementById('progressBar').style.width = "0%";
+    
+    // Hide Maturity Button
+    if(document.getElementById('endStakeBtn')) document.getElementById('endStakeBtn').classList.add('hidden');
+
+    // Reset the internal state object
+    activeStake = { 
+        stakedAmount: 0, 
+        daysLeft: 0, 
+        pendingReward: 0, 
+        totalExpected: 0, 
+        totalWithdrawn: 0, 
+        hasActiveStake: false 
+    };
+}
 
     fetchPrice();
     setInterval(fetchPrice, 30000);
+    
 </script>
 </body>
 </html>
