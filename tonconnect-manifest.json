@@ -1,15 +1,7 @@
 {
-  "app_name": "AquaMeme",
-  "name": "AquaMeme",
-  "image": "https://aquameme.vercel.app/logo.png",
-  "about_url": "https://aquameme.vercel.app",
-  "universal_url": "https://aquameme.vercel.app",
-  "platforms": ["web", "android", "ios", "windows", "macos", "linux"],
-  "features": [
-    {
-      "name": "SendTransaction",
-      "maxMessages": 4,
-      "extraCurrencySupported": false
-    }
-  ]
+  "url": "https://aquameme.vercel.app/",
+  "name": "Aquameme",
+  "iconUrl": "https://aquameme.vercel.app/logo.png",
+  "termsOfUseUrl": "https://aquameme.vercel.app/terms-of-use.txt",
+  "privacyPolicyUrl": "https://aquameme.vercel.app/privacy-policy.txt"
 }
