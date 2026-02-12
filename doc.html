@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aquameme Pay | Developer Docs</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #ffffff; color: #1e293b; scroll-behavior: smooth; }
+        .sidebar { width: 260px; position: fixed; top: 0; bottom: 0; left: 0; border-right: 1px solid #e2e8f0; background: #f8fafc; overflow-y: auto; transform: translateX(-100%); transition: transform 0.3s ease; z-index: 50; }
+        .sidebar.open { transform: translateX(0); }
+        @media (min-width: 768px) { .sidebar { transform: translateX(0); } .content { margin-left: 260px; } }
+        .content { max-width: 900px; padding: 40px 24px; transition: margin-left 0.3s ease; }
+        .code-wrapper { position: relative; background: #f1f5f9; border-radius: 12px; margin: 20px 0; border: 1px solid #cbd5e1; overflow: hidden; }
+        pre { margin: 0 !important; padding: 20px !important; border-radius: 12px; background: transparent !important; font-size: 13px !important; }
+        .copy-btn { position: absolute; top: 12px; right: 12px; background: #ffffff; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: #475569; cursor: pointer; z-index: 10; transition: all 0.2s; shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .copy-btn:hover { background: #e2e8f0; color: #0f172a; }
+        .nav-link { display: block; padding: 10px 16px; font-size: 14px; color: #64748b; font-weight: 500; border-radius: 8px; margin-bottom: 4px; transition: 0.2s; }
+        .nav-link:hover { background: #e2e8f0; color: #0f172a; }
+        .nav-link.active { background: #eff6ff; color: #2563eb; }
+        .menu-btn { display: none; }
+        @media (max-width: 767px) { .menu-btn { display: block; position: fixed; bottom: 24px; right: 24px; z-index: 60; width: 56px; height: 56px; border-radius: 50%; background: #2563eb; color: white; border: none; box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4); font-size: 20px; cursor: pointer; } }
+    </style>
+</head>
+<body>
+
+    <button class="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+    <div id="overlay" class="fixed inset-0 bg-black/20 z-40 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+    <nav id="sidebar" class="sidebar p-6">
+        <div class="flex items-center gap-3 mb-10">
+            <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-200">A</div>
+            <span class="font-bold text-xl tracking-tight text-slate-800">Aquameme Pay</span>
+        </div>
+        
+        <div class="space-y-1">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 px-2">Documentation</p>
+            <a href="#intro" class="nav-link active"><i class="fa-solid fa-house mr-3 w-4"></i>Overview</a>
+            <a href="#setup" class="nav-link"><i class="fa-solid fa-code mr-3 w-4"></i>1. Installation</a>
+            <a href="#config" class="nav-link"><i class="fa-solid fa-gears mr-3 w-4"></i>2. Configuration</a>
+            <a href="#logic" class="nav-link"><i class="fa-solid fa-bolt mr-3 w-4"></i>3. Split Logic</a>
+            <a href="#full-code" class="nav-link bg-slate-900 !text-white mt-6 text-center shadow-lg"><i class="fa-solid fa-rocket mr-2"></i> Full Source Code</a>
+        </div>
+    </nav>
+
+    <main class="content mx-auto">
+        
+        <section id="intro" class="mb-16">
+            <h1 class="text-4xl font-black text-slate-900 mb-6 tracking-tight">Accept $AQUAM Payments</h1>
+            <p class="text-xl text-slate-600 leading-relaxed mb-8">
+                Build a secure payment gateway on the TON blockchain. This implementation allows you to process Jetton transfers while automatically collecting  payments from all over the world in real-time.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="p-6 bg-blue-50 border border-blue-100 rounded-2xl">
+                    <div class="text-blue-600 mb-3"><i class="fa-solid fa-shield-halved text-2xl"></i></div>
+                    <h3 class="font-bold text-slate-800 mb-1">Non-Custodial</h3>
+                    <p class="text-sm text-slate-500">Funds go directly from customer to you.</p>
+                </div>
+                <div class="p-6 bg-purple-50 border border-purple-100 rounded-2xl">
+                    <div class="text-purple-600 mb-3"><i class="fa-solid fa-coins text-2xl"></i></div>
+                    <h3 class="font-bold text-slate-800 mb-1">Automatic Fees</h3>
+                    <p class="text-sm text-slate-500">Once integrated, everything becomes automated, no need to worry</p>
+                </div>
+                <div class="p-6 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                    <div class="text-emerald-600 mb-3"><i class="fa-solid fa-bolt text-2xl"></i></div>
+                    <h3 class="font-bold text-slate-800 mb-1">High speed transfer</h3>
+                    <p class="text-sm text-slate-500">Quick speed to make instant transfers</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="setup" class="mb-16">
+            <h2 class="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-3">
+                <span class="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm">1</span>
+                Installation
+            </h2>
+            <p class="text-slate-600 mb-4">Include the TON SDKs in your HTML <code class="bg-slate-100 px-1.5 py-0.5 rounded text-red-500 font-mono text-sm">&lt;head&gt;</code>.</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-html">&lt;!-- TonWeb: For BOC construction --&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"&gt;&lt;/script&gt;
+&lt;!-- TonConnect: For wallet UI --&gt;
+&lt;script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"&gt;&lt;/script&gt;</code></pre>
+            </div>
+        </section>
+
+        <section id="config" class="mb-16">
+            <h2 class="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-3">
+                <span class="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm">2</span>
+                Configuration
+            </h2>
+            <p class="text-slate-600 mb-4">Define your merchant and fee addresses in the <code class="text-blue-600 font-mono">CONFIG</code> object.</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-javascript">const CONFIG = {
+    AQUAM_MASTER: "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1",
+    MERCHANT_ADDR: "RECEIVER_WALLET_HERE", // 99% of funds
+    GATEWAY_FEE_ADDR: "YOUR_WALLET_HERE",  // 1% of funds (Your Profit)
+    FEE_PERCENT: 0.01 
+};</code></pre>
+            </div>
+        </section>
+
+        <section id="logic" class="mb-16">
+            <h2 class="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-3">
+                <span class="bg-slate-900 text-white w-8 h-8 rounded-lg flex items-center justify-center text-sm">3</span>
+                The Split Transaction Logic
+            </h2>
+            <p class="text-slate-600 mb-4">This snippet demonstrates how to prepare two messages in a single transaction to split the payment.</p>
+            <div class="code-wrapper">
+                <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                <pre><code class="language-javascript">// Split total nano amount
+const feeNano = (totalNano * 1n) / 100n; // 1%
+const merchantNano = totalNano - feeNano;
+
+// Prepare 2 separate messages for the wallet
+const messages = [
+    { address: jettonWallet, amount: "100000000", payload: merchantPayload },
+    { address: jettonWallet, amount: "100000000", payload: feePayload }
+];</code></pre>
+            </div>
+        </section>
+
+        <section id="full-code" class="mb-24">
+            <div class="p-8 bg-slate-900 rounded-[2rem] shadow-2xl overflow-hidden relative">
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-black text-white mb-4">Full Integration Code</h2>
+                    <p class="text-slate-400 mb-8">Copy this entire file to create a working payment page with price fetching and split fees.</p>
+                    <div class="code-wrapper !bg-slate-800 !border-slate-700">
+                        <button class="copy-btn !bg-slate-700 !text-white !border-slate-600" onclick="copyCode(this)">Copy Source</button>
+                        <pre><code class="language-html">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Aquameme Checkout&lt;/title&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"&gt;&lt;/script&gt;
+    &lt;script src="https://cdn.tailwindcss.com"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body class="bg-gray-50 flex flex-col items-center justify-center min-h-screen p-4"&gt;
+
+    &lt;div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center"&gt;
+        &lt;h1 class="text-2xl font-bold mb-6"&gt;Checkout&lt;/h1&gt;
+        &lt;div id="ton-connect-btn" class="flex justify-center mb-6"&gt;&lt;/div&gt;
+
+        &lt;div class="mb-6 p-4 bg-blue-50 rounded-2xl"&gt;
+            &lt;p class="text-sm text-blue-600 mb-1"&gt;Amount to Pay&lt;/p&gt;
+            &lt;p class="text-3xl font-black text-blue-800"&gt;$10.00&lt;/p&gt;
+            &lt;p id="rate-display" class="text-[10px] text-blue-400 mt-2 font-mono uppercase"&gt;Fetching price...&lt;/p&gt;
+        &lt;/div&gt;
+
+        &lt;button onclick="payWithAquam(10)" class="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition shadow-lg shadow-blue-100"&gt;
+            Pay Now with $AQUAM
+        &lt;/button&gt;
+    &lt;/div&gt;
+
+    &lt;script&gt;
+        // --- CONFIGURATION ---
+        const CONFIG = {
+            AQUAM_MASTER: "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1",
+            MERCHANT_ADDR: "ENTER_MERCHANT_WALLET_HERE", // Where 99% goes
+            GATEWAY_FEE_ADDR: "ENTER_YOUR_WALLET_HERE",  // Where 1% goes (Your profit)
+            FEE_PERCENT: 0.01 
+        };
+
+        const tonUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: "https://raw.githubusercontent.com/Monpress1/Aquameme/main/tonconnect-manifest.json",
+            buttonRootId: "ton-connect-btn"
+        });
+
+        // LIVE PRICE FETCH
+        async function fetchRate() {
+            try {
+                const res = await fetch(`https://api.ston.fi/v1/assets/EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d`);
+                const data = await res.json();
+                const price = parseFloat(data.asset.dex_usd_price);
+                document.getElementById('rate-display').innerText = `1 AQUAM ≈ $${price.toFixed(8)}`;
+                return price;
+            } catch(e) { return 0; }
+        }
+        fetchRate();
+
+        // HELPER: CREATE JETTON TRANSFER PAYLOAD
+        async function createTransferCell(amountNano, toAddress, responseAddr) {
+            const cell = new TonWeb.boc.Cell();
+            cell.bits.writeUint(0xf8a7ea5, 32); // op transfer
+            cell.bits.writeUint(0, 64);        // query id
+            cell.bits.writeCoins(amountNano);  // amount in nano
+            cell.bits.writeAddress(new TonWeb.utils.Address(toAddress)); 
+            cell.bits.writeAddress(new TonWeb.utils.Address(responseAddr)); 
+            cell.bits.writeBit(0);             // no custom payload
+            cell.bits.writeCoins(TonWeb.utils.toNano("0.02")); // forward gas
+            cell.bits.writeBit(0);             // no forward payload
+            return TonWeb.utils.bytesToBase64(await cell.toBoc());
+        }
+
+        async function payWithAquam(usdAmount) {
+            if (!tonUI.account) return alert("Connect Wallet First");
+            
+            try {
+                const price = await fetchRate();
+                if (!price) return alert("Rate Error");
+
+                const totalNano = BigInt(Math.floor((usdAmount / price) * 1e9));
+                const feeNano = (totalNano * BigInt(CONFIG.FEE_PERCENT * 100)) / 100n;
+                const merchantNano = totalNano - feeNano;
+
+                const userAddr = tonUI.account.address;
+                const apiRes = await fetch(`https://tonapi.io/v2/accounts/${userAddr}/jettons`);
+                const apiData = await apiRes.json();
+                const jetton = apiData.balances.find(b => b.jetton.address.includes(CONFIG.AQUAM_MASTER));
+
+                if (!jetton) return alert("Insufficient $AQUAM balance.");
+
+                const merchantPayload = await createTransferCell(merchantNano, CONFIG.MERCHANT_ADDR, userAddr);
+                const feePayload = await createTransferCell(feeNano, CONFIG.GATEWAY_FEE_ADDR, userAddr);
+                const jWallet = new TonWeb.utils.Address(jetton.wallet_address.address).toString(true, true, true);
+
+                await tonUI.sendTransaction({
+                    validUntil: Math.floor(Date.now() / 1000) + 600,
+                    messages: [
+                        { address: jWallet, amount: "100000000", payload: merchantPayload },
+                        { address: jWallet, amount: "100000000", payload: feePayload }
+                    ]
+                });
+
+                alert("Payment Successful!");
+            } catch (e) {
+                console.error(e);
+                alert("Payment Failed: " + e.message);
+            }
+        }
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('hidden');
+        }
+        function copyCode(btn) {
+            const code = btn.nextElementSibling.innerText;
+            navigator.clipboard.writeText(code);
+            const original = btn.innerText;
+            btn.innerText = 'Copied!';
+            setTimeout(() => btn.innerText = original, 2000);
+        }
+    </script>
+</body>
+</html>
