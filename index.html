@@ -223,7 +223,6 @@
                 <p class="text-xl font-black text-white tracking-tight"><span id="monthlyAvg">0</span> <span class="text-xs">AQUAM</span></p>
             </div>
         </div>
-
         <div class="chart-container" id="chartWrapper">
             <canvas id="spendingCanvas"></canvas>
             <div id="chartTooltip" class="chart-tooltip">
@@ -240,6 +239,8 @@
         <button onclick="clearHistory()" class="text-xs text-red-500 font-bold uppercase tracking-wider">Clear</button>
     </div>
     <div id="historyList" class="space-y-3 pb-20"></div>
+    
+    
   </div>
 
   <div id="view-services" class="view-section py-4 space-y-4">
@@ -326,6 +327,7 @@
             </div>
         </div>
         
+        
         <button id="payBtn" onclick="pay()" class="w-full py-5 mt-6 bg-blue-600 rounded-2xl font-black opacity-50 pointer-events-none transition-all flex justify-center items-center gap-3 text-white shadow-xl shadow-blue-500/20">
         <i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>
         </button>
@@ -364,7 +366,20 @@
         <button onclick="closeCommunityModal()" class="text-sm font-bold opacity-50">Close</button>
     </div>
 </div>
+<center>
+<iframe width="330" height="500" frameBorder="0" scrolling="no" src="https://solsale.app/embed/?address=DRKZv1thmuVZVUaRx7wJU8FStMNwYQQRxHNqHxQb6dPc&bgColor=%2312181F&fgColor=%23161D27&hasAnimation=true&hasBanner=true&hasSocialLinks=true&network=999999&padding=30&refer=DCYoYL6Ji41E2rZGEhYQHTaY7YMSrPbNJhPcfYkagFUg&responsive=false&saleType=presale&theme=light&txtColor=%23FFFFFF" />
+    </iframe> <br>
+    <br>
 
+<a href="https://icoannouncement.io/">
+    
+    <img src="ico.jpg" width="90px"> 
+    icoannouncement.io/</a>
+
+<br><br>
+<a href="https://cryptodisplay.io">
+    <img src="crypto.jpg" width="90px"> 
+    cryptodisplay.io/</a>
 <script>
 // --- CONFIGURATION ---
 const SUPABASE_ENDPOINT = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/proxy-bills";
