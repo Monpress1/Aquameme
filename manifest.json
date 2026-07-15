@@ -2,23 +2,25 @@
   "id": "/",
   "name": "AquaMeme",
   "short_name": "AquaMeme",
-  "description": "AquaMeme",
-  "start_url": "/",
-  "scope": "/",
+  "description": "Aquameme",
+  "lang": "en",
+  "dir": "ltr",
   "display": "standalone",
-  "background_color": "#0b1220",
-  "theme_color": "#0b1220",
-  "orientation": "portrait",
+  "orientation": "any",
+  "scope": "/",
+  "start_url": "/index.html",
+  "background_color": "#000000",
+  "theme_color": "#322487",
   "icons": [
     {
       "src": "/splash.png",
-      "sizes": "512x512",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
       "src": "/splash.png",
-      "sizes": "192x192",
+      "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
     }
