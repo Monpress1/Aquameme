@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>AquaCoinX Terminal | L.E.G A.C.Y</title>
+<title>AquaCoinX| AQUAMEME</title>
 
 <script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
@@ -367,19 +367,12 @@
     </div>
 </div>
 <center>
-<iframe width="330" height="500" frameBorder="0" scrolling="no" src="https://solsale.app/embed/?address=DRKZv1thmuVZVUaRx7wJU8FStMNwYQQRxHNqHxQb6dPc&bgColor=%2312181F&fgColor=%23161D27&hasAnimation=true&hasBanner=true&hasSocialLinks=true&network=999999&padding=30&refer=DCYoYL6Ji41E2rZGEhYQHTaY7YMSrPbNJhPcfYkagFUg&responsive=false&saleType=presale&theme=light&txtColor=%23FFFFFF" />
-    </iframe> <br>
+
     <br>
 
-<a href="https://icoannouncement.io/">
-    
-    <img src="ico.jpg" width="90px"> 
-    icoannouncement.io/</a>
+
 
 <br><br>
-<a href="https://cryptodisplay.io">
-    <img src="crypto.jpg" width="90px"> 
-    cryptodisplay.io/</a>
 <script>
 // --- CONFIGURATION ---
 const SUPABASE_ENDPOINT = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/proxy-bills";
@@ -898,6 +891,145 @@ function closeModal() {
 window.onerror = function(message, source, lineno, colno, error) {
     console.log("Global Error: " + message);
 };
+
+
+
+function initAquaMemePWA() {
+    console.group("%c🌊 AquaMeme PWA", "color:#3b82f6;font-weight:bold");
+
+    const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone ||
+        document.referrer.includes("android-app://");
+
+    console.log("Initializing...");
+    console.log("Standalone:", isStandalone);
+    console.log("Online:", navigator.onLine);
+    console.log("User Agent:", navigator.userAgent);
+
+    // Splash Screen
+    if (isStandalone) {
+        console.log("Displaying splash screen...");
+
+        const splash = document.createElement("div");
+        splash.id = "custom-splash";
+        splash.style.cssText = `
+            position:fixed;
+            inset:0;
+            background:#0b111b;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            z-index:999999;
+            transition:.4s;
+        `;
+
+        splash.innerHTML = `
+            <img src="splash.png"
+                style="width:130px;height:130px;border-radius:50%;
+                box-shadow:0 0 30px rgba(59,130,246,.5);
+                animation:pulse 1s infinite alternate;">
+        `;
+
+        document.body.prepend(splash);
+
+        window.addEventListener("load", () => {
+            console.log("Page loaded.");
+
+            setTimeout(() => {
+                splash.style.opacity = "0";
+
+                setTimeout(() => {
+                    splash.remove();
+                    console.log("Splash removed.");
+                }, 400);
+
+            }, 1000);
+        });
+    }
+
+    // Service Worker
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", async () => {
+            console.group("%c📦 Service Worker", "color:#10b981");
+
+            try {
+                const reg = await navigator.serviceWorker.register("/sw.js");
+
+                console.log("✅ Registered");
+                console.log("Scope:", reg.scope);
+
+                if (reg.waiting)
+                    console.log("⚠️ Waiting Service Worker detected.");
+
+                reg.addEventListener("updatefound", () => {
+                    console.log("⬇️ New update found.");
+                });
+
+                navigator.serviceWorker.addEventListener("controllerchange", () => {
+                    console.log("🔄 Service Worker updated.");
+                });
+
+            } catch (err) {
+                console.error("❌ Registration failed");
+                console.error(err);
+            }
+
+            console.groupEnd();
+        });
+    } else {
+        console.warn("❌ Service Workers not supported.");
+    }
+
+    // Install Prompt
+    let deferredPrompt;
+
+    window.addEventListener("beforeinstallprompt", e => {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        console.group("%c📲 Install Prompt", "color:#f59e0b");
+        console.log("Install prompt available.");
+        console.groupEnd();
+
+        // Call your install UI here
+        // showGlassmorphismPrompt();
+
+        window.triggerPWAInstall = async () => {
+            if (!deferredPrompt) return;
+
+            console.log("Prompting installation...");
+
+            deferredPrompt.prompt();
+
+            const { outcome } = await deferredPrompt.userChoice;
+
+            if (outcome === "accepted")
+                console.log("🎉 User installed AquaMeme.");
+            else
+                console.log("❌ User dismissed installation.");
+
+            deferredPrompt = null;
+        };
+    });
+
+    window.addEventListener("appinstalled", () => {
+        console.log("🎉 AquaMeme installed successfully.");
+    });
+
+    window.addEventListener("online", () => {
+        console.log("🟢 Internet Connected");
+    });
+
+    window.addEventListener("offline", () => {
+        console.log("🔴 Internet Disconnected");
+    });
+
+    console.groupEnd();
+}
+
+initAquaMemePWA();
+
 
 </script>
 </body>
