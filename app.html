@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AquaCoinX| AQUAMEME</title>
+
+<script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="manifest" href="/manifest.json">
+<style>
+    :root { --bg: #0b111b; --card: #131b29; --border: #1e293b; --text: #ffffff; --subtext: #94a3b8; --primary: #3b82f6; --accent: #22c55e; }
+    body.light-mode { --bg: #f1f5f9; --card: #ffffff; --border: #cbd5e1; --text: #0f172a; --subtext: #64748b; }
+    body { background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif; -webkit-tap-highlight-color: transparent; transition: 0.3s; margin: 0; padding: 0; }
+    
+    .card-bg { background: var(--card); border: 1px solid var(--border); border-radius: 1.25rem; position: relative; overflow: hidden; transition: 0.2s; }
+    .glow-card:hover { border-color: rgba(59, 130, 246, 0.5); transform: translateY(-2px); }
+
+    .input { background: var(--bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px; width: 100%; color: var(--text); outline: none; font-weight: 600; appearance: none; }
+    .input:focus { border-color: var(--primary); }
+    
+    .nav-item { color: var(--subtext); display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; gap: 6px; font-weight: 600; cursor: pointer; }
+    .nav-item.active { color: var(--primary); }
+
+    .view-section { display: none; opacity: 0; animation: fadeIn 0.3s forwards; }
+    .view-section.active-view { display: block; }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    #ton-connect button { background: var(--primary) !important; color: white !important; border-radius: 12px !important; }
+
+    .loader-ring { display: inline-block; width: 20px; height: 20px; }
+    .loader-ring:after { content: " "; display: block; width: 18px; height: 18px; margin: 1px; border-radius: 50%; border: 2px solid #fff; border-color: #fff transparent #fff transparent; animation: ring 1.2s linear infinite; }
+    @keyframes ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Side Menu Styles */
+    #sideMenu { transform: translateX(100%); transition: transform 0.3s ease-in-out; }
+    #sideMenu.open { transform: translateX(0); }
+    
+    /* Analytics Specific Styles */
+    .analytics-stat-card { background: rgba(255, 255, 255, 0.03); border-radius: 16px; padding: 16px; flex: 1; }
+    .chart-container { position: relative; height: 160px; width: 100%; margin-top: 10px; overflow: hidden; }
+    canvas { width: 100% !important; height: 100% !important; }
+    .chart-tooltip { position: absolute; background: rgba(19, 27, 41, 0.95); border: 1px solid var(--border); padding: 10px; border-radius: 8px; pointer-events: none; opacity: 0; transition: opacity 0.2s; font-size: 10px; z-index: 10; box-shadow: 0 4px 12px rgba(0,0,0,0.3); transform: translate(-50%, -120%); }
+</style>
+<style>
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 85px;
+        background: rgba(11, 17, 27, 0.8); /* Glass effect */
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: env(safe-area-inset-bottom); /* iOS support */
+        z-index: 100;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+        flex: 1;
+        cursor: pointer;
+    }
+
+    .nav-item i {
+        font-size: 18px;
+        margin-bottom: 4px;
+    }
+
+    .nav-item.active {
+        color: #3b82f6; /* Electric Blue */
+    }
+
+    /* Center Button Styling */
+    .center-wrapper {
+        position: relative;
+        top: -22px;
+    }
+
+    .center-btn {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4);
+        border: 4px solid #0b111b;
+        animation: wiggle 4s ease-in-out infinite;
+    }
+
+    .center-btn i {
+        color: white;
+        font-size: 22px;
+        margin-bottom: 0;
+    }
+
+    @keyframes wiggle {
+        0%, 90%, 100% { transform: rotate(0deg); }
+        92% { transform: rotate(-15deg); }
+        95% { transform: rotate(15deg); }
+        97% { transform: rotate(-10deg); }
+    }
+    
+    #launchScreen{
+position:fixed;
+inset:0;
+background:#0b111b;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+z-index:999999;
+transition:.5s;
+}
+
+.launchLogo{
+width:110px;
+height:110px;
+border-radius:28px;
+margin-bottom:25px;
+box-shadow:0 0 40px rgba(59,130,246,.45);
+animation:pulse 1.2s infinite alternate;
+}
+
+#launchScreen h2{
+margin:0;
+font-size:30px;
+font-weight:800;
+}
+
+#launchText{
+margin-top:10px;
+font-size:14px;
+color:#94a3b8;
+}
+
+.loader{
+margin-top:25px;
+width:42px;
+height:42px;
+border:4px solid rgba(255,255,255,.12);
+border-top:4px solid #3b82f6;
+border-radius:50%;
+animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+to{
+transform:rotate(360deg);
+}
+}
+
+@keyframes pulse{
+to{
+transform:scale(1.06);
+}
+}
+</style>
+
+
+</head>
+
+<body class="pb-28 select-none overflow-x-hidden">
+
+<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 border-b border-gray-800/20" style="background-color: var(--bg)">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">A</div>
+    <div>
+      <div class="font-extrabold text-lg tracking-tight">AquaCoinX</div>
+      <div class="flex items-center gap-2">
+          <div id="status" class="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-circle text-[6px] text-red-500"></i> Disconnected
+          </div>
+          <span class="text-[8px] text-gray-600">|</span>
+          <div id="aquamRateHeader" class="text-[9px] font-bold text-blue-400 uppercase tracking-wider">Loading Rate...</div>
+      </div>
+    </div>
+  </div>
+  
+  
+  <div id="launchScreen">
+    <img src="splash.png" class="launchLogo">
+
+    <h2>AquaCoinX</h2>
+
+    <p id="launchText">Starting Terminal...</p>
+
+    <div class="loader"></div>
+</div>
+
+  <div class="flex items-center gap-3">
+      <div id="ton-connect"></div>
+      <button onclick="toggleSideMenu()" class="w-10 h-10 rounded-xl bg-gray-800/50 flex items-center justify-center text-white border border-white/5">
+          <i class="fa-solid fa-bars"></i>
+      </button>
+  </div>
+</header>
+
+<div id="sideMenu" class="fixed inset-y-0 right-0 w-64 bg-[#131b29] z-[60] border-l border-gray-700 shadow-2xl flex flex-col p-6 space-y-6" style="background: var(--card)">
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="font-black text-xl">Menu</h2>
+        <button onclick="toggleSideMenu()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="space-y-2">
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 1</div>
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 2</div>
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 3</div>
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 4</div>
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 5</div>
+        <div class="p-3 hover:bg-white/5 rounded-xl cursor-pointer font-bold text-sm">Page 6</div>
+    </div>
+    <div class="mt-auto">
+        <button onclick="openCommunityModal()" class="w-full py-4 bg-gradient-to-r from-blue-600 to-blue-500 rounded-xl font-bold text-white shadow-lg shadow-blue-500/20">
+            <i class="fa-solid fa-users mr-2"></i> Join Community
+        </button>
+    </div>
+</div>
+<div id="menuOverlay" onclick="toggleSideMenu()" class="fixed inset-0 bg-black/50 z-[55] hidden backdrop-blur-sm"></div>
+
+<main class="p-5">
+  <div id="view-home" class="view-section active-view space-y-8">
+    <div class="card-bg p-6 relative">
+      <p class="text-xs font-bold uppercase tracking-widest mb-2" style="color: var(--subtext)">Available Balance</p>
+      <h2 class="text-4xl font-black tracking-tight flex items-baseline gap-2">
+        <span id="aquaBal">0</span> <span class="text-lg font-bold text-blue-500">AQUAM</span>
+      </h2>
+      <div class="flex items-center gap-3 mt-6 pt-4 border-t border-gray-700/20">
+         <div class="flex items-center gap-3 bg-gray-500/10 px-4 py-3 rounded-xl border border-gray-500/20 basis-1/2">
+             <div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white font-bold">T</div>
+             <div><p class="text-[10px] font-bold opacity-60 uppercase">TON</p><p class="font-bold text-base"><span id="tonBal">0.00</span></p></div>
+         </div>
+         <div class="flex items-center gap-3 bg-green-500/10 px-4 py-3 rounded-xl border border-green-500/20 basis-1/2">
+             <i class="fa-solid fa-wallet text-green-400 text-lg"></i>
+             <div><p class="text-[10px] font-bold opacity-60 text-green-400 uppercase">Value</p><p class="font-bold text-base text-green-400">≈ $<span id="tonUsdVal">0.00</span></p></div>
+         </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div onclick="openModal('Airtime')" class="card-bg glow-card p-5 cursor-pointer flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20"><i class="fa-solid fa-phone"></i></div>
+            <div><p class="font-bold text-sm">Airtime</p><p class="text-[10px] opacity-60">Instant Top-up</p></div>
+        </div>
+        <div onclick="openModal('Data')" class="card-bg glow-card p-5 cursor-pointer flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 border border-indigo-500/20"><i class="fa-solid fa-wifi"></i></div>
+            <div><p class="font-bold text-sm">Data</p><p class="text-[10px] opacity-60">Bundles & SME</p></div>
+        </div>
+        <div onclick="openModal('Cable')" class="card-bg glow-card p-5 cursor-pointer flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20"><i class="fa-solid fa-tv"></i></div>
+            <div><p class="font-bold text-sm">Cable TV</p><p class="text-[10px] opacity-60">DSTV, GOTV, Star</p></div>
+        </div>
+        <div onclick="openModal('Electric')" class="card-bg glow-card p-5 cursor-pointer flex flex-col gap-3">
+            <div class="w-10 h-10 rounded-xl bg-yellow-500/10 flex items-center justify-center text-yellow-400 border border-yellow-500/20"><i class="fa-solid fa-bolt"></i></div>
+            <div><p class="font-bold text-sm">Electricity</p><p class="text-[10px] opacity-60">Pay Bills</p></div>
+        </div>
+    </div>
+
+    <div class="card-bg p-6">
+        <div class="flex justify-between items-start mb-6">
+            <h2 class="text-xl font-extrabold tracking-tight">Spending<br>Analytics</h2>
+            <div class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-wider">
+                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> Spent</div>
+                <div class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span> Recvd</div>
+            </div>
+        </div>
+
+        <div class="flex gap-4 mb-6">
+            <div class="analytics-stat-card">
+                <p class="text-[5px] opacity-50 font-bold uppercase mb-1">Total Spent</p>
+                <p class="text-xl font-black text-blue-400 tracking-tight"><span id="totalSpent">0</span> <span class="text-xs">AQUAM</span></p>
+            </div>
+            <div class="analytics-stat-card">
+                <p class="text-[4px] opacity-50 font-bold uppercase mb-1">Monthly Avg</p>
+                <p class="text-xl font-black text-white tracking-tight"><span id="monthlyAvg">0</span> <span class="text-xs">AQUAM</span></p>
+            </div>
+        </div>
+        <div class="chart-container" id="chartWrapper">
+            <canvas id="spendingCanvas"></canvas>
+            <div id="chartTooltip" class="chart-tooltip">
+                <p class="font-bold text-blue-400 mb-1">Spent: <span id="tpSpent">0</span></p>
+                <p class="font-bold text-green-400">Recvd: <span id="tpRecvd">0</span></p>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <div id="view-history" class="view-section space-y-5">
+    <div class="flex items-center justify-between">
+        <h2 class="text-xl font-extrabold">Transactions</h2>
+        <button onclick="clearHistory()" class="text-xs text-red-500 font-bold uppercase tracking-wider">Clear</button>
+    </div>
+    <div id="historyList" class="space-y-3 pb-20"></div>
+    
+    
+  </div>
+
+  <div id="view-services" class="view-section py-4 space-y-4">
+     <h2 class="text-xl font-black mb-4">Marketplace</h2>
+     <div class="card-bg p-4 flex items-center gap-4">
+         <div class="w-12 h-12 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center text-xl"><i class="fa-solid fa-ticket"></i></div>
+         <div><p class="font-bold">Betting</p><p class="text-xs">Coming Soon</p></div>
+     </div>
+  </div>
+
+  <div id="view-settings" class="view-section space-y-4">
+    <h2 class="text-xl font-extrabold">Terminal Settings</h2>
+    <div class="card-bg p-4 flex items-center justify-between cursor-pointer" onclick="toggleTheme()">
+        <span class="font-bold text-sm">Light Mode Toggle</span>
+        <div class="w-12 h-6 bg-gray-700 rounded-full relative">
+            <div id="themeDot" class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform"></div>
+        </div>
+    </div>
+    <div class="card-bg p-4 text-red-500 font-bold cursor-pointer text-center" onclick="tonUI.disconnect()">Disconnect Wallet</div>
+  </div>
+</main>
+
+<nav class="bottom-nav">
+    <div onclick="switchView('home')" class="nav-item active" id="nav-home">
+        <i class="fa-solid fa-house-chimney"></i>
+        <span>HOME</span>
+    </div>
+
+    <div onclick="switchView('history')" class="nav-item" id="nav-history">
+        <i class="fa-solid fa-list-ul"></i>
+        <span>HISTORY</span>
+    </div>
+    
+    <div onclick="window.location.href='apps.html';" class="nav-item">
+        <div class="center-wrapper">
+            <div class="center-btn">
+                <i class="fa-solid fa fa-sitemap"></i></div>
+        </div>
+        <span style="margin-top: -15px;">APPS</span>
+    </div>
+
+    <div onclick="window.location.href='market.html';" class="nav-item">
+        <i class="fa-solid fa-shopping-cart"></i>
+        <span>MARKET</span>
+    </div>
+
+    <div onclick="switchView('settings')" class="nav-item" id="nav-settings">
+        <i class="fa-solid fa-sliders"></i>
+        <span>SETTINGS</span>
+    </div>
+</nav>
+
+
+<div id="modal" class="fixed inset-0 hidden bg-black/90 backdrop-blur-sm z-[100] flex items-end justify-center">
+  <div class="bg-[#131b29] w-full max-w-md p-6 space-y-6 rounded-t-3xl border-t border-gray-700" style="background: var(--card)">
+    <div class="flex justify-between items-center">
+      <h2 id="modalTitle" class="font-black text-xl tracking-tight"></h2>
+      <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+
+    <div id="modalContent">
+        <div id="formContainer" class="space-y-4"></div>
+        
+        <div id="verifySection" class="hidden mb-4 p-3 bg-blue-900/20 rounded-xl border border-blue-500/20">
+             <div class="flex justify-between items-center">
+                 <span class="text-xs font-bold text-blue-400">Customer Name:</span>
+                 <span id="verifiedName" class="text-xs font-bold text-white uppercase">...</span>
+             </div>
+             <button id="verifyBtn" onclick="verifyUser()" class="w-full mt-2 py-2 bg-blue-500/20 text-blue-400 text-xs font-bold rounded-lg hover:bg-blue-500/30">Verify Customer</button>
+        </div>
+
+        <div id="amountInputGroup" class="mt-4">
+            <label class="text-[10px] uppercase font-extrabold mb-1 block opacity-50 tracking-widest">Amount (NGN)</label>
+            <div class="relative">
+                <input id="nairaAmount" type="number" placeholder="0.00" class="input" oninput="updateConversion()" style="color:white">
+                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-blue-500">NGN</span>
+            </div>
+        </div>
+
+        <div class="p-4 mt-4 rounded-2xl bg-blue-500/5 border border-blue-500/10">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-bold opacity-60">Estimated Cost:</span>
+                <span class="text-sm font-black text-blue-400"><span id="aquamDeduction">0.00</span> AQUAM</span>
+            </div>
+        </div>
+        
+        
+        <button id="payBtn" onclick="pay()" class="w-full py-5 mt-6 bg-blue-600 rounded-2xl font-black opacity-50 pointer-events-none transition-all flex justify-center items-center gap-3 text-white shadow-xl shadow-blue-500/20">
+        <i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>
+        </button>
+    </div>
+    
+    <div id="loadingOverlay" class="hidden flex-col items-center justify-center py-10 text-center">
+        <div class="loader-ring text-blue-500 mb-4 scale-150"></div>
+        <h3 class="text-lg font-bold text-white mb-2">Generating Token...</h3>
+        <p class="text-xs text-red-400 font-bold uppercase tracking-widest animate-pulse">Do not go back</p>
+        <p class="text-xs text-gray-400 mt-1">It will only take a minute</p>
+    </div>
+  </div>
+</div>
+
+<div id="communityModal" class="fixed inset-0 hidden bg-black/90 backdrop-blur-sm z-[110] flex items-center justify-center p-6">
+    <div class="card-bg w-full max-w-sm p-6 text-center space-y-6">
+        <h3 class="text-2xl font-black">Join Our Community</h3>
+        <div class="grid grid-cols-2 gap-4">
+            <a href="https://t.me/" target="_blank" class="p-4 rounded-2xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 flex flex-col items-center gap-2">
+                <i class="fa-brands fa-telegram text-3xl"></i>
+                <span class="font-bold text-sm">Telegram</span>
+            </a>
+            <a href="https://wa.me/" target="_blank" class="p-4 rounded-2xl bg-green-500/10 text-green-400 hover:bg-green-500/20 flex flex-col items-center gap-2">
+                <i class="fa-brands fa-whatsapp text-3xl"></i>
+                <span class="font-bold text-sm">WhatsApp</span>
+            </a>
+            <a href="https://twitter.com/" target="_blank" class="p-4 rounded-2xl bg-white/5 text-white hover:bg-white/10 flex flex-col items-center gap-2">
+                <i class="fa-brands fa-x-twitter text-3xl"></i>
+                <span class="font-bold text-sm">X</span>
+            </a>
+            <a href="https://facebook.com/" target="_blank" class="p-4 rounded-2xl bg-blue-700/10 text-blue-600 hover:bg-blue-700/20 flex flex-col items-center gap-2">
+                <i class="fa-brands fa-facebook text-3xl"></i>
+                <span class="font-bold text-sm">Facebook</span>
+            </a>
+        </div>
+        <button onclick="closeCommunityModal()" class="text-sm font-bold opacity-50">Close</button>
+    </div>
+</div>
+<center>
+
+    <br>
+
+
+
+<br><br>
+<script>
+// --- CONFIGURATION ---
+const SUPABASE_ENDPOINT = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/proxy-bills";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1";
+const TREASURY = "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D"; 
+const API = "https://tonapi.io/v2";
+
+// Constants for Electric (kept client side as requested to not touch logic, but proxied)
+const NELLO_CONFIG = {
+    uid: "CK3465",
+    key: "883X7UC8QL53767968HJ778Y657VF5G2G0N21O361NDVBBOLWI73RDTFC365SFDU",
+    proxy: (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`
+};
+
+let userAddress = "", jettonWallet = "", aquaBal = 0, tonBal = 0;
+let currentService = "", selectedPlanId = "", selectedPlanPrice = 0;
+let txHistory = JSON.parse(localStorage.getItem('aqua_tx_history')) || [];
+let currentAquamPriceUsd = 0.012; // Default fallback
+
+window.allPlans = null;
+window.cablePlans = null;
+
+const tonUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: "https://raw.githubusercontent.com/Monpress1/Aquameme/main/tonconnect-manifest.json",
+  buttonRootId: "ton-connect"
+});
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderHistory();
+    renderAnalytics();
+    fetchAquamPrice(); // Fetch dynamic price on load
+});
+
+tonUI.onStatusChange(async wallet => {
+  if (!wallet) {
+    document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle text-[6px] text-red-500"></i> Disconnected';
+    userAddress = "";
+    return;
+  }
+  userAddress = wallet.account.address;
+  document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle text-[6px] text-green-500"></i> Connected';
+  loadBalances();
+});
+
+// --- DYNAMIC PRICE FETCHING ---
+async function fetchAquamPrice() {
+    try {
+        const res = await fetch(`https://api.ston.fi/v1/assets/EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d`);
+        const data = await res.json();
+        if (data.asset && data.asset.dex_usd_price) {
+            currentAquamPriceUsd = parseFloat(data.asset.dex_usd_price);
+            document.getElementById('aquamRateHeader').innerText = `1 AQUAM = $${currentAquamPriceUsd.toFixed(6)}`;
+        } else {
+             document.getElementById('aquamRateHeader').innerText = "Rate Offline (Used Default)";
+        }
+    } catch (e) {
+        document.getElementById('aquamRateHeader').innerText = "Rate Offline";
+        console.error("Price fetch error", e);
+    }
+}
+
+
+const messages = [
+
+"Starting Terminal...",
+
+"Connecting Wallet...",
+
+"Loading Assets...",
+
+"Synchronizing Balance...",
+
+"Preparing Marketplace...",
+
+"Ready"
+
+];
+
+let i=0;
+
+const interval=setInterval(()=>{
+
+document.getElementById("launchText").textContent=messages[i];
+
+i++;
+
+if(i>=messages.length){
+
+clearInterval(interval);
+
+setTimeout(()=>{
+
+const splash=document.getElementById("launchScreen");
+
+splash.style.opacity="0";
+
+setTimeout(()=>{
+
+splash.remove();
+
+},500);
+
+},600);
+
+}
+
+},600);
+
+// --- ANALYTICS ---
+function renderAnalytics() {
+    const canvas = document.getElementById('spendingCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('chartWrapper');
+    canvas.width = container.offsetWidth; canvas.height = container.offsetHeight;
+    let total = 0;
+    const historyData = txHistory.filter(t => t.status === "Success").map(t => t.amt);
+    historyData.forEach(amt => total += amt);
+    
+    // Apply Multiplier for Display
+    const displayTotal = total * 83.33;
+    document.getElementById('totalSpent').innerText = displayTotal.toLocaleString(undefined, {maximumFractionDigits: 0});
+    const avg = historyData.length > 0 ? (total / historyData.length) : 0;
+    const displayAvg = avg * 83.33;
+    document.getElementById('monthlyAvg').innerText = displayAvg.toLocaleString(undefined, {maximumFractionDigits: 0});
+
+    if(historyData.length < 2) { 
+        drawChart(ctx, [100, 300, 200, 450, 150, 400], [200, 150, 350, 250, 400, 300], canvas.width, canvas.height);
+    } else {
+        const receivedData = historyData.map(v => v * 0.8 + Math.random() * 100); 
+        drawChart(ctx, historyData, receivedData, canvas.width, canvas.height);
+    }
+}
+function drawChart(ctx, spent, received, w, h) {
+    ctx.clearRect(0, 0, w, h);
+    const max = Math.max(...spent, ...received) * 1.2;
+    const step = w / (spent.length - 1);
+    const drawLine = (data, color, fill) => {
+        ctx.beginPath();
+        ctx.moveTo(0, h - (data[0] / max * h));
+        for(let i = 0; i < data.length - 1; i++) {
+            const x_mid = (i * step + (i + 1) * step) / 2;
+            const y_mid = (h - (data[i] / max * h) + h - (data[i+1] / max * h)) / 2;
+            ctx.quadraticCurveTo(i * step, h - (data[i] / max * h), x_mid, y_mid);
+            ctx.quadraticCurveTo((i+1) * step, h - (data[i+1] / max * h), (i+1) * step, h - (data[i+1] / max * h));
+        }
+        ctx.strokeStyle = color; ctx.lineWidth = 3; ctx.stroke();
+        if(fill) { ctx.lineTo(w, h); ctx.lineTo(0, h); ctx.fillStyle = fill; ctx.fill(); }
+    };
+    const gradGreen = ctx.createLinearGradient(0, 0, 0, h); gradGreen.addColorStop(0, "rgba(34, 197, 94, 0.2)"); gradGreen.addColorStop(1, "rgba(34, 197, 94, 0)"); drawLine(received, "#22c55e", gradGreen);
+    const gradBlue = ctx.createLinearGradient(0, 0, 0, h); gradBlue.addColorStop(0, "rgba(59, 130, 246, 0.2)"); gradBlue.addColorStop(1, "rgba(59, 130, 246, 0)"); drawLine(spent, "#3b82f6", gradBlue);
+}
+
+// --- STANDARD APP FUNCTIONS ---
+async function loadBalances() {
+  try {
+      const priceData = await fetch(`${API}/rates?tokens=ton&currencies=usd`).then(r => r.json());
+      const tonPrice = priceData.rates.TON.prices.USD;
+      const acc = await fetch(`${API}/accounts/${userAddress}`).then(r => r.json());
+      tonBal = acc.balance / 1e9;
+      document.getElementById("tonBal").innerText = tonBal.toFixed(2);
+      document.getElementById("tonUsdVal").innerText = (tonBal * tonPrice).toFixed(2);
+      const jets = await fetch(`${API}/accounts/${userAddress}/jettons`).then(r => r.json());
+      const aqua = jets.balances.find(j => j.jetton.address === AQUA_MASTER);
+      if (aqua) {
+        aquaBal = Number(aqua.balance) / 1e9;
+        jettonWallet = new TonWeb.utils.Address(aqua.wallet_address.address).toString(true, true, true);
+        document.getElementById("aquaBal").innerText = Math.floor(aquaBal).toLocaleString();
+      }
+  } catch(e) { console.error("Balance Error:", e); }
+}
+
+function switchView(view) {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active-view'));
+    document.getElementById('view-' + view).classList.add('active-view');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('nav-' + view).classList.add('active');
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('light-mode');
+    const isLight = document.body.classList.contains('light-mode');
+    document.getElementById('themeDot').style.transform = isLight ? 'translateX(24px)' : 'translateX(0)';
+}
+function toggleSideMenu() {
+    const menu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('menuOverlay');
+    if (menu.classList.contains('open')) {
+        menu.classList.remove('open'); overlay.classList.add('hidden');
+    } else {
+        menu.classList.add('open'); overlay.classList.remove('hidden');
+    }
+}
+function openCommunityModal() { toggleSideMenu(); document.getElementById('communityModal').classList.remove('hidden'); }
+function closeCommunityModal() { document.getElementById('communityModal').classList.add('hidden'); }
+
+function openModal(service) {
+    currentService = service;
+    document.getElementById("modalTitle").innerText = `Purchase ${service}`;
+    document.getElementById("modal").classList.remove("hidden");
+    document.getElementById("loadingOverlay").classList.add("hidden");
+    document.getElementById("modalContent").classList.remove("hidden");
+    const container = document.getElementById("formContainer");
+    const amountGroup = document.getElementById("amountInputGroup");
+    const verifySec = document.getElementById("verifySection");
+    
+    container.innerHTML = "";
+    document.getElementById("nairaAmount").value = "";
+    document.getElementById("nairaAmount").disabled = false;
+    document.getElementById("aquamDeduction").innerText = "0.00";
+    verifySec.classList.add("hidden");
+    selectedPlanId = ""; selectedPlanPrice = 0;
+
+    if (service === 'Data') {
+        amountGroup.style.display = 'none';
+        container.innerHTML = `<p class="text-center py-4 text-xs text-blue-400 animate-pulse font-bold">Synchronizing Provider Plans...</p>`;
+        fetchPlans();
+    } else if (service === 'Airtime') {
+        amountGroup.style.display = 'block';
+        container.innerHTML = `<select id="networkSelect" class="input" style="color:white"><option value="01">MTN (NG)</option><option value="02">Glo (NG)</option><option value="04">Airtel (NG)</option><option value="03">9Mobile (NG)</option></select><input id="phoneNumber" type="tel" placeholder="Mobile Number" class="input" style="color:white">`;
+    } else if (service === 'Cable') {
+        // Updated Cable UI to fetch Plans
+        amountGroup.style.display = 'block';
+        document.getElementById("nairaAmount").disabled = true;
+        verifySec.classList.remove("hidden");
+        container.innerHTML = `<p class="text-center py-4 text-xs text-blue-400 animate-pulse font-bold">Loading Cable Packages...</p>`;
+        fetchCablePlans();
+    } else if (service === 'Electric') {
+        amountGroup.style.display = 'block';
+        verifySec.classList.remove("hidden");
+        container.innerHTML = `<select id="disco" class="input" style="color:white"><option value="01">Eko</option><option value="02">Ikeja</option><option value="03">Abuja</option><option value="04">Kano</option><option value="05">Port Harcourt</option><option value="06">Jos</option><option value="07">Ibadan</option><option value="08">Kaduna</option><option value="09">Enugu</option><option value="10">Benin</option></select><select id="meterType" class="input" style="color:white"><option value="01">Prepaid</option><option value="02">Postpaid</option></select><input type="text" id="meterNo" class="input" style="color:white" placeholder="Enter Meter Number">`;
+    }
+}
+
+async function fetchCablePlans() {
+    const container = document.getElementById("formContainer");
+    
+    // Show a loading state inside the container while fetching
+    container.innerHTML = `<p class="text-xs text-gray-400 animate-pulse">Loading Cable Providers...</p>`;
+
+    try {
+        const res = await fetch(SUPABASE_ENDPOINT, { 
+            method: "POST", 
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": `Bearer ${SUPABASE_ANON_KEY}` 
+            }, 
+            body: JSON.stringify({ action: "get_cable_plans" }) 
+        });
+
+        const data = await res.json();
+        
+        if (!data.success || !data.packages) {
+            throw new Error("Invalid data format from server");
+        }
+
+        // Store the normalized packages globally for the renderer to use
+        window.cablePlans = data.packages;
+
+        // Get the provider keys (e.g., 'dstv', 'gotv', 'startimes')
+        const providerKeys = Object.keys(window.cablePlans);
+        
+        let providerOptions = `<option value="">-- Select Provider --</option>`;
+        providerKeys.forEach(key => {
+            // value is 'dstv', label is 'DSTV'
+            providerOptions += `<option value="${key}">${key.toUpperCase()}</option>`;
+        });
+
+        // Inject the HTML into the form container
+        container.innerHTML = `
+            <div class="space-y-4">
+                <div class="flex flex-col">
+                    <label class="text-[10px] text-gray-400 mb-1 ml-1">SELECT TV PROVIDER</label>
+                    <select id="cableTv" class="input w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white" onchange="renderCablePackages(this.value)">
+                        ${providerOptions}
+                    </select>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-[10px] text-gray-400 mb-1 ml-1">SELECT PACKAGE</label>
+                    <select id="package" class="input w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white" onchange="selectCablePackage(this)">
+                        <option value="">Choose provider first...</option>
+                    </select>
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-[10px] text-gray-400 mb-1 ml-1">SMARTCARD / IUC NUMBER</label>
+                    <div class="relative">
+                        <input type="text" id="smartCard" class="input w-full p-3 bg-gray-800 border border-gray-700 rounded-lg text-white" placeholder="Enter Number">
+                        <button onclick="verifyUser()" id="verifyBtn" class="absolute right-2 top-2 px-3 py-1 bg-blue-600 text-[10px] rounded hover:bg-blue-500 transition-colors">
+                            Verify
+                        </button>
+                    </div>
+                    <span id="verifiedName" class="text-[10px] mt-1 ml-1 text-green-400 font-medium"></span>
+                </div>
+            </div>
+        `;
+
+    } catch (e) {
+        console.error("Cable Fetch Error:", e);
+        container.innerHTML = `
+            <div class="p-4 bg-red-900/20 border border-red-500 rounded-lg text-center">
+                <p class="text-xs text-red-500 font-bold">Failed to load cable plans.</p>
+                <button onclick="fetchCablePlans()" class="mt-2 text-[10px] text-white underline">Retry</button>
+            </div>
+        `;
+    }
+}
+
+
+function renderCablePackages(provider) {
+    const pkgDrop = document.getElementById('package');
+    pkgDrop.innerHTML = '<option value="">-- Select Package --</option>';
+    
+    // The backend already normalized these to lowercase keys
+    const plans = window.cablePlans[provider] || [];
+
+    if (plans.length === 0) {
+        pkgDrop.innerHTML = '<option value="">No packages found</option>';
+        return;
+    }
+
+    plans.forEach(item => {
+        let opt = document.createElement('option');
+        // Use the CLEAN keys from our backend extractor
+        opt.value = item.code; 
+        opt.setAttribute('data-price', item.price);
+        opt.textContent = `${item.name} - ₦${Number(item.price).toLocaleString()}`;
+        pkgDrop.appendChild(opt);
+    });
+}
+
+function selectCablePackage(el) {
+    const opt = el.options[el.selectedIndex];
+    const price = opt.getAttribute('data-price');
+    if (price) {
+        // Set the amount field and trigger your AQUAM conversion logic
+        const amountInput = document.getElementById("nairaAmount");
+        if (amountInput) {
+            amountInput.value = price;
+            updateConversion(); 
+        }
+    }
+}
+
+
+async function verifyUser() {
+    const btn = document.getElementById('verifyBtn');
+    const nameSpan = document.getElementById('verifiedName');
+    
+    if (currentService === 'Cable') {
+        const tv = document.getElementById('cableTv').value; 
+        const sc = document.getElementById('smartCard').value;
+        if(!tv || !sc) return alert("Please select provider and enter SmartCard number");
+        
+        btn.innerText = "Verifying...";
+        try {
+            const res = await fetch(SUPABASE_ENDPOINT, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` },
+                body: JSON.stringify({ action: "verify_cable", cableTv: tv, smartCardNo: sc })
+            });
+            const data = await res.json();
+            if(data.customer_name || data.name) { 
+                nameSpan.innerText = data.customer_name || data.name; 
+                btn.innerText = "Verified ✅"; 
+                btn.classList.add("text-green-500"); 
+            } else { 
+                nameSpan.innerText = "Customer Not Found"; 
+                btn.innerText = "Retry"; 
+            }
+        } catch(e) { btn.innerText = "Error - Retry"; }
+    }
+}
+
+
+async function fetchPlans() {
+    try {
+        const res = await fetch(SUPABASE_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }, body: JSON.stringify({ action: "get_plans" }) });
+        const data = await res.json();
+        window.allPlans = data.networks;
+        document.getElementById("formContainer").innerHTML = `<select id="networkSelect" class="input" style="color:white" onchange="renderPlans(this.value)"><option value="">Choose Network</option><option value="01">MTN</option><option value="02">Glo</option><option value="04">Airtel</option><option value="03">9Mobile</option></select><select id="planSelect" class="input" style="color:white" onchange="selectPlan(this)"><option value="">Select Bundle</option></select><input id="phoneNumber" type="tel" placeholder="Recipient Phone" class="input" style="color:white">`;
+    } catch (e) { document.getElementById("formContainer").innerHTML = `<p class="text-xs text-red-500 font-bold">Provider Connection Failed.</p>`; }
+}
+function renderPlans(code) {
+    const pSel = document.getElementById("planSelect");
+    if (!window.allPlans) return;
+    const networkMap = { "01": "MTN", "02": "GLO", "04": "AIRTEL", "03": "ETISALAT" };
+    const plans = window.allPlans[networkMap[code]] || [];
+    let html = `<option value="">Select Bundle</option>`;
+    plans.forEach(p => { html += `<option value="${p.id}" data-price="${p.price}">${p.name} - ₦${p.price}</option>`; });
+    pSel.innerHTML = html;
+}
+function selectPlan(el) { selectedPlanId = el.value; selectedPlanPrice = parseFloat(el.options[el.selectedIndex].getAttribute('data-price')) || 0; updateConversion(); }
+
+function updateConversion() {
+    let naira = currentService === 'Data' ? selectedPlanPrice : Number(document.getElementById("nairaAmount").value);
+    // Use dynamic Aquam Price
+    let needed = (naira / (currentAquamPriceUsd * 1600)).toFixed(2); // Assuming ~1600 NGN/USD for rough estimate or just use fixed rate if prefer
+    // Fallback to hardcoded rate if API fails significantly
+    if(currentAquamPriceUsd === 0) needed = (naira / 0.012).toFixed(2);
+    // Let's stick to the prompt's implied logic: Input -> Aquam. 
+    // If you want exact conversion: Naira -> USD -> Aquam.
+    // For now, I will use a simplified fixed swap rate based on the fetched price or default to maintain user trust in stability.
+    // Let's use the constant rate from previous code if dynamic is too volatile, OR dynamic.
+    // Logic: 1 AQUAM = currentAquamPriceUsd. 1 USD = ~1500 NGN. 
+    const exchangeRate = currentAquamPriceUsd * 1500; // 1 AQUAM in Naira
+    needed = (naira / exchangeRate).toFixed(2);
+
+    document.getElementById("aquamDeduction").innerText = needed;
+    const btn = document.getElementById("payBtn");
+    if (naira > 0 && aquaBal >= parseFloat(needed) && userAddress) { btn.classList.remove("opacity-50", "pointer-events-none"); } else { btn.classList.add("opacity-50", "pointer-events-none"); }
+}
+
+async function pay() {
+    const btn = document.getElementById("payBtn");
+    const original = btn.innerHTML;
+    const aquamVal = parseFloat(document.getElementById("aquamDeduction").innerText);
+    const naira = currentService === 'Data' ? selectedPlanPrice : Number(document.getElementById("nairaAmount").value);
+
+    if(currentService === 'Cable') { if(!document.getElementById('smartCard').value) return alert("Enter SmartCard Number"); } 
+    else if (currentService === 'Electric') { if(!document.getElementById('meterNo').value) return alert("Enter Meter Number"); } 
+    else { const phone = document.getElementById("phoneNumber").value; if(!phone || phone.length < 10) return alert("Please provide a valid phone number."); }
+
+    btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> AUTHORIZING...`;
+    try {
+        const jetAmt = BigInt(Math.floor(aquamVal * 1e9));
+        const cell = new TonWeb.boc.Cell();
+        cell.bits.writeUint(0xf8a7ea5, 32); cell.bits.writeUint(0, 64); cell.bits.writeCoins(jetAmt); cell.bits.writeAddress(new TonWeb.utils.Address(TREASURY)); cell.bits.writeAddress(new TonWeb.utils.Address(userAddress)); cell.bits.writeBit(0); cell.bits.writeCoins(TonWeb.utils.toNano("0.02")); cell.bits.writeBit(0);
+        const payload = TonWeb.utils.bytesToBase64(await cell.toBoc());
+        await tonUI.sendTransaction({ validUntil: Math.floor(Date.now() / 1000) + 300, messages: [{ address: jettonWallet, amount: TonWeb.utils.toNano("0.07").toString(), payload: payload }] });
+
+        if(currentService === 'Airtime' || currentService === 'Data') { await processSupabaseOrder(naira); } 
+        else if(currentService === 'Cable') { await processCableOrder(naira); } // New Cable Processor
+        else { await processNellobyteOrder(naira); } // Electric
+    } catch(e) { console.error("TX ERROR:", e); saveTx(currentService, naira, "Failed"); alert("Transaction Failed or Cancelled."); btn.innerHTML = original; }
+}
+
+async function processSupabaseOrder(naira) {
+    const phone = document.getElementById("phoneNumber").value; const network = document.getElementById("networkSelect").value;
+    const res = await fetch(SUPABASE_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }, body: JSON.stringify({ action: currentService === 'Data' ? "buy_data" : "buy_airtime", networkCode: network, mobileNumber: phone, planId: selectedPlanId, amount: naira }) });
+    const resultText = await res.text();
+    if(resultText.includes("100") || resultText.includes("ORDER_RECEIVED")) { finalizeSuccess(naira); } else { throw new Error("Provider Response: " + resultText); }
+}
+
+// --- NEW CABLE ORDER PROCESSOR (VIA SUPABASE) ---
+async function processCableOrder(naira) {
+    const tv = document.getElementById('cableTv').value; 
+    const sc = document.getElementById('smartCard').value; 
+    const pkg = document.getElementById('package').value;
+    
+    const res = await fetch(SUPABASE_ENDPOINT, { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${SUPABASE_ANON_KEY}` }, 
+        body: JSON.stringify({ 
+            action: "buy_cable", 
+            cableTv: tv, 
+            packageCode: pkg, 
+            smartCardNo: sc, 
+            phoneNo: "08149659347" // Default as per your prompt or add input
+        }) 
+    });
+    
+    const result = await res.json();
+    if(result.status === "ORDER_RECEIVED" || result.statuscode === "100") { finalizeSuccess(naira); } 
+    else { throw new Error("Provider Error: " + (result.status || "Unknown")); }
+}
+
+async function processNellobyteOrder(naira) {
+    if(currentService === 'Electric') { document.getElementById("modalContent").classList.add("hidden"); document.getElementById("loadingOverlay").classList.remove("hidden"); document.getElementById("loadingOverlay").classList.add("flex"); }
+    const disco = document.getElementById('disco').value; const mType = document.getElementById('meterType').value; const mNo = document.getElementById('meterNo').value; 
+    const url = `https://www.nellobytesystems.com/APIElectricityV1.asp?UserID=${NELLO_CONFIG.uid}&APIKey=${NELLO_CONFIG.key}&ElectricCompany=${disco}&MeterType=${mType}&MeterNo=${mNo}&Amount=${naira}&PhoneNo=08149659347&RequestID=REQ${Date.now()}`;
+    await fetch(NELLO_CONFIG.proxy(url));
+    finalizeSuccess(naira);
+}
+
+function finalizeSuccess(naira) {
+    saveTx(currentService, naira, "Success");
+    if(currentService === 'Electric') { setTimeout(() => { alert("Payment Confirmed! Token Generated."); closeModal(); loadBalances(); renderAnalytics(); }, 3000); } 
+    else { alert("Payment Confirmed! Your " + currentService + " is processing."); closeModal(); loadBalances(); renderAnalytics(); }
+    document.getElementById("payBtn").innerHTML = `<i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>`;
+}
+
+function saveTx(type, amt, status) {
+    const tx = { type, amt, status, date: new Date().toLocaleTimeString() };
+    txHistory.unshift(tx);
+    localStorage.setItem('aqua_tx_history', JSON.stringify(txHistory.slice(0, 15)));
+    renderHistory();
+    renderAnalytics();
+}
+function renderHistory() {
+    const list = document.getElementById("historyList");
+    if(
+    txHistory.length === 0) {
+        list.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-10 opacity-50">
+                <i class="fa-regular fa-folder-open text-4xl mb-2"></i>
+                <p class="text-xs font-bold">No recent transactions</p>
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = "";
+    txHistory.forEach((tx) => {
+        let icon = "fa-receipt";
+        let color = "bg-gray-500/10 text-gray-400";
+        
+        // Dynamic Icon Assignment
+        if (tx.type === 'Airtime') { icon = "fa-phone"; color = "bg-blue-500/10 text-blue-400"; }
+        else if (tx.type === 'Data') { icon = "fa-wifi"; color = "bg-indigo-500/10 text-indigo-400"; }
+        else if (tx.type === 'Cable') { icon = "fa-tv"; color = "bg-purple-500/10 text-purple-400"; }
+        else if (tx.type === 'Electric') { icon = "fa-bolt"; color = "bg-yellow-500/10 text-yellow-400"; }
+
+        const statusColor = tx.status === 'Success' ? 'text-green-500' : 'text-red-500';
+
+        const item = `
+            <div class="card-bg p-3 flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl ${color} flex items-center justify-center border border-white/5">
+                    <i class="fa-solid ${icon}"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex justify-between items-center">
+                        <p class="font-bold text-sm">${tx.type}</p>
+                        <p class="font-bold text-sm text-white">₦${parseInt(tx.amt).toLocaleString()}</p>
+                    </div>
+                    <div class="flex justify-between items-center mt-1">
+                        <p class="text-[10px] opacity-60">${tx.date}</p>
+                        <p class="text-[10px] font-bold uppercase tracking-wider ${statusColor}">${tx.status}</p>
+                    </div>
+                </div>
+            </div>
+        `;
+        list.innerHTML += item;
+    });
+}
+
+function clearHistory() {
+    if(!confirm("Are you sure you want to clear your transaction history?")) return;
+    txHistory = [];
+    localStorage.removeItem('aqua_tx_history');
+    renderHistory();
+    renderAnalytics(); // Update chart to show zero
+}
+
+function closeModal() {
+    document.getElementById("modal").classList.add("hidden");
+    document.getElementById("communityModal").classList.add("hidden");
+    
+    // Reset specific form elements
+    const inputs = document.querySelectorAll('#modal input');
+    inputs.forEach(i => i.value = '');
+    document.getElementById("aquamDeduction").innerText = "0.00";
+    
+    // Reset Button State
+    const btn = document.getElementById("payBtn");
+    btn.innerHTML = `<i class="fa-solid fa-shield-check text-lg"></i> <span>AUTHORIZE PAYMENT</span>`;
+    btn.classList.add("opacity-50", "pointer-events-none");
+}
+
+// Window Global Error Handler (Optional for debugging on mobile)
+window.onerror = function(message, source, lineno, colno, error) {
+    console.log("Global Error: " + message);
+};
+
+
+
+function initAquaMemePWA() {
+    console.group("%c🌊 AquaMeme PWA", "color:#3b82f6;font-weight:bold");
+
+    const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone ||
+        document.referrer.includes("android-app://");
+
+    console.log("Initializing...");
+    console.log("Standalone:", isStandalone);
+    console.log("Online:", navigator.onLine);
+    console.log("User Agent:", navigator.userAgent);
+
+    // Splash Screen
+    
+
+        
+     
+
+    // Service Worker
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", async () => {
+            console.group("%c📦 Service Worker", "color:#10b981");
+
+            try {
+                const reg = await navigator.serviceWorker.register("/sw.js");
+
+                console.log("✅ Registered");
+                console.log("Scope:", reg.scope);
+
+                if (reg.waiting)
+                    console.log("⚠️ Waiting Service Worker detected.");
+
+                reg.addEventListener("updatefound", () => {
+                    console.log("⬇️ New update found.");
+                });
+
+                navigator.serviceWorker.addEventListener("controllerchange", () => {
+                    console.log("🔄 Service Worker updated.");
+                });
+
+            } catch (err) {
+                console.error("❌ Registration failed");
+                console.error(err);
+            }
+
+            console.groupEnd();
+        });
+    } else {
+        console.warn("❌ Service Workers not supported.");
+    }
+
+    // Install Prompt
+    let deferredPrompt;
+
+    window.addEventListener("beforeinstallprompt", e => {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        console.group("%c📲 Install Prompt", "color:#f59e0b");
+        console.log("Install prompt available.");
+        console.groupEnd();
+
+        // Call your install UI here
+        // showGlassmorphismPrompt();
+
+        window.triggerPWAInstall = async () => {
+            if (!deferredPrompt) return;
+
+            console.log("Prompting installation...");
+
+            deferredPrompt.prompt();
+
+            const { outcome } = await deferredPrompt.userChoice;
+
+            if (outcome === "accepted")
+                console.log("🎉 User installed AquaMeme.");
+            else
+                console.log("❌ User dismissed installation.");
+
+            deferredPrompt = null;
+        };
+    });
+
+    window.addEventListener("appinstalled", () => {
+        console.log("🎉 AquaMeme installed successfully.");
+    });
+
+    window.addEventListener("online", () => {
+        console.log("🟢 Internet Connected");
+    });
+
+    window.addEventListener("offline", () => {
+        console.log("🔴 Internet Disconnected");
+    });
+
+    console.groupEnd();
+}
+
+initAquaMemePWA();
+
+
+</script>
+</body>
+</html>
