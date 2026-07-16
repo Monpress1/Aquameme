@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download AquaCoinX - Everyday Crypto for Africa</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ffffff" id="theme-meta">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --card-bg: #f8fafc;
+            --card-border: #e2e8f0;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --btn-text: #ffffff;
+            --shadow: 0 10px 25px rgba(37, 99, 235, 0.15);
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #0b111b;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --card-bg: #131b29;
+            --card-border: #1f2937;
+            --accent: #3b82f6;
+            --accent-hover: #60a5fa;
+            --btn-text: #ffffff;
+            --shadow: 0 15px 40px rgba(59, 130, 246, 0.35);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        *, *::before, *::after {
+            box-sizing: inherit;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 5%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 1000;
+            border-bottom: 1px solid var(--card-border);
+            background-color: rgba(var(--bg-color), 0.8);
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-weight: 700;
+            font-size: 24px;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-logo img {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .theme-toggle {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 8px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: 120px;
+            position: relative;
+        }
+
+        .bubbles-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .bubble {
+            position: absolute;
+            bottom: -100px;
+            background: rgba(59, 130, 246, 0.15);
+            border-radius: 50%;
+            animation: float 12s infinite ease-in;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-120vh) scale(1.5); opacity: 0; }
+        }
+
+        .bubble:nth-child(1) { left: 10%; width: 40px; height: 40px; animation-duration: 10s; animation-delay: 0s; }
+        .bubble:nth-child(2) { left: 25%; width: 60px; height: 60px; animation-duration: 14s; animation-delay: 2s; }
+        .bubble:nth-child(3) { left: 45%; width: 30px; height: 30px; animation-duration: 9s; animation-delay: 4s; }
+        .bubble:nth-child(4) { left: 65%; width: 50px; height: 50px; animation-duration: 12s; animation-delay: 1s; }
+        .bubble:nth-child(5) { left: 85%; width: 70px; height: 70px; animation-duration: 15s; animation-delay: 3s; }
+
+        .download-box {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 28px;
+            padding: 40px 30px;
+            max-width: 580px;
+            width: 100%;
+            box-shadow: var(--shadow);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 30px auto;
+            position: relative;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loader-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 30px 0;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid var(--card-border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s infinite linear;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loader-text h3 {
+            font-size: 22px;
+            margin: 10px 0 5px 0;
+            color: var(--text-main);
+        }
+
+        .loader-text p {
+            color: var(--text-secondary);
+            font-size: 15px;
+            margin: 0;
+        }
+
+        .platform-icon {
+            font-size: 50px;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .platform-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-main);
+        }
+
+        .platform-desc {
+            color: var(--text-secondary);
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+            color: var(--btn-text);
+            border: none;
+            padding: 18px 40px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(37, 99, 235, 0.3);
+        }
+
+        .ios-steps {
+            text-align: left;
+            margin: 25px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            background: rgba(59, 130, 246, 0.05);
+            padding: 16px;
+            border-radius: 16px;
+            border: 1px solid var(--card-border);
+        }
+
+        .step-number {
+            background-color: var(--accent);
+            color: var(--btn-text);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .step-text {
+            color: var(--text-main);
+            font-size: 15px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .step-text strong {
+            color: var(--accent);
+        }
+
+        .step-text i {
+            margin: 0 3px;
+            font-size: 16px;
+        }
+
+        .toggle-platform-section {
+            margin-top: 35px;
+            padding-top: 25px;
+            border-top: 1px solid var(--card-border);
+        }
+
+        .toggle-platform-section p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toggle-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        footer {
+            padding: 50px 20px;
+            text-align: center;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--card-border);
+            background-color: var(--bg-color);
+            transition: background-color 0.4s ease;
+        }
+
+        .footer-logo {
+            width: 45px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .footer-text {
+            font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-logo">
+            <img src="slash.png" alt="AquaCoinX Logo" onerror="this.style.display='none'">
+            AquaCoinX
+        </div>
+        <button class="theme-toggle" id="themeBtn">
+            <i class="fa-solid fa-moon" id="themeIcon"></i> Toggle Theme
+        </button>
+    </nav>
+
+    <main class="container">
+        <section class="hero" style="min-height: calc(100vh - 120px);">
+            <div class="bubbles-container">
+                <div class="bubble"></div>
+                <div class="bubble"></div>
+                <div class="bubble"></div>
+                <div class="bubble"></div>
+                <div class="bubble"></div>
+            </div>
+
+            <div class="download-box" id="loader-box">
+                <div class="loader-content">
+                    <div class="spinner"></div>
+                    <div class="loader-text">
+                        <h3>Detecting Operating System...</h3>
+                        <p>Preparing the customized download for your device.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="download-box hidden" id="content-box">
+                <!-- Android Screen Layout -->
+                <div id="android-view" class="hidden">
+                    <div class="platform-icon">
+                        <i class="fa-brands fa-android"></i>
+                    </div>
+                    <h2 class="platform-title">Android Device Detected</h2>
+                    <p class="platform-desc">
+                        Get the application for Android instantly to enjoy direct utility, cross-border payments, and gasless trades.
+                    </p>
+                    <a href="https://ptllbgdixhesptlkqrqa.supabase.co/storage/v1/object/public/p2p/base.apk" class="btn-download">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> Download Android APK
+                    </a>
+                </div>
+
+                <!-- iOS Screen Layout -->
+                <div id="ios-view" class="hidden">
+                    <div class="platform-icon">
+                        <i class="fa-brands fa-apple"></i>
+                    </div>
+                    <h2 class="platform-title">iOS Device Detected</h2>
+                    <p class="platform-desc" style="margin-bottom: 15px;">
+                        Apple devices install the PWA directly using Safari browser! Follow these simple steps:
+                    </p>
+                    
+                    <div class="ios-steps">
+                        <div class="step-item">
+                            <span class="step-number">1</span>
+                            <p class="step-text">Open this site in iOS <strong>Safari</strong> browser.</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">2</span>
+                            <p class="step-text">Tap the <strong>Share</strong> button <i class="fa-solid fa-arrow-up-from-bracket" style="color: var(--accent);"></i> at the bottom (or top) of Safari.</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">3</span>
+                            <p class="step-text">Scroll down the share list and select <strong>"Add to Home Screen"</strong> <i class="fa-solid fa-square-plus" style="color: var(--accent);"></i>.</p>
+                        </div>
+                        <div class="step-item">
+                            <span class="step-number">4</span>
+                            <p class="step-text">Confirm the name <strong>"AquaCoinX"</strong> and tap <strong>"Add"</strong> in the top-right corner.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Desktop Fallback Option -->
+                <div id="fallback-view" class="hidden">
+                    <div class="platform-icon">
+                        <i class="fa-solid fa-laptop"></i>
+                    </div>
+                    <h2 class="platform-title">Get AquaCoinX Today</h2>
+                    <p class="platform-desc">
+                        Choose your platform below to set up your everyday financial companion.
+                    </p>
+                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-bottom: 20px;">
+                        <a href="https://ptllbgdixhesptlkqrqa.supabase.co/storage/v1/object/public/p2p/base.apk" class="btn-download" style="padding: 14px 25px; font-size: 16px;">
+                            <i class="fa-brands fa-android"></i> Android APK
+                        </a>
+                        <button onclick="switchView('ios')" class="btn-download" style="background: var(--text-main); color: var(--bg-color); padding: 14px 25px; font-size: 16px;">
+                            <i class="fa-brands fa-apple"></i> Install for iOS
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manual Swappers at bottom of Detected View -->
+                <div class="toggle-platform-section">
+                    <p id="toggle-header">Not using this operating system?</p>
+                    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                        <button onclick="switchView('android')" id="toggle-android-btn" class="toggle-btn">
+                            <i class="fa-brands fa-android"></i> Switch to Android Download
+                        </button>
+                        <button onclick="switchView('ios')" id="toggle-ios-btn" class="toggle-btn">
+                            <i class="fa-brands fa-apple"></i> Install for iOS
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <img src="slash.png" alt="AquaCoinX Logo" class="footer-logo" onerror="this.style.display='none'">
+        <p class="footer-text">© 2026 AquaCoinX.</p>
+        <p class="footer-text" style="margin-top: 8px; font-size: 13px; opacity: 0.7;">Developed by Monpress Web Solutions.</p>
+    </footer>
+
+    <script>
+        const themeBtn = document.getElementById('themeBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        const htmlElement = document.documentElement;
+        const themeMeta = document.getElementById('theme-meta');
+
+        const savedTheme = localStorage.getItem('aquacoinx-theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        updateMetaTheme(savedTheme);
+        updateIcon(savedTheme);
+
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('aquacoinx-theme', newTheme);
+            updateMetaTheme(newTheme);
+            updateIcon(newTheme);
+        });
+
+        function updateMetaTheme(theme) {
+            themeMeta.setAttribute('content', theme === 'dark' ? '#0b111b' : '#ffffff');
+        }
+
+        function updateIcon(theme) {
+            if(theme === 'dark') {
+                themeIcon.className = 'fa-solid fa-sun';
+            } else {
+                themeIcon.className = 'fa-solid fa-moon';
+            }
+        }
+
+        function getOS() {
+            const userAgent = window.navigator.userAgent || window.navigator.vendor || window.opera;
+            
+            if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                return 'ios';
+            }
+            if (navigator.maxTouchPoints && navigator.maxTouchPoints > 2 && /MacIntel/.test(navigator.platform)) {
+                return 'ios';
+            }
+            if (/android/i.test(userAgent)) {
+                return 'android';
+            }
+            
+            return 'fallback';
+        }
+
+        function switchView(platform) {
+            document.getElementById('android-view').classList.add('hidden');
+            document.getElementById('ios-view').classList.add('hidden');
+            document.getElementById('fallback-view').classList.add('hidden');
+            
+            const btnAndroid = document.getElementById('toggle-android-btn');
+            const btnIos = document.getElementById('toggle-ios-btn');
+            
+            if (platform === 'android') {
+                document.getElementById('android-view').classList.remove('hidden');
+                btnAndroid.classList.add('hidden');
+                btnIos.classList.remove('hidden');
+            } else if (platform === 'ios') {
+                document.getElementById('ios-view').classList.remove('hidden');
+                btnAndroid.classList.remove('hidden');
+                btnIos.classList.add('hidden');
+            } else {
+                document.getElementById('fallback-view').classList.remove('hidden');
+                btnAndroid.classList.remove('hidden');
+                btnIos.classList.remove('hidden');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const detectedPlatform = getOS();
+
+            setTimeout(() => {
+                const loader = document.getElementById('loader-box');
+                const contentBox = document.getElementById('content-box');
+
+                loader.classList.add('hidden');
+                contentBox.classList.remove('hidden');
+                contentBox.classList.add('fade-in');
+
+                switchView(detectedPlatform);
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

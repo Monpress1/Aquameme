@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>AquaCoinX | Aquarush Mining Game</title>
+
+<!-- External Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    :root { 
+        --bg: #0b111b; 
+        --card: #131b29; 
+        --border: #1e293b; 
+        --text: #ffffff; 
+        --subtext: #94a3b8; 
+        --primary: #3b82f6; 
+        --accent: #22c55e; 
+    }
+    body.light-mode { 
+        --bg: #f1f5f9; 
+        --card: #ffffff; 
+        --border: #cbd5e1; 
+        --text: #0f172a; 
+        --subtext: #64748b; 
+    }
+    body { 
+        background: var(--bg); 
+        color: var(--text); 
+        font-family: 'Manrope', sans-serif; 
+        -webkit-tap-highlight-color: transparent; 
+        transition: background 0.3s, color 0.3s; 
+        margin: 0; 
+        padding: 0; 
+    }
+    
+    .card-bg { 
+        background: var(--card); 
+        border: 1px solid var(--border); 
+        border-radius: 1.25rem; 
+        position: relative; 
+        overflow: hidden; 
+        transition: 0.2s; 
+    }
+    
+    .input { 
+        background: var(--bg); 
+        border: 1px solid var(--border); 
+        border-radius: 14px; 
+        padding: 16px; 
+        width: 100%; 
+        color: var(--text); 
+        outline: none; 
+        font-weight: 600; 
+        appearance: none; 
+    }
+    .input:focus { border-color: var(--primary); }
+    
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 85px;
+        background: rgba(11, 17, 27, 0.95);
+        backdrop-filter: blur(15px);
+        -webkit-backdrop-filter: blur(15px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding-bottom: env(safe-area-inset-bottom);
+        z-index: 100;
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        color: #94a3b8;
+        font-size: 10px;
+        font-weight: 800;
+        text-decoration: none;
+        transition: 0.3s;
+        flex: 1;
+        cursor: pointer;
+    }
+
+    .nav-item i { font-size: 18px; margin-bottom: 4px; }
+    .nav-item.active { color: #3b82f6; }
+
+    .view-section { display: none; opacity: 0; animation: fadeIn 0.3s forwards; }
+    .view-section.active-view { display: block; }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    .center-wrapper { position: relative; top: -22px; }
+    .center-btn {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4);
+        border: 4px solid #0b111b;
+        animation: wiggle 4s ease-in-out infinite;
+    }
+    @keyframes wiggle {
+        0%, 90%, 100% { transform: rotate(0deg); }
+        92% { transform: rotate(-15deg); }
+        95% { transform: rotate(15deg); }
+        97% { transform: rotate(-10deg); }
+    }
+
+    #ton-connect button { background: var(--primary) !important; color: white !important; border-radius: 12px !important; }
+
+    #gameCanvas {
+        background: radial-gradient(circle at center, #111a2e 0%, #05080f 100%);
+        border-radius: 20px;
+        box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+    }
+    body.light-mode #gameCanvas {
+        background: radial-gradient(circle at center, #cbd5e1 0%, #94a3b8 100%);
+        box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.1);
+    }
+
+    #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; pointer-events: none; width: 90%; max-width: 380px; display: flex; flex-direction: column; gap: 8px;}
+    .fancy-toast { animation: slideDownFadeIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards; }
+    @keyframes slideDownFadeIn { from { transform: translateY(-30px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+
+    .mascot-bounce { animation: mascotMove 3s ease-in-out infinite alternate; }
+    @keyframes mascotMove { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-6px) rotate(4deg); } }
+</style>
+</head>
+
+<body class="pb-28 select-none overflow-x-hidden">
+
+<div id="toast-container"></div>
+
+<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 border-b border-gray-800/20" style="background-color: var(--bg)">
+  <div class="flex items-center gap-3">
+    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/30">A</div>
+    <div>
+      <div class="font-extrabold text-lg tracking-tight">Aquarush</div>
+      <div class="flex items-center gap-2">
+          <div id="status" class="text-[10px] font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-circle text-[6px] text-red-500"></i> Disconnected
+          </div>
+      </div>
+    </div>
+  </div>
+  <div class="flex items-center gap-3">
+      <div id="ton-connect"></div>
+  </div>
+</header>
+
+<main class="p-5 max-w-md mx-auto">
+
+  <!-- GAME VIEW -->
+  <div id="view-game" class="view-section active-view space-y-6">
+    <div class="card-bg p-5 flex items-center justify-between">
+        <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-blue-500">Game Balance</p>
+            <h2 class="text-3xl font-black tracking-tight flex items-baseline gap-1 mt-1">
+                <span id="gameBal">0</span> <span class="text-xs font-bold text-gray-400">AQUAM</span>
+            </h2>
+        </div>
+        <div class="flex items-center gap-2 bg-blue-500/10 border border-blue-500/20 px-3 py-2 rounded-xl">
+            <!-- Increased Mascot Size -->
+            <img src="mascot1.png" class="w-24 h-24 object-contain bg-transparent border-none mascot-bounce" onerror="this.src='https://cdn-icons-png.flaticon.com/512/8454/8454316.png'">
+            <div class="text-left">
+                <p class="text-[8px] font-black uppercase text-blue-400">Aquam</p>
+                <p class="text-[10px] font-bold leading-tight" id="mascotSpeech">Tap fast!</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="relative w-full overflow-hidden" style="height: 400px;">
+        <canvas id="gameCanvas" class="w-full h-full block"></canvas>
+        <div id="playOverlay" class="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-center p-6 rounded-[20px] backdrop-blur-sm z-10">
+            <!-- Increased Mascot Size -->
+            <img src="mascot1.png" class="w-48 h-48 object-contain bg-transparent border-none mascot-bounce mb-4" onerror="this.src='https://cdn-icons-png.flaticon.com/512/8454/8454316.png'">
+            <h3 class="text-2xl font-black mb-2">Ready to Mine?</h3>
+            <p class="text-xs text-gray-400 max-w-xs mb-6">Drops are fast! Tap standard coins (+10), wild teals (+100), and gems (+200). <br><span class="text-red-400 mt-2 block"></span></p>
+            <button onclick="startGame()" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm rounded-2xl shadow-xl shadow-blue-500/20 transition-all transform active:scale-95">
+                START MINING RUSH
+            </button>
+        </div>
+    </div>
+  </div>
+
+
+  <!-- TASKS VIEW -->
+  <div id="view-tasks" class="view-section space-y-6">
+    <div class="card-bg p-5 flex items-center gap-4">
+        <!-- Increased Mascot Size -->
+        <img src="mascot2.png" class="w-28 h-28 object-contain bg-transparent border-none mascot-bounce" onerror="this.src='https://cdn-icons-png.flaticon.com/512/8454/8454316.png'">
+        <div>
+            <h3 class="font-extrabold text-lg leading-snug">Bounty Tasks</h3>
+            <p class="text-xs text-gray-400">Earn fast rewards with Mascot!</p>
+        </div>
+    </div>
+
+    <div class="space-y-3">
+        <!-- Milestone 1 -->
+        <div class="card-bg p-4 flex items-center justify-between border-l-4 border-l-yellow-500" id="task-milestone-7k">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-yellow-500/10 flex items-center justify-center text-yellow-500 border border-yellow-500/10">
+                    <i class="fa-solid fa-coins text-lg"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">Reach 7,000 Coins</p>
+                    <p class="text-[10px] text-green-500 font-extrabold">+1,000 AQUAM</p>
+                </div>
+            </div>
+            <button onclick="checkMilestoneTask('milestone_7k', 7000, 1000)" class="px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white font-bold text-xs rounded-xl shadow-md transition-all">Claim</button>
+        </div>
+
+        <!-- Milestone 2 -->
+        <div class="card-bg p-4 flex items-center justify-between border-l-4 border-l-orange-500" id="task-milestone-15k">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/10">
+                    <i class="fa-solid fa-gem text-lg"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">Reach 15,000 Coins</p>
+                    <p class="text-[10px] text-green-500 font-extrabold">+2,000 AQUAM</p>
+                </div>
+            </div>
+            <button onclick="checkMilestoneTask('milestone_15k', 15000, 2000)" class="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs rounded-xl shadow-md transition-all">Claim</button>
+        </div>
+
+        <!-- Social: Join Telegram -->
+        <div class="card-bg p-4 flex items-center justify-between" id="task-join-tg">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 border border-blue-500/10">
+                    <i class="fa-brands fa-telegram text-lg"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">Join Telegram Group</p>
+                    <p class="text-[10px] text-green-500 font-extrabold">+5,000 AQUAM</p>
+                </div>
+            </div>
+            <button onclick="performSocialTask('join_tg', 'https://t.me/your_telegram_group', 5000)" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all">Start</button>
+        </div>
+
+        <!-- Social: X -->
+        <div class="card-bg p-4 flex items-center justify-between" id="task-follow-x">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-sky-500/10 flex items-center justify-center text-sky-400 border border-sky-500/10">
+                    <i class="fa-brands fa-x-twitter text-lg"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">Follow Aquam on X</p>
+                    <p class="text-[10px] text-green-500 font-extrabold">+5,000 AQUAM</p>
+                </div>
+            </div>
+            <button onclick="performSocialTask('follow_x', 'https://x.com/aquacoinx', 5000)" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all">Start</button>
+        </div>
+
+        <!-- Social: Youtube -->
+        <div class="card-bg p-4 flex items-center justify-between" id="task-follow-yt">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/10">
+                    <i class="fa-brands fa-youtube text-lg"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-sm">Subscribe YouTube</p>
+                    <p class="text-[10px] text-green-500 font-extrabold">+5,000 AQUAM</p>
+                </div>
+            </div>
+            <button onclick="performSocialTask('follow_yt', 'https://youtube.com/@aquacoin_ton', 5000)" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs rounded-xl shadow-md transition-all">Start</button>
+        </div>
+    </div>
+  </div>
+
+
+  <!-- REFERRALS VIEW -->
+  <div id="view-referrals" class="view-section space-y-6">
+    <div class="card-bg p-5 flex flex-col items-center text-center">
+        <!-- Increased Mascot Size -->
+        <img src="mascot2.png" class="w-36 h-36 object-contain bg-transparent border-none mascot-bounce mb-3" onerror="this.src='https://cdn-icons-png.flaticon.com/512/8454/8454316.png'">
+        <h3 class="font-black text-xl">Grow Your Network!</h3>
+        <p class="text-xs text-gray-400 mt-1 max-w-xs">Each referral gets you <strong class="text-green-500">+4,000 AQUAM</strong>. Refer at least 3 players to unlock!</p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-4">
+        <div class="card-bg p-4 text-center">
+            <p class="text-[10px] text-gray-400 uppercase font-black tracking-wider">Referrals Met</p>
+            <p class="text-3xl font-black mt-1" id="referralCount">0 / 3</p>
+        </div>
+        <div class="card-bg p-4 text-center">
+            <p class="text-[10px] text-gray-400 uppercase font-black tracking-wider">Pending Coins</p>
+            <p class="text-3xl font-black text-yellow-500 mt-1" id="pendingRef">0</p>
+        </div>
+    </div>
+
+    <button id="btnClaimReferral" onclick="claimReferralEarnings()" class="w-full py-4 bg-gray-700 pointer-events-none opacity-50 rounded-2xl font-black text-sm text-white shadow-xl transition-all">
+        CLAIM TO MAIN BALANCE
+    </button>
+
+    <div class="card-bg p-5 space-y-4">
+        <div>
+            <label class="text-[10px] uppercase font-black tracking-widest text-gray-400">Your Shareable Code</label>
+            <div class="flex gap-2 mt-1">
+                <input id="myRefCode" type="text" readonly class="input py-3 text-center text-blue-400 tracking-widest font-black" value="AQUA-LUCKY">
+                <button onclick="copyReferralCode()" class="px-5 bg-blue-600 hover:bg-blue-500 rounded-xl text-white font-bold"><i class="fa-regular fa-copy"></i></button>
+            </div>
+        </div>
+
+        <div class="border-t border-gray-800/50 pt-4">
+            <label class="text-[10px] uppercase font-black tracking-widest text-gray-400">Register Referral Code</label>
+            <div class="flex gap-2 mt-1">
+                <input id="inputFriendCode" type="text" placeholder="Paste Code Here" class="input py-3 text-center uppercase tracking-wider font-bold">
+                <button onclick="applyFriendCode()" class="px-5 bg-green-600 hover:bg-green-500 rounded-xl text-white font-bold">Apply</button>
+            </div>
+        </div>
+    </div>
+  </div>
+
+
+  <!-- LEADERBOARD VIEW -->
+  <div id="view-leaderboard" class="view-section space-y-6">
+    <div class="card-bg p-5 flex items-center gap-4">
+        <div class="w-14 h-14 bg-gradient-to-tr from-yellow-500 to-amber-400 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-yellow-500/20">
+            <i class="fa-solid fa-crown"></i>
+        </div>
+        <div>
+            <h3 class="font-extrabold text-lg leading-snug">Elite Miners</h3>
+            <p class="text-xs text-gray-400">Real-time global ranking</p>
+            <p class="text-[10px] font-bold text-blue-400 mt-0.5">Total Players: <span id="totalPlayersCount">--</span></p>
+        </div>
+    </div>
+
+    <!-- Leaderboard dynamically filled from Supabase Database -->
+    <div class="card-bg divide-y divide-gray-800/40" id="leaderboardList"></div>
+
+    <div class="card-bg p-4 border-2 border-blue-500 bg-blue-500/5 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <span class="font-black text-blue-500 text-lg">#<span id="userRank">--</span></span>
+            <div class="text-left">
+                <p class="font-extrabold text-sm">My Rank (You)</p>
+                <p class="text-[10px] text-gray-400" id="userWalletTrimmed">Please connect wallet</p>
+            </div>
+        </div>
+        <p class="font-black text-sm text-blue-400"><span id="userRankScore">0</span> AQUAM</p>
+    </div>
+  </div>
+</main>
+
+<nav class="bottom-nav">
+    <div onclick="window.location.href='app.html'" class="nav-item">
+        <i class="fa-solid fa-house"></i>
+        <span>HOME</span>
+    </div>
+
+    <div onclick="switchView('game')" class="nav-item active" id="nav-game">
+        <i class="fa-solid fa-gamepad"></i>
+        <span>PLAY</span>
+    </div>
+    
+    <div onclick="switchView('tasks')" class="nav-item">
+        <div class="center-wrapper">
+            <div class="center-btn">
+                <i class="fa-solid fa-list-check text-white text-xl"></i>
+            </div>
+        </div>
+        <span style="margin-top: -15px;">TASKS</span>
+    </div>
+
+    <div onclick="switchView('referrals')" class="nav-item" id="nav-referrals">
+        <i class="fa-solid fa-user-group"></i>
+        <span>REFERRALS</span>
+    </div>
+
+    <div onclick="switchView('leaderboard')" class="nav-item" id="nav-leaderboard">
+        <i class="fa-solid fa-trophy"></i>
+        <span>RANKS</span>
+    </div>
+</nav>
+
+<script>
+// ==================== SUPABASE INITIALIZATION ====================
+// Changed "supabase" to "supabaseClient" to avoid collision with global Supabase library
+const SUPABASE_URL = 'https://ptllbgdixhesptlkqrqa.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// --- GLOBAL ENGINE ---
+let walletAddress = "";
+let gameBalance = 0;
+let pendingReferralBalance = 0;
+let referralCount = 0;
+let generatedCode = "AQUA-";
+let appliedCode = false;
+let verifiedTasks = [];
+let playSessionTimer;
+
+const LS_PREFIX = "aquarush_";
+let audioCtx = null;
+
+const tonUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: "https://raw.githubusercontent.com/Monpress1/Aquameme/main/tonconnect-manifest.json",
+  buttonRootId: "ton-connect"
+});
+
+tonUI.onStatusChange(async wallet => {
+  if (!wallet) {
+    document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle text-[6px] text-red-500"></i> Disconnected';
+    walletAddress = "";
+    loadLocalUserData();
+    return;
+  }
+  walletAddress = wallet.account.address;
+  document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle text-[6px] text-green-500"></i> Connected';
+  loadLocalUserData();
+  saveDataToSupabase(); // Sync connected user
+});
+
+function showMascotToast(title, message, type = "success", mascotSrc = "mascot1.png") {
+    const container = document.getElementById("toast-container");
+    const toast = document.createElement("div");
+    
+    let borderColor = 'border-l-blue-500';
+    if(type === 'success') borderColor = 'border-l-green-500';
+    if(type === 'error') borderColor = 'border-l-red-500';
+
+    toast.className = `fancy-toast card-bg p-3 shadow-2xl flex items-center gap-3 border-l-4 ${borderColor} bg-opacity-95 backdrop-blur-md`;
+    
+    // Increased Mascot Size in Toasts
+    toast.innerHTML = `
+        <img src="${mascotSrc}" class="w-16 h-16 object-contain bg-transparent border-none drop-shadow-md shrink-0 mascot-bounce" onerror="this.style.display='none'">
+        <div class="flex-1 text-left">
+            <h4 class="font-extrabold text-xs text-white uppercase tracking-wider">${title}</h4>
+            <p class="text-[10px] text-gray-300 mt-0.5 leading-relaxed">${message}</p>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-gray-500 hover:text-white transition-colors text-xs shrink-0 px-1"><i class="fa-solid fa-xmark"></i></button>
+    `;
+    
+    container.appendChild(toast);
+    setTimeout(() => { toast.remove(); }, 4000);
+}
+
+function playSynthSound(type) {
+    try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'tap') {
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'wild') {
+            osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1800, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+        } else if (type === 'claim') {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(520, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(659, audioCtx.currentTime + 0.1);
+            osc.frequency.setValueAtTime(784, audioCtx.currentTime + 0.2);
+            osc.frequency.setValueAtTime(1046, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.55);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.6);
+        }
+    } catch (err) {}
+}
+
+function loadLocalUserData() {
+    const key = walletAddress ? walletAddress : "anonymous";
+    gameBalance = parseInt(localStorage.getItem(LS_PREFIX + key + "_balance")) || 0;
+    pendingReferralBalance = parseInt(localStorage.getItem(LS_PREFIX + key + "_pending_ref")) || 0;
+    referralCount = parseInt(localStorage.getItem(LS_PREFIX + key + "_ref_count")) || 0;
+    
+    let storedCode = localStorage.getItem(LS_PREFIX + key + "_ref_code");
+    if (!storedCode) {
+        storedCode = "AQUA-" + Math.floor(100000 + Math.random() * 900000);
+        localStorage.setItem(LS_PREFIX + key + "_ref_code", storedCode);
+    }
+    generatedCode = storedCode;
+    appliedCode = localStorage.getItem(LS_PREFIX + key + "_applied_friend") === "true";
+    verifiedTasks = JSON.parse(localStorage.getItem(LS_PREFIX + key + "_tasks")) || [];
+
+    document.getElementById("gameBal").innerText = gameBalance.toLocaleString();
+    document.getElementById("referralCount").innerText = `${referralCount} / 3`;
+    document.getElementById("pendingRef").innerText = pendingReferralBalance.toLocaleString();
+    document.getElementById("myRefCode").value = generatedCode;
+    
+    updateReferralButton();
+    updateTaskButtons();
+    updateLeaderboard(); // fetch real ranking
+}
+
+function saveLocalUserData() {
+    const key = walletAddress ? walletAddress : "anonymous";
+    localStorage.setItem(LS_PREFIX + key + "_balance", gameBalance);
+    localStorage.setItem(LS_PREFIX + key + "_pending_ref", pendingReferralBalance);
+    localStorage.setItem(LS_PREFIX + key + "_ref_count", referralCount);
+    localStorage.setItem(LS_PREFIX + key + "_tasks", JSON.stringify(verifiedTasks));
+    document.getElementById("gameBal").innerText = gameBalance.toLocaleString();
+    
+    saveDataToSupabase(); // sync with Real Database
+}
+
+async function saveDataToSupabase() {
+    if(!walletAddress) return;
+    try {
+        await supabaseClient.from('game_users').upsert({
+            wallet_address: walletAddress,
+            game_balance: gameBalance,
+            pending_referral_balance: pendingReferralBalance,
+            referral_count: referralCount,
+            referral_code: generatedCode,
+            last_active_at: new Date().toISOString()
+        }, { onConflict: 'wallet_address' });
+    } catch (err) {
+        console.error("Database sync failed", err);
+    }
+}
+
+function updateReferralButton() {
+    const btn = document.getElementById("btnClaimReferral");
+    if (referralCount >= 3 && pendingReferralBalance > 0) {
+        btn.classList.remove("opacity-50", "pointer-events-none", "bg-gray-700");
+        btn.classList.add("bg-gradient-to-r", "from-green-500", "to-emerald-600", "hover:scale-95");
+    } else {
+        btn.classList.add("opacity-50", "pointer-events-none", "bg-gray-700");
+        btn.classList.remove("bg-gradient-to-r", "from-green-500", "to-emerald-600", "hover:scale-95");
+    }
+}
+
+function updateTaskButtons() {
+    const tasks = [
+        { id: "milestone_7k", prefix: "task-milestone-7k" },
+        { id: "milestone_15k", prefix: "task-milestone-15k" },
+        { id: "join_tg", prefix: "task-join-tg" },
+        { id: "follow_x", prefix: "task-follow-x" },
+        { id: "follow_yt", prefix: "task-follow-yt" }
+    ];
+    tasks.forEach(t => {
+        const el = document.getElementById(t.prefix);
+        if (el) {
+            const btn = el.querySelector("button");
+            if (verifiedTasks.includes(t.id)) {
+                btn.className = "px-4 py-2 bg-emerald-600/20 text-emerald-500 font-bold text-xs rounded-xl pointer-events-none";
+                btn.innerText = "Completed ✅";
+            }
+        }
+    });
+}
+
+function switchView(view) {
+    document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active-view'));
+    document.getElementById('view-' + view).classList.add('active-view');
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    
+    const activeNav = document.getElementById('nav-' + view);
+    if (activeNav) activeNav.classList.add('active');
+    
+    if(view === 'leaderboard') updateLeaderboard();
+}
+
+// ==================== AQUARUSH ENGINE ====================
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+let coins = [];
+let floatingTexts = [];
+let gameInterval;
+let isPlaying = false;
+let score = 0;
+
+function resizeCanvas() { canvas.width = canvas.parentElement.clientWidth; canvas.height = 400; }
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+class GameCoin {
+    constructor() {
+        this.radius = Math.random() * 8 + 16;
+        this.x = Math.random() * (canvas.width - this.radius * 2) + this.radius;
+        this.y = -this.radius;
+        
+        // Fast, but not TOO fast
+        this.speed = Math.random() * 1 + 1; 
+        this.spin = 0;
+        this.spinSpeed = Math.random() * 0.06 + 0.02;
+
+        const roll = Math.random();
+        // Blue is Rare (2%), Green is Scarce (8%)
+        if (roll < 0.02) {
+            this.type = "mega"; this.color = "#3b82f6"; this.innerColor = "#1e4ed8"; this.points = 200;
+        } else if (roll < 0.10) {
+            this.type = "wild"; this.color = "#10b981"; this.innerColor = "#059669"; this.points = 100;
+        } else {
+            this.type = "normal"; this.color = "#f59e0b"; this.innerColor = "#d97706"; this.points = 10;
+        }
+    }
+    update() { this.y += this.speed; this.spin += this.spinSpeed; }
+    draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.scale(Math.sin(this.spin), 1);
+        ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, this.radius * 0.7, 0, Math.PI * 2); ctx.fillStyle = this.innerColor; ctx.fill();
+        ctx.fillStyle = "#ffffff"; ctx.font = "bold 12px sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(this.type === 'mega' ? "💎" : "A", 0, 0);
+        ctx.restore();
+    }
+}
+
+class FloatingText {
+    constructor(x, y, text, color) { this.x = x; this.y = y; this.text = text; this.color = color; this.opacity = 1; this.speedY = -1.2; }
+    update() { this.y += this.speedY; this.opacity -= 0.03; }
+    draw() {
+        ctx.save(); ctx.globalAlpha = this.opacity; ctx.fillStyle = this.color; ctx.font = "black 14px sans-serif";
+        ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 4; ctx.fillText(this.text, this.x, this.y); ctx.restore();
+    }
+}
+
+// --- COOLDOWN SYSTEM ---
+let miningEndTime = 0; // When the session ends
+let cooldownEndTime = 0; // When the cooldown ends
+
+function getRemainingTime() {
+    const now = Date.now();
+    if (now < miningEndTime) return { type: 'mining', time: Math.ceil((miningEndTime - now) / 1000) };
+    if (now < cooldownEndTime) return { type: 'cooldown', time: Math.ceil((cooldownEndTime - now) / 1000) };
+    return { type: 'ready', time: 0 };
+}
+
+function startGame() {
+    const status = getRemainingTime();
+    if (status.type === 'cooldown') {
+        showMascotToast("Cooling Down!", `Please wait ${Math.floor(status.time / 60)}m ${status.time % 60}s to mine again.`, "error", "mascot1.png");
+        return;
+    }
+
+    // Start 10-minute session (3 * 60 * 1000)
+    miningEndTime = Date.now() + (3 * 60 * 1000);
+    cooldownEndTime = miningEndTime + (5 * 60 * 1000);
+
+    document.getElementById("playOverlay").classList.add("hidden");
+    coins = []; floatingTexts = []; isPlaying = true; score = 0;
+    playSynthSound('claim');
+
+    // Monitor for end of session
+    playSessionTimer = setInterval(() => {
+        if (Date.now() >= miningEndTime) {
+            stopGame();
+            showMascotToast("Time's Up!", "Mining session ended! 5m cooldown started.", "error", "mascot1.png");
+        }
+    }, 1700);
+
+    gameInterval = setInterval(() => {
+        if (Math.random() < 0.15) { 
+            let drops = Math.floor(Math.random() * 3) + 2;
+            for(let i=0; i<drops; i++) coins.push(new GameCoin());
+        }
+    }, 100);
+
+    gameLoop();
+}
+
+function stopGame() {
+    isPlaying = false;
+    clearInterval(gameInterval);
+    clearInterval(playSessionTimer);
+    document.getElementById("playOverlay").classList.remove("hidden");
+}
+
+function gameLoop() {
+    if (!isPlaying) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    for (let i = coins.length - 1; i >= 0; i--) {
+        const coin = coins[i];
+        coin.update(); coin.draw();
+        if (coin.y - coin.radius > canvas.height) coins.splice(i, 1);
+    }
+
+    for (let i = floatingTexts.length - 1; i >= 0; i--) {
+        const t = floatingTexts[i];
+        t.update(); t.draw();
+        if (t.opacity <= 0) floatingTexts.splice(i, 1);
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+canvas.addEventListener("pointerdown", (e) => {
+    if (!isPlaying) return;
+    const rect = canvas.getBoundingClientRect();
+    const touchX = e.clientX - rect.left; const touchY = e.clientY - rect.top;
+
+    for (let i = coins.length - 1; i >= 0; i--) {
+        const coin = coins[i];
+        const dist = Math.hypot(touchX - coin.x, touchY - coin.y);
+
+        if (dist < coin.radius + 15) { 
+            gameBalance += coin.points;
+            score += coin.points;
+            playSynthSound(coin.points > 10 ? 'wild' : 'tap');
+            
+            document.getElementById("gameBal").innerText = gameBalance.toLocaleString();
+            floatingTexts.push(new FloatingText(coin.x + 10, coin.y, `+${coin.points}`, coin.color));
+            
+            coins.splice(i, 1);
+            saveLocalUserData(); 
+            break;
+        }
+    }
+});
+
+// ==================== TASKS ====================
+function checkMilestoneTask(taskId, targetCoins, reward) {
+    if (verifiedTasks.includes(taskId)) return;
+    
+    if (gameBalance >= targetCoins) {
+        verifiedTasks.push(taskId);
+        gameBalance += reward;
+        saveLocalUserData();
+        updateTaskButtons();
+        playSynthSound('claim');
+        showMascotToast("Milestone Crushed!", `You reached ${targetCoins.toLocaleString()} coins. Here's +${reward.toLocaleString()}!`, "success", "mascot2.png");
+    } else {
+        showMascotToast("Keep Going!", `You only have ${gameBalance.toLocaleString()} coins. Need ${targetCoins.toLocaleString()}!`, "error", "mascot1.png");
+    }
+}
+
+function performSocialTask(taskId, targetUrl, reward) {
+    if (verifiedTasks.includes(taskId)) return;
+    window.open(targetUrl, '_blank');
+    
+    showMascotToast("Verifying Step", "Mascot checking details...", "info", "mascot1.png");
+    
+    setTimeout(() => {
+        verifiedTasks.push(taskId);
+        gameBalance += reward;
+        saveLocalUserData();
+        updateTaskButtons();
+        playSynthSound('claim');
+        showMascotToast("Task Verified!", `Earned +${reward.toLocaleString()} AQUAM!`, "success", "mascot2.png");
+    }, 4000);
+}
+
+// ==================== REFERRALS ====================
+function copyReferralCode() {
+    const code = document.getElementById("myRefCode");
+    code.select(); code.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(code.value);
+    showMascotToast("Code Copied", "Share it with friends!", "info", "mascot1.png");
+}
+
+function applyFriendCode() {
+    const friendCode = document.getElementById("inputFriendCode").value.trim().toUpperCase();
+    if (!friendCode) return;
+
+    if (friendCode === generatedCode) {
+        showMascotToast("Code Invalid", "You cannot use your own code.", "error", "mascot1.png");
+        return;
+    }
+
+    if (appliedCode) {
+        showMascotToast("Already Referred", "You can only be referred ONCE!", "error", "mascot1.png");
+        return;
+    }
+
+    appliedCode = true;
+    const key = walletAddress ? walletAddress : "anonymous";
+    localStorage.setItem(LS_PREFIX + key + "_applied_friend", "true");
+    
+    pendingReferralBalance += 4000;
+    referralCount += 1;
+    saveLocalUserData();
+    updateReferralButton();
+
+    document.getElementById("referralCount").innerText = `${referralCount} / 3`;
+    document.getElementById("pendingRef").innerText = pendingReferralBalance.toLocaleString();
+    document.getElementById("inputFriendCode").value = "";
+
+    playSynthSound('claim');
+    showMascotToast("Network Growing!", "Code registered successfully!", "success", "mascot2.png");
+}
+
+function claimReferralEarnings() {
+    if (referralCount < 3) {
+        showMascotToast("Locked", "Refer at least 3 players!", "error", "mascot1.png");
+        return;
+    }
+    const claimAmt = pendingReferralBalance;
+    gameBalance += claimAmt;
+    pendingReferralBalance = 0;
+    saveLocalUserData();
+    
+    document.getElementById("pendingRef").innerText = "0";
+    updateReferralButton();
+    playSynthSound('claim');
+    showMascotToast("Claimed!", `+${claimAmt.toLocaleString()} AQUAM added to main!`, "success", "mascot2.png");
+}
+
+// ==================== REAL LEADERBOARD (SUPABASE) ====================
+async function updateLeaderboard() {
+    const container = document.getElementById("leaderboardList");
+    if(!container) return;
+    
+    container.innerHTML = "<div class='p-6 text-center text-xs text-gray-400'><i class='fa-solid fa-spinner fa-spin text-blue-500 text-2xl mb-2'></i><br>Fetching Global Ranks...</div>";
+
+    try {
+        // 1. Get total number of players
+        const countData = await supabaseClient.from('game_users').select('*', { count: 'exact', head: true });
+        if(countData.count !== null) {
+            document.getElementById("totalPlayersCount").innerText = countData.count.toLocaleString();
+        }
+
+        // 2. Fetch Top 50 players by score
+        const { data: topPlayers, error } = await supabaseClient
+            .from('game_users')
+            .select('wallet_address, game_balance')
+            .order('game_balance', { ascending: false })
+            .limit(50);
+
+        if (error) throw error;
+
+        container.innerHTML = "";
+        const currentAddressTrim = walletAddress ? walletAddress.substring(0, 5) + "..." + walletAddress.substring(walletAddress.length - 4) : "YOU";
+        
+        let foundUserRank = false;
+
+        // Render Top 10 to UI dynamically
+        (topPlayers || []).slice(0, 10).forEach((player, index) => {
+            const pWallet = player.wallet_address || "Unknown";
+            const shortWallet = pWallet.substring(0, 5) + "..." + pWallet.substring(pWallet.length - 4);
+            const isUser = walletAddress && (pWallet === walletAddress);
+            
+            if(isUser) foundUserRank = true;
+
+            let trophy = `<span class="text-xs font-extrabold text-gray-500">#${index + 1}</span>`;
+            if (index === 0) trophy = "🥇";
+            if (index === 1) trophy = "🥈";
+            if (index === 2) trophy = "🥉";
+
+            const row = document.createElement("div");
+            row.className = `p-4 flex items-center justify-between ${isUser ? 'bg-blue-500/10 border-l-4 border-l-blue-500' : ''}`;
+            row.innerHTML = `
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center">${trophy}</div>
+                    <div>
+                        <p class="font-bold text-sm ${isUser ? 'text-blue-400' : 'text-white'}">${shortWallet}</p>
+                    </div>
+                </div>
+                <p class="font-extrabold text-sm">${(player.game_balance || 0).toLocaleString()} <span class="text-[10px] text-blue-500">AQUAM</span></p>
+            `;
+            container.appendChild(row);
+        });
+
+        // Update Bottom Sticky Personal Tag
+        if (walletAddress) {
+            const rankIndex = topPlayers.findIndex(e => e.wallet_address === walletAddress) + 1;
+            
+            if(rankIndex > 0) {
+                document.getElementById("userRank").innerText = rankIndex;
+            } else {
+                // If not in Top 50, fetch exact rank position (basic proxy: 50+)
+                document.getElementById("userRank").innerText = "50+";
+            }
+            
+            document.getElementById("userRankScore").innerText = gameBalance.toLocaleString();
+            document.getElementById("userWalletTrimmed").innerText = currentAddressTrim;
+        }
+
+    } catch (err) {
+        console.error("Leaderboard Error", err);
+        container.innerHTML = "<div class='p-4 text-center text-red-400 text-xs'>Failed to load network data. Check Supabase connection.</div>";
+    }
+}
+
+// Initial Boot Message
+document.addEventListener("DOMContentLoaded", () => {
+    loadLocalUserData();
+    setTimeout(() => {
+        showMascotToast("Welcome Miner!", "Tap fast to collect AQUAM before the daily limit hits!", "info", "mascot1.png");
+    }, 1000);
+});
+</script>
+</body>
+</html>

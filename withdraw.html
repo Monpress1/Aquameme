@@ -95,8 +95,11 @@
 
 <script>
 // CONFIG
-const SUPABASE_ENDPOINT = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/Pay";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+const SUPABASE_ENDPOINT = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/Pay
+";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c
+
+";
 const TREASURY_USD_VALUE = 10.0; 
 
 // STATE
@@ -204,7 +207,7 @@ async function processWithdrawal() {
             status.innerHTML = `<span class="text-green-400 font-bold">SENT! Check wallet in 10s.</span>`;
             btn.innerText = "PAYOUT SUCCESSFUL";
             btn.style.background = "#10b981";
-            setTimeout(() => window.location.href = 'index.html', 3000);
+            setTimeout(() => window.location.href = 'app.html', 3000);
         } else {
             throw new Error(result.error || "Transaction Failed");
         }
