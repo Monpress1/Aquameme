@@ -415,7 +415,10 @@ tonUI.onStatusChange(async wallet => {
   if (!wallet) {
     document.getElementById("status").innerHTML = '<i class="fa-solid fa-circle text-[6px] text-red-500"></i> Disconnected';
     walletAddress = "";
-    loadLocalUserData();
+   loadLocalUserData();
+await loadReferralStats();
+await updateLeaderboard();
+await saveDataToSupabase();
     return;
   }
   walletAddress = wallet.account.address;
@@ -518,32 +521,66 @@ function saveLocalUserData() {
 }
 
 async function saveDataToSupabase() {
-    if(!walletAddress) return;
-    try {
-        await supabaseClient.from('game_users').upsert({
+    if (!walletAddress) return;
+
+    const { error } = await supabaseClient
+        .from("game_users")
+        .upsert({
             wallet_address: walletAddress,
             game_balance: gameBalance,
             pending_referral_balance: pendingReferralBalance,
             referral_count: referralCount,
             referral_code: generatedCode,
             last_active_at: new Date().toISOString()
-        }, { onConflict: 'wallet_address' });
-    } catch (err) {
-        console.error("Database sync failed", err);
+        }, {
+            onConflict: "wallet_address"
+        });
+
+    if (error) {
+        console.error(error);
+        showMascotToast("Database Error", error.message, "error");
+    } else {
+        console.log("User saved");
     }
 }
 
 function updateReferralButton() {
+
     const btn = document.getElementById("btnClaimReferral");
-    if (referralCount >= 3 && pendingReferralBalance > 0) {
-        btn.classList.remove("opacity-50", "pointer-events-none", "bg-gray-700");
-        btn.classList.add("bg-gradient-to-r", "from-green-500", "to-emerald-600", "hover:scale-95");
+
+    if (pendingReferralBalance > 0) {
+
+        btn.disabled = false;
+
+        btn.classList.remove(
+            "opacity-50",
+            "pointer-events-none",
+            "bg-gray-700"
+        );
+
+        btn.classList.add(
+            "bg-gradient-to-r",
+            "from-green-500",
+            "to-emerald-600"
+        );
+
     } else {
-        btn.classList.add("opacity-50", "pointer-events-none", "bg-gray-700");
-        btn.classList.remove("bg-gradient-to-r", "from-green-500", "to-emerald-600", "hover:scale-95");
+
+        btn.disabled = true;
+
+        btn.classList.add(
+            "opacity-50",
+            "pointer-events-none",
+            "bg-gray-700"
+        );
+
+        btn.classList.remove(
+            "bg-gradient-to-r",
+            "from-green-500",
+            "to-emerald-600"
+        );
     }
 }
-
 function updateTaskButtons() {
     const tasks = [
         { id: "milestone_7k", prefix: "task-milestone-7k" },
@@ -765,51 +802,150 @@ function copyReferralCode() {
     showMascotToast("Code Copied", "Share it with friends!", "info", "mascot1.png");
 }
 
-function applyFriendCode() {
-    const friendCode = document.getElementById("inputFriendCode").value.trim().toUpperCase();
+async function applyFriendCode() {
+    if (!walletAddress) {
+        showMascotToast("Error", "Connect your wallet first.", "error");
+        return;
+    }
+
+    const friendCode = document
+        .getElementById("inputFriendCode")
+        .value
+        .trim()
+        .toUpperCase();
+
     if (!friendCode) return;
 
     if (friendCode === generatedCode) {
-        showMascotToast("Code Invalid", "You cannot use your own code.", "error", "mascot1.png");
+        showMascotToast("Error", "You cannot use your own referral code.", "error");
         return;
     }
 
-    if (appliedCode) {
-        showMascotToast("Already Referred", "You can only be referred ONCE!", "error", "mascot1.png");
+    // Find code owner
+    const { data: owner } = await supabaseClient
+        .from("game_users")
+        .select("wallet_address")
+        .eq("referral_code", friendCode)
+        .single();
+
+    if (!owner) {
+        showMascotToast("Error", "Invalid referral code.", "error");
         return;
     }
 
-    appliedCode = true;
-    const key = walletAddress ? walletAddress : "anonymous";
-    localStorage.setItem(LS_PREFIX + key + "_applied_friend", "true");
-    
-    pendingReferralBalance += 4000;
-    referralCount += 1;
-    saveLocalUserData();
-    updateReferralButton();
+    // Already referred?
+    const { data: alreadyUsed } = await supabaseClient
+        .from("referrals")
+        .select("id")
+        .eq("referred", walletAddress)
+        .maybeSingle();
 
-    document.getElementById("referralCount").innerText = `${referralCount} / 3`;
-    document.getElementById("pendingRef").innerText = pendingReferralBalance.toLocaleString();
-    document.getElementById("inputFriendCode").value = "";
+    if (alreadyUsed) {
+        showMascotToast("Error", "You have already used a referral.", "error");
+        return;
+    }
 
-    playSynthSound('claim');
-    showMascotToast("Network Growing!", "Code registered successfully!", "success", "mascot2.png");
+    // Prevent referring yourself
+    if (owner.wallet_address === walletAddress) {
+        showMascotToast("Error", "You cannot refer yourself.", "error");
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from("referrals")
+        .insert({
+            referrer: owner.wallet_address,
+            referred: walletAddress
+        });
+
+    if (error) {
+        showMascotToast("Error", error.message, "error");
+        return;
+    }
+
+    showMascotToast("Success", "Referral registered!", "success");
+
+    loadReferralStats();
 }
 
-function claimReferralEarnings() {
-    if (referralCount < 3) {
-        showMascotToast("Locked", "Refer at least 3 players!", "error", "mascot1.png");
+async function loadReferralStats() {
+
+    if (!walletAddress) return;
+
+    const { data, error } = await supabaseClient
+        .from("referrals")
+        .select("reward_claimed")
+        .eq("referrer", walletAddress);
+
+    if (error) return;
+
+    referralCount = data.length;
+
+    const unclaimed = data.filter(r => !r.reward_claimed).length;
+
+    const claimableGroups = Math.floor(unclaimed / 3);
+
+    pendingReferralBalance = claimableGroups * 12000;
+
+    document.getElementById("referralCount").innerText =
+        referralCount + " / " + ((Math.floor(referralCount / 3) + 1) * 3);
+
+    document.getElementById("pendingRef").innerText =
+        pendingReferralBalance.toLocaleString();
+
+    updateReferralButton();
+}
+
+
+async function claimReferralEarnings() {
+
+    const { data, error } = await supabaseClient
+        .from("referrals")
+        .select("id")
+        .eq("referrer", walletAddress)
+        .eq("reward_claimed", false)
+        .order("created_at");
+
+    if (error) return;
+
+    const claimableGroups = Math.floor(data.length / 3);
+
+    if (claimableGroups === 0) {
+        showMascotToast(
+            "Locked",
+            "Invite at least 3 friends.",
+            "error"
+        );
         return;
     }
-    const claimAmt = pendingReferralBalance;
-    gameBalance += claimAmt;
-    pendingReferralBalance = 0;
+
+    const reward = claimableGroups * 12000;
+
+    gameBalance += reward;
+
     saveLocalUserData();
-    
-    document.getElementById("pendingRef").innerText = "0";
-    updateReferralButton();
-    playSynthSound('claim');
-    showMascotToast("Claimed!", `+${claimAmt.toLocaleString()} AQUAM added to main!`, "success", "mascot2.png");
+
+    // Only claim exactly 3 × groups referrals
+    const ids = data
+        .slice(0, claimableGroups * 3)
+        .map(r => r.id);
+
+    await supabaseClient
+        .from("referrals")
+        .update({
+            reward_claimed: true
+        })
+        .in("id", ids);
+
+    playSynthSound("claim");
+
+    showMascotToast(
+        "Success",
+        "+" + reward.toLocaleString() + " AQUAM claimed!",
+        "success"
+    );
+
+    loadReferralStats();
 }
 
 // ==================== REAL LEADERBOARD (SUPABASE) ====================
@@ -888,12 +1024,37 @@ async function updateLeaderboard() {
     }
 }
 
-// Initial Boot Message
-document.addEventListener("DOMContentLoaded", () => {
+// ==================== APP INITIALIZATION ====================
+document.addEventListener("DOMContentLoaded", async () => {
+
+    // Load local data
     loadLocalUserData();
+
+    // If wallet already connected
+    const wallet = tonUI.wallet;
+
+    if (wallet) {
+        walletAddress = wallet.account.address;
+
+        document.getElementById("status").innerHTML =
+            '<i class="fa-solid fa-circle text-[6px] text-green-500"></i> Connected';
+
+        // Load referral information
+        await loadReferralStats();
+
+        // Load leaderboard
+        await updateLeaderboard();
+    }
+
     setTimeout(() => {
-        showMascotToast("Welcome Miner!", "Tap fast to collect AQUAM before the daily limit hits!", "info", "mascot1.png");
+        showMascotToast(
+            "Welcome Miner!",
+            "Tap fast to collect AQUAM before the daily limit hits!",
+            "info",
+            "mascot1.png"
+        );
     }, 1000);
+
 });
 </script>
 </body>
