@@ -1,279 +1,392 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AquaApps | AQUAM</title>
+    <!-- Tailwind CSS with Custom Config for Dark Mode -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#0b111b',
+                        darkcard: '#131b29',
+                        darkborder: '#1e293b',
+                    },
+                    fontFamily: {
+                        manrope: ['Manrope', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0b111b; --card: #131b29; --border: #1e293b; --text: #ffffff; --primary: #3b82f6; }
-        body { background: var(--bg); color: var(--text); font-family: 'Manrope', sans-serif; margin: 0; overflow-x: hidden; }
-        
-        .card-bg { background: var(--card); border: 1px solid var(--border); border-radius: 1.25rem; overflow: hidden; position: relative; }
+        body { 
+            font-family: 'Manrope', sans-serif; 
+            margin: 0; 
+            overflow-x: hidden; 
+            -webkit-tap-highlight-color: transparent;
+        }
         
         /* Dropdown Animation */
         .dropdown-menu { transform-origin: top right; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); transform: scale(0.95); opacity: 0; pointer-events: none; }
         .dropdown-menu.open { transform: scale(1); opacity: 1; pointer-events: auto; }
 
         /* Premium Slider */
-        .s2w-slider { position: relative; width: 100%; height: 220px; border-radius: 1.5rem; overflow: hidden; border: 1px solid rgba(59, 130, 246, 0.3); }
+        .s2w-slider { position: relative; width: 100%; height: 200px; border-radius: 1.5rem; overflow: hidden; }
         .slide-item { position: absolute; inset: 0; opacity: 0; transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.8s; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; }
         .slide-item.active { opacity: 1; transform: scale(1); }
-        .slide-overlay { background: linear-gradient(to top, rgba(11, 17, 27, 0.95), transparent); width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 25px; }
+        .slide-overlay { background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; padding: 25px; }
 
         /* Floating Bot & Modals */
-        .bot-trigger { position: fixed; bottom: 100px; right: 20px; z-index: 50; display: flex; align-items: center; gap: 10px; }
-        .chat-hint { background: var(--primary); padding: 8px 15px; border-radius: 12px 12px 0 12px; font-size: 11px; font-weight: 800; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); animation: float 3s infinite ease-in-out; }
+        .bot-trigger { position: fixed; bottom: 110px; right: 20px; z-index: 50; display: flex; align-items: center; gap: 10px; }
+        .chat-hint { padding: 8px 15px; border-radius: 12px 12px 0 12px; font-size: 11px; font-weight: 800; animation: float 3s infinite ease-in-out; }
         
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
         @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .animate-slide-up { animation: slideUp 0.3s ease-out forwards; }
         
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .glass { background: rgba(19, 27, 41, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); }
-
-        /* Activity Slider Styles */
-        .activity-slider { position: fixed; bottom: 15px; left: 15px; right: 15px; height: 65px; overflow: hidden; background: linear-gradient(180deg, #141c2e, #0e1524); border: 1px solid rgba(59,130,246,0.35); border-radius: 22px; z-index: 90; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        #activityTrack { display: flex; flex-direction: column; transition: transform 0.5s ease; }
-        .activity-item { height: 65px; display: flex; align-items: center; gap: 14px; padding: 0 15px; font-size: 11px; font-weight: 700; line-height: 1.3; width: 100%; }
-        .activity-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
         
-        /* Color Themes */
-        .t-blue { background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; }
-        .t-green { background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; }
-        .t-yellow { background: linear-gradient(135deg, #eab308, #ca8a04); color: #fff; }
-        .t-purple { background: linear-gradient(135deg, #9333ea, #7e22ce); color: #fff; }
+        /* App Button Touch Animation */
+        .app-btn:active { transform: scale(0.95); }
+        .app-btn { transition: transform 0.15s ease, background-color 0.2s ease; }
 
-        /* Menu Button Animation */
-        .menu-btn-anim { transition: all 0.2s; }
-        .menu-btn-anim:active { transform: scale(0.95); }
+        /* Bottom Nav shadow */
+        .nav-shadow { box-shadow: 0 -5px 30px rgba(0,0,0,0.05); }
+        .dark .nav-shadow { box-shadow: 0 -5px 30px rgba(0,0,0,0.4); }
     </style>
 </head>
-<body class="p-5 pb-32">
+<body class="bg-slate-50 text-slate-800 dark:bg-darkbg dark:text-white transition-colors duration-300 p-5 pb-32">
 
+    <!-- Header Section -->
     <header class="flex justify-between items-center mb-6 relative z-40">
         <div class="flex items-center gap-3">
-            <button onclick="location.href='app.html'" class="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center border border-gray-700 active:scale-90 transition">
-                <i class="fa-solid fa-arrow-left text-sm"></i>
+            <button onclick="location.href='app.html'" class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border border-slate-200 dark:border-gray-700 active:scale-90 transition shadow-sm">
+                <i class="fa-solid fa-arrow-left text-sm text-slate-600 dark:text-white"></i>
             </button>
-            <h1 class="font-extrabold text-xl tracking-tight">AQUA-APPS</h1>
+            <h1 class="font-extrabold text-xl tracking-tight text-blue-600 dark:text-white">AQUA-APPS</h1>
         </div>
         
-        <div class="relative">
-            <button onclick="toggleDropdown()" class="menu-btn-anim flex items-center gap-3 bg-gradient-to-r from-blue-900/40 to-blue-800/40 border border-blue-500/30 px-5 py-3 rounded-2xl shadow-lg shadow-blue-900/20">
-                <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Menu</span>
-                <div class="flex flex-col gap-[3px] items-end">
-                    <span class="w-5 h-[2px] bg-blue-400 rounded-full"></span>
-                    <span class="w-3 h-[2px] bg-blue-400 rounded-full"></span>
-                    <span class="w-5 h-[2px] bg-blue-400 rounded-full"></span>
-                </div>
+        <div class="flex items-center gap-3">
+            <!-- Theme Toggle -->
+            <button onclick="toggleTheme()" class="w-10 h-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center border border-slate-200 dark:border-gray-700 active:scale-90 transition shadow-sm">
+                <i id="themeIcon" class="fa-solid fa-moon text-slate-600 dark:text-yellow-400"></i>
             </button>
-            
-            <div id="appDropdown" class="dropdown-menu absolute right-0 top-16 w-56 glass rounded-2xl p-2 shadow-2xl z-50 border border-blue-500/20">
-                <a href="app.html" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition group">
-                    <div class="w-8 h-8 rounded-lg bg-gray-700/50 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition"><i class="fa-solid fa-home text-gray-400 group-hover:text-white"></i></div>
-                    <span class="text-sm font-bold">Home</span>
-                </a>
-                <a href="s2w.html" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition group">
-                    <div class="w-8 h-8 rounded-lg bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500 transition"><i class="fa-solid fa-dharmachakra text-pink-400 group-hover:text-white"></i></div>
-                    <span class="text-sm font-bold">Spin2Win</span>
-                </a>
-                <a href="dex.html" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition group">
-                    <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500 transition"><i class="fa-solid fa-arrow-right-arrow-left text-blue-400 group-hover:text-white"></i></div>
-                    <span class="text-sm font-bold">DEX Swap</span>
-                </a>
-                <a href="stake.html" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition group">
-                    <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center group-hover:bg-pink-500 transition"><i class=" fa fa-line-chart text-larvender-400 group-hover:text-white"></i></div>
-                    <span class="text-sm font-bold">Stake/invest</span>
-                </a>
-                <a href="market.html" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition group">
-                    <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center group-hover:bg-green-500 transition"><i class="fa-solid fa-shopping-cart text-green-400 group-hover:text-white"></i></div>
-                    <span class="text-sm font-bold">Marketplace</span>
-                </a>
-                <a href="app.html" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition group">
-                    <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center group-hover:bg-green-500 transition"><i class="fa-solid fa fa-wifi text-yellow-400 group-hover:text-white"></i></div>
-                    <span class="text-sm font-bold">VTU</span>
-                </a>
-                <a href="p2p.html" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition group">
-                    <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500 transition"><i class="fa-solid fa-paper-plane text-orange-400 group-hover:text-white"></i></div>
-                    <span class="text-sm font-bold">P2P Transfer</span>
-                </a>
-                   </a>
-                <a href="doc.html" class="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl transition group">
-                    <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500 transition"><i class="fa-solid fa-code text-blue-400 group-hover:text-white"></i></div>
-                    <span class="text-sm font-bold">Documentation</span>
-                </a>
+
+            <!-- Dropdown Menu -->
+            <div class="relative">
+                <button onclick="toggleDropdown()" class="app-btn flex items-center gap-2 bg-white dark:bg-blue-900/30 border border-slate-200 dark:border-blue-500/30 px-4 py-2.5 rounded-2xl shadow-sm dark:shadow-blue-900/20">
+                    <span class="text-xs font-bold text-slate-700 dark:text-blue-400 uppercase tracking-wider">Menu</span>
+                    <i class="fa-solid fa-bars text-slate-500 dark:text-blue-400"></i>
+                </button>
+                
+                <div id="appDropdown" class="dropdown-menu absolute right-0 top-14 w-56 bg-white/95 dark:bg-darkcard/95 backdrop-blur-md rounded-2xl p-2 shadow-xl z-50 border border-slate-200 dark:border-blue-500/20">
+                    <a href="app.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-gray-700/50 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition"><i class="fa-solid fa-home text-slate-400 group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">Home</span>
+                    </a>
+                    <a href="aquarush.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500 transition"><i class="fa-solid fa-gamepad text-purple-500 group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">Aquarush Game</span>
+                    </a>
+                    <a href="s2w.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500 transition"><i class="fa-solid fa-dharmachakra text-pink-500 group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">Spin2Win</span>
+                    </a>
+                    <a href="dex.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500 transition"><i class="fa-solid fa-arrow-right-arrow-left text-blue-500 group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">DEX Swap</span>
+                    </a>
+                    <a href="stake.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500 transition"><i class=" fa fa-line-chart text-indigo-500 group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">Stake/Invest</span>
+                    </a>
+                    <a href="market.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-green-100 dark:bg-green-500/10 flex items-center justify-center group-hover:bg-green-500 transition"><i class="fa-solid fa-shopping-cart text-green-500 group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">Marketplace</span>
+                    </a>
+                    <a href="p2p.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500 transition"><i class="fa-solid fa-paper-plane text-orange-500 group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">P2P Transfer</span>
+                    </a>
+                    <a href="doc.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center group-hover:bg-slate-800 dark:group-hover:bg-slate-600 transition"><i class="fa-solid fa-book text-slate-600 dark:text-white group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">Documentation</span>
+                    </a>
+                </div>
             </div>
         </div>
     </header>
 
-    <div onclick="location.href='s2w.html'" class="s2w-slider mb-8 cursor-pointer group shadow-2xl shadow-blue-900/20">
-        <div class="slide-item active" style="background-image: url('slide1.png');">
+    <!-- WhatsApp Vendor Button -->
+    <a href="https://wa.me/2348140775369?text=Hello%20I%20need%20to%20buy%20Aquam" target="_blank" class="app-btn w-full bg-gradient-to-r from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 rounded-2xl p-4 mb-6 flex items-center justify-between text-white shadow-lg shadow-green-500/30 border border-green-400/50">
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl backdrop-blur-sm">
+                <i class="fa-brands fa-whatsapp"></i>
+            </div>
+            <div>
+                <h3 class="font-extrabold text-sm sm:text-base">Quickly Buy AQUAM</h3>
+                <p class="text-[11px] font-semibold text-green-100 opacity-90">Via Trusted Official Vendor</p>
+            </div>
+        </div>
+        <i class="fa-solid fa-chevron-right bg-white/20 p-2 rounded-full text-xs"></i>
+    </a>
+
+    <!-- Slider -->
+    <div onclick="location.href='s2w.html'" class="s2w-slider mb-6 cursor-pointer group shadow-xl dark:shadow-blue-900/20 border border-slate-200 dark:border-blue-500/30">
+        <div class="slide-item active" style="background-image: url('img1.jpg');">
             <div class="slide-overlay">
-                <span class="text-blue-400 text-[10px] font-black uppercase tracking-widest bg-black/50 w-fit px-2 py-1 rounded mb-1">Featured</span>
+                <span class="text-blue-300 text-[10px] font-black uppercase tracking-widest bg-black/60 backdrop-blur-sm w-fit px-2 py-1 rounded mb-1">Featured</span>
                 <p class="text-2xl font-black text-white drop-shadow-md">Aqua Ecosystem</p>
             </div>
         </div>
-        <div class="slide-item" style="background-image: url('slide2.png');">
+        <div class="slide-item" style="background-image: url('img2.png');">
             <div class="slide-overlay">
-                <span class="text-purple-400 text-[10px] font-black uppercase tracking-widest bg-black/50 w-fit px-2 py-1 rounded mb-1">New</span>
+                <span class="text-purple-300 text-[10px] font-black uppercase tracking-widest bg-black/60 backdrop-blur-sm w-fit px-2 py-1 rounded mb-1">New</span>
                 <p class="text-2xl font-black text-white drop-shadow-md">Trade Faster</p>
+            </div>
+        </div>
+        <div class="slide-item" style="background-image: url('slide1.png');">
+            <div class="slide-overlay">
+                <span class="text-purple-300 text-[10px] font-black uppercase tracking-widest bg-black/60 backdrop-blur-sm w-fit px-2 py-1 rounded mb-1">New</span>
+                <p class="text-2xl font-black text-white drop-shadow-md">Quick play </p>
             </div>
         </div>
         <div class="slide-item" style="background-image: url('slide3.png');">
             <div class="slide-overlay">
-                <span class="text-green-400 text-[10px] font-black uppercase tracking-widest bg-black/50 w-fit px-2 py-1 rounded mb-1">Rewards</span>
+                <span class="text-green-300 text-[10px] font-black uppercase tracking-widest bg-black/60 backdrop-blur-sm w-fit px-2 py-1 rounded mb-1">Rewards</span>
                 <p class="text-2xl font-black text-white drop-shadow-md">Daily Bonus</p>
             </div>
         </div>
-        <div class="slide-item" style="background-image: url('https://img.freepik.com/free-vector/gradient-crypto-banner_23-2149136585.jpg');">
+        <div class="slide-item" style="background-image: url('img4.jpg');">
             <div class="slide-overlay">
-                <span class="text-blue-400 text-[10px] font-black uppercase tracking-widest bg-black/50 w-fit px-2 py-1 rounded mb-1">Event</span>
+                <span class="text-blue-300 text-[10px] font-black uppercase tracking-widest bg-black/60 backdrop-blur-sm w-fit px-2 py-1 rounded mb-1">Event</span>
                 <p class="text-2xl font-black text-white drop-shadow-md">Try Your Luck!</p>
             </div>
         </div>
-        <div class="slide-item" style="background-image: url('https://img.freepik.com/free-vector/gradient-blockchain-background_23-2149136582.jpg');">
+        <div class="slide-item" style="background-image: url('img5.png');">
             <div class="slide-overlay">
-                <span class="text-yellow-400 text-[10px] font-black uppercase tracking-widest bg-black/50 w-fit px-2 py-1 rounded mb-1">Win</span>
+                <span class="text-yellow-300 text-[10px] font-black uppercase tracking-widest bg-black/60 backdrop-blur-sm w-fit px-2 py-1 rounded mb-1">Win</span>
                 <p class="text-2xl font-black text-white drop-shadow-md">Win Free AQUAM</p>
             </div>
         </div>
     </div>
 
+    <!-- Main Grid -->
     <div class="grid grid-cols-2 gap-4 mb-8">
         
-        <div onclick="location.href='dex.html'" class="card-bg p-5 flex flex-col justify-between h-36 active:scale-95 transition cursor-pointer group">
-            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 border border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition">
+        <div onclick="location.href='dex.html'" class="app-btn bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder p-5 flex flex-col justify-between h-36 rounded-2xl shadow-sm cursor-pointer group">
+            <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-500 border border-blue-100 dark:border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition">
                 <i class="fa-solid fa-sync-alt"></i>
             </div>
             <div>
-                <p class="font-bold text-sm mb-1">DEX Swap</p>
-                <p class="text-[10px] opacity-60 leading-tight">Swap your coins with our platform</p>
+                <p class="font-bold text-sm mb-1 text-slate-800 dark:text-white">DEX Swap</p>
+                <p class="text-[10px] text-slate-500 dark:opacity-60 leading-tight">Swap coins smoothly</p>
             </div>
         </div>
 
-        <div onclick="location.href='market.html'" class="card-bg p-5 flex flex-col justify-between h-36 active:scale-95 transition cursor-pointer group">
-            <div class="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500 border border-purple-500/20 group-hover:bg-purple-500 group-hover:text-white transition">
+        <div onclick="location.href='market.html'" class="app-btn bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder p-5 flex flex-col justify-between h-36 rounded-2xl shadow-sm cursor-pointer group">
+            <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-purple-500 border border-purple-100 dark:border-purple-500/20 group-hover:bg-purple-500 group-hover:text-white transition">
                 <i class="fa-solid fa-store"></i>
             </div>
             <div>
-                <p class="font-bold text-sm mb-1">Marketplace</p>
-                <p class="text-[10px] opacity-60 leading-tight">Buy & Sell Items</p>
+                <p class="font-bold text-sm mb-1 text-slate-800 dark:text-white">Marketplace</p>
+                <p class="text-[10px] text-slate-500 dark:opacity-60 leading-tight">Buy & Sell Items</p>
             </div>
         </div>
 
-        <div onclick="openReferral()" class="card-bg p-5 flex flex-col justify-between h-36 active:scale-95 transition cursor-pointer group">
-            <div class="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center text-green-500 border border-green-500/20 group-hover:bg-green-500 group-hover:text-white transition">
-                <i class="fa-solid fa-users"></i>
+        <div onclick="openShare()" class="app-btn bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder p-5 flex flex-col justify-between h-36 rounded-2xl shadow-sm cursor-pointer group">
+            <div class="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-green-500 border border-green-100 dark:border-green-500/20 group-hover:bg-green-500 group-hover:text-white transition">
+                <i class="fa-solid fa-share-nodes"></i>
             </div>
             <div>
-                <p class="font-bold text-sm mb-1">Referral</p>
-                <p class="text-[10px] opacity-60 leading-tight">Invite 5 friends to unlock the Bot!</p>
+                <p class="font-bold text-sm mb-1 text-slate-800 dark:text-white">Share</p>
+                <p class="text-[10px] text-slate-500 dark:opacity-60 leading-tight">Share 5 times for bonus!</p>
             </div>
         </div>
 
-        <div onclick="location.href='p2p.html'" class="card-bg p-5 flex items-center justify-between active:scale-95 transition cursor-pointer">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/20">
+        <div onclick="location.href='p2p.html'" class="app-btn bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder p-5 flex items-center justify-between h-36 rounded-2xl shadow-sm cursor-pointer group">
+            <div class="flex flex-col h-full justify-between w-full">
+                <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-100 dark:border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition">
                     <i class="fa-solid fa-paper-plane"></i>
                 </div>
-                <div>
-                    <p class="font-bold text-sm">P2P Transfer</p>
-                    <p class="text-[10px] opacity-50">Instant Send</p>
+                <div class="flex justify-between items-end w-full">
+                    <div>
+                        <p class="font-bold text-sm text-slate-800 dark:text-white">Send P2P</p>
+                        <p class="text-[10px] text-slate-500 dark:opacity-50">Instant Transfer</p>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs opacity-30 group-hover:translate-x-1 transition"></i>
                 </div>
             </div>
-            <i class="fa-solid fa-chevron-right text-xs opacity-30"></i>
         </div>
     </div>
 
-    <div class="mb-24">
-        <h3 class="text-xs font-bold uppercase opacity-50 mb-3 tracking-wider">Community</h3>
+    <!-- Community Section -->
+    <div class="mb-20">
+        <h3 class="text-[11px] font-bold uppercase text-slate-500 dark:opacity-50 mb-3 tracking-wider ml-1">Community & Support</h3>
         <div class="grid grid-cols-4 gap-3">
-            <a href="http://t.me/aquacoinx" target="_blank" class="card-bg h-14 flex items-center justify-center text-blue-400 text-xl hover:bg-blue-900/20 transition"><i class="fa-brands fa-telegram"></i></a>
-            <a href="https://x.com/aquacoinx" target="_blank" class="card-bg h-14 flex items-center justify-center text-white text-xl hover:bg-gray-800 transition"><i class="fa-brands fa-x-twitter"></i></a>
-            <a href="https://youtube.com/@aquacoin_ton" target="_blank" class="card-bg h-14 flex items-center justify-center text-[#ff0000] text-xl hover:bg-red-900/20 transition"><i class="fa-brands fa-youtube"></i></a>
-            <a href="mailto:info.aquacoinofficial@gmail.com" class="card-bg h-14 flex items-center justify-center text-gray-300 text-xl hover:bg-gray-700 transition"><i class="fa-solid fa-envelope"></i></a>
+            <a href="http://t.me/aquacoinx" target="_blank" class="bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder h-14 rounded-2xl shadow-sm flex items-center justify-center text-blue-500 dark:text-blue-400 text-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition app-btn"><i class="fa-brands fa-telegram"></i></a>
+            <a href="https://x.com/aquacoinx" target="_blank" class="bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder h-14 rounded-2xl shadow-sm flex items-center justify-center text-slate-900 dark:text-white text-xl hover:bg-slate-50 dark:hover:bg-gray-800 transition app-btn"><i class="fa-brands fa-x-twitter"></i></a>
+            <a href="https://youtube.com/@aquacoin_ton" target="_blank" class="bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder h-14 rounded-2xl shadow-sm flex items-center justify-center text-red-500 text-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition app-btn"><i class="fa-brands fa-youtube"></i></a>
+            <a href="mailto:info.aquacoinofficial@gmail.com" class="bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder h-14 rounded-2xl shadow-sm flex items-center justify-center text-slate-500 dark:text-gray-300 text-xl hover:bg-slate-50 dark:hover:bg-gray-700 transition app-btn"><i class="fa-solid fa-envelope"></i></a>
         </div>
     </div>
 
-    
-    </div>
-
+    <!-- Floating Bot Trigger -->
     <div class="bot-trigger" onclick="openChat()">
-        <div class="chat-hint">Help?</div>
-        <div class="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-xl hover:scale-110 transition">
-            <i class="fa-solid fa-comment-dots text-xl"></i>
+        <div class="chat-hint bg-blue-100 text-blue-600 dark:bg-blue-600 dark:text-white shadow-lg shadow-blue-500/20 border border-blue-200 dark:border-none">Need Help?</div>
+        <div class="w-14 h-14 bg-gradient-to-tr from-blue-600 to-blue-400 rounded-full flex items-center justify-center text-white shadow-xl shadow-blue-500/40 hover:scale-110 transition cursor-pointer border-2 border-white dark:border-darkbg">
+            <i class="fa-solid fa-robot text-xl"></i>
         </div>
     </div>
 
-    <div id="chatModal" class="fixed inset-0 bg-[#0b111b] z-[100] hidden flex flex-col animate-slide-up">
-        <header class="p-5 border-b border-gray-800 flex justify-between items-center bg-[#131b29]">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-[10px] font-bold">AI</div>
-                <span class="font-bold text-sm">AQUAM Support</span>
-            </div>
-            <button onclick="closeChat()" class="w-8 h-8 flex items-center justify-center opacity-50"><i class="fa-solid fa-xmark text-lg"></i></button>
-        </header>
-        <div id="chatBox" class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar">
-            <div class="bg-gray-800/50 p-4 rounded-2xl rounded-tl-none border border-gray-700 text-sm leading-relaxed">
-                Hello! I am your AQUAM assistant. I can help with Vouchers, Swapping, and P2P. How can I help you today?
-            </div>
-        </div>
-        <div class="p-5 border-t border-gray-800 bg-[#131b29]">
-            <div class="flex gap-2 overflow-x-auto pb-4 no-scrollbar">
-                <button onclick="askBot('How do I use a voucher?')" class="whitespace-nowrap bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-2 rounded-full text-[10px] font-bold uppercase">Use Voucher</button>
-                <button onclick="askBot('How to buy AQUAM?')" class="whitespace-nowrap bg-blue-500/10 border border-blue-500/20 text-blue-400 px-4 py-2 rounded-full text-[10px] font-bold uppercase">How to buy?</button>
-            </div>
-            <div class="flex gap-3">
-                <input id="chatInput" type="text" placeholder="Type a message..." class="flex-1 bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500">
-                <button onclick="handleUserInput()" class="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg"><i class="fa-solid fa-paper-plane"></i></button>
-            </div>
-        </div>
-    </div>
-
-    <div id="referralModal" class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/80 hidden backdrop-blur-sm">
-        <div class="bg-[#131b29] w-full max-w-md p-6 rounded-t-3xl sm:rounded-3xl border-t sm:border border-blue-500/30 animate-slide-up relative">
-            <button onclick="closeReferral()" class="absolute top-4 right-4 opacity-50 p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
+    <!-- Custom App Bottom Navigation Bar -->
+    <nav class="fixed bottom-0 left-0 w-full bg-white dark:bg-darkcard border-t border-slate-200 dark:border-darkborder z-[90] rounded-t-3xl nav-shadow pb-safe pt-2">
+        <div class="flex justify-around items-center px-4 py-2 relative">
+            <!-- Home -->
+            <a href="app.html" class="flex flex-col items-center gap-1 w-16 text-blue-600 dark:text-blue-400 app-btn">
+                <i class="fa-solid fa-home text-xl"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wide">Home</span>
+            </a>
+            <!-- Swap -->
+            <a href="dex.html" class="flex flex-col items-center gap-1 w-16 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition app-btn">
+                <i class="fa-solid fa-right-left text-xl"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wide">Swap</span>
+            </a>
             
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border border-green-500/20">
-                    <i class="fa-solid fa-user-plus"></i>
+            <!-- Center App Button -->
+            <div class="relative -top-6">
+                <div class="w-16 h-16 rounded-full bg-gradient-to-b from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-lg shadow-blue-500/40 border-[5px] border-slate-50 dark:border-darkbg app-btn cursor-pointer">
+                    <i class="fa-solid fa-sitemap text-2xl"></i>
                 </div>
-                <h3 class="text-xl font-extrabold mb-1">Refer & Earn</h3>
-                <p class="text-xs opacity-60">Invite 5 friends using your unique link to unlock the exclusive Reward !</p>
+                <span class="absolute -bottom-5 left-1/2 transform -translate-x-1/2 text-[9px] font-bold uppercase tracking-wide text-blue-600 dark:text-blue-400">Apps</span>
+            </div>
+            
+            <!-- Game -->
+            <a href="aquarush.html" class="flex flex-col items-center gap-1 w-16 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition app-btn">
+                <i class="fa-solid fa-gamepad text-xl"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wide">Game</span>
+            </a>
+            <!-- Send -->
+            <a href="p2p.html" class="flex flex-col items-center gap-1 w-16 text-slate-400 dark:text-slate-500 hover:text-blue-500 dark:hover:text-blue-400 transition app-btn">
+                <i class="fa-solid fa-paper-plane text-xl"></i>
+                <span class="text-[9px] font-bold uppercase tracking-wide">Send</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- AI Chat Modal -->
+    <div id="chatModal" class="fixed inset-0 bg-black/60 dark:bg-[#0b111b]/90 z-[100] hidden flex-col animate-slide-up backdrop-blur-sm">
+        <div class="bg-white dark:bg-darkbg w-full h-full flex flex-col sm:max-w-md sm:mx-auto sm:h-[80%] sm:my-auto sm:rounded-3xl sm:border border-slate-200 dark:border-gray-800 shadow-2xl overflow-hidden">
+            <header class="p-4 border-b border-slate-100 dark:border-gray-800 flex justify-between items-center bg-slate-50 dark:bg-darkcard">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm shadow-md">AI</div>
+                    <div>
+                        <span class="font-bold text-sm block text-slate-800 dark:text-white">AQUAM Support</span>
+                        <span class="text-[10px] text-green-500 flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span> Online</span>
+                    </div>
+                </div>
+                <button onclick="closeChat()" class="w-8 h-8 bg-slate-200 dark:bg-gray-800 rounded-full flex items-center justify-center text-slate-500 dark:text-gray-400 hover:text-red-500 transition"><i class="fa-solid fa-xmark"></i></button>
+            </header>
+            
+            <div id="chatBox" class="flex-1 overflow-y-auto p-5 space-y-4 no-scrollbar bg-slate-50/50 dark:bg-transparent">
+                <div class="flex justify-start">
+                    <div class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 p-4 rounded-2xl rounded-tl-none max-w-[85%] text-sm leading-relaxed shadow-sm">
+                        Hello! I am your advanced AQUAM assistant. I can help you with Vouchers, Swapping, P2P Transfers, Aquarush Games, Tokenomics, and more! How can I help?
+                    </div>
+                </div>
             </div>
 
-            <div class="bg-gray-900 rounded-xl p-4 mb-6 border border-gray-800">
-                <div class="flex justify-between text-xs font-bold mb-2">
-                    <span>Progress</span>
-                    <span id="refCountDisplay" class="text-green-400">Loading...</span>
+            <div class="p-4 border-t border-slate-100 dark:border-gray-800 bg-white dark:bg-darkcard">
+                <div class="flex gap-2 overflow-x-auto pb-3 no-scrollbar">
+                    <button onclick="askBot('How do I buy AQUAM?')" class="whitespace-nowrap bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-full text-[10px] font-bold uppercase transition hover:bg-blue-100 dark:hover:bg-blue-500/20">Buy AQUAM</button>
+                    <button onclick="askBot('How to play Aquarush?')" class="whitespace-nowrap bg-purple-50 dark:bg-purple-500/10 border border-purple-200 dark:border-purple-500/20 text-purple-600 dark:text-purple-400 px-4 py-2 rounded-full text-[10px] font-bold uppercase transition hover:bg-purple-100 dark:hover:bg-purple-500/20">Aquarush Game</button>
+                    <button onclick="askBot('How to use P2P?')" class="whitespace-nowrap bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/20 text-orange-600 dark:text-orange-400 px-4 py-2 rounded-full text-[10px] font-bold uppercase transition hover:bg-orange-100 dark:hover:bg-orange-500/20">Send P2P</button>
                 </div>
-                <div class="w-full bg-gray-700 h-2 rounded-full overflow-hidden">
-                    <div id="refBar" class="bg-green-500 h-full w-0 transition-all duration-500"></div>
+                <div class="flex gap-3">
+                    <input id="chatInput" type="text" placeholder="Type a message..." class="flex-1 bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm outline-none focus:border-blue-500 dark:text-white text-slate-800 placeholder-slate-400 dark:placeholder-gray-500">
+                    <button onclick="handleUserInput()" class="w-12 h-12 bg-blue-600 hover:bg-blue-700 rounded-xl flex items-center justify-center text-white shadow-lg transition active:scale-95"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share to Unlock Modal (formerly Referral) -->
+    <div id="shareModal" class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/70 hidden backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-darkcard w-full max-w-md p-6 rounded-t-3xl sm:rounded-3xl border-t sm:border border-slate-200 dark:border-blue-500/30 animate-slide-up relative shadow-2xl">
+            <button onclick="closeShare()" class="absolute top-4 right-4 bg-slate-100 dark:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-slate-500 dark:text-gray-400"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="text-center mb-6 mt-2">
+                <div class="w-16 h-16 bg-green-50 dark:bg-green-500/10 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl border border-green-200 dark:border-green-500/20 shadow-sm">
+                    <i class="fa-solid fa-share-nodes"></i>
+                </div>
+                <h3 class="text-xl font-extrabold mb-1 text-slate-800 dark:text-white">Share & Earn</h3>
+                <p class="text-xs text-slate-500 dark:opacity-70">Share the link 5 times to unlock exclusive Bot Rewards!</p>
+            </div>
+
+            <div class="bg-slate-50 dark:bg-gray-900 rounded-xl p-4 mb-6 border border-slate-200 dark:border-gray-800">
+                <div class="flex justify-between text-xs font-bold mb-3">
+                    <span class="text-slate-700 dark:text-gray-300">Progress</span>
+                    <span id="shareCountDisplay" class="text-green-500">0 / 5 Shared</span>
+                </div>
+                <div class="w-full bg-slate-200 dark:bg-gray-700 h-2.5 rounded-full overflow-hidden shadow-inner">
+                    <div id="shareBar" class="bg-gradient-to-r from-green-400 to-green-600 h-full w-0 transition-all duration-500 rounded-full"></div>
                 </div>
             </div>
 
-            <div class="bg-black/30 p-3 rounded-xl flex items-center gap-3 border border-gray-700 mb-6">
-                <i class="fa-solid fa-link text-gray-500"></i>
-                <input type="text" value="https://aquameme.vercel.app" class="bg-transparent border-none text-xs text-gray-300 w-full outline-none font-mono" readonly>
-                <button onclick="copyRef()" class="text-blue-400 text-xs font-bold uppercase hover:text-white transition">Copy</button>
+            <div class="bg-slate-100 dark:bg-black/40 p-3 rounded-xl flex items-center gap-3 border border-slate-200 dark:border-gray-700 mb-6">
+                <i class="fa-solid fa-link text-slate-400 dark:text-gray-500"></i>
+                <input type="text" value="https://aquameme.space" class="bg-transparent border-none text-xs text-slate-700 dark:text-gray-300 w-full outline-none font-mono" readonly>
+                <button onclick="copyShareLink()" class="text-blue-600 dark:text-blue-400 text-xs font-bold uppercase hover:text-blue-800 dark:hover:text-white transition px-2">Copy</button>
             </div>
 
-            <button onclick="shareRef()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-xl shadow-lg shadow-blue-900/40 transition active:scale-95 flex items-center justify-center gap-2">
-                <i class="fa-brands fa-telegram"></i> Share on Telegram
-            </button>
+            <div class="flex gap-3">
+                <button onclick="triggerShare('whatsapp')" class="flex-1 bg-[#25D366] hover:bg-[#1ebe5d] text-white font-bold py-3.5 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> WhatsApp
+                </button>
+                <button onclick="triggerShare('telegram')" class="flex-1 bg-[#0088cc] hover:bg-[#0077b5] text-white font-bold py-3.5 rounded-xl shadow-lg transition active:scale-95 flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-brands fa-telegram text-lg"></i> Telegram
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- 1. Dropdown Logic ---
+        // --- Theme Management (Light/Dark) ---
+        const html = document.documentElement;
+        const themeIcon = document.getElementById('themeIcon');
+        
+        // Initialize Theme
+        if (localStorage.getItem('theme') === 'light') {
+            html.classList.remove('dark');
+        } else {
+            html.classList.add('dark'); // Default is dark
+        }
+        updateThemeIcon();
+
+        function toggleTheme() {
+            html.classList.toggle('dark');
+            const isDark = html.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const isDark = html.classList.contains('dark');
+            themeIcon.className = isDark ? 'fa-solid fa-moon text-yellow-400' : 'fa-solid fa-sun text-orange-500';
+        }
+
+        // --- Dropdown Logic ---
         function toggleDropdown() {
             const menu = document.getElementById('appDropdown');
             menu.classList.toggle('open');
             
-            // Close when clicking outside
             document.addEventListener('click', function closeMenu(e) {
                 if (!e.target.closest('.relative') && !e.target.closest('#appDropdown')) {
                     menu.classList.remove('open');
@@ -282,7 +395,7 @@
             });
         }
 
-        // --- 2. Premium Slider Logic ---
+        // --- Premium Slider Logic ---
         let currentSlide = 0;
         const slides = document.querySelectorAll('.slide-item');
         
@@ -291,21 +404,21 @@
             currentSlide = (currentSlide + 1) % slides.length;
             slides[currentSlide].classList.add('active');
         }
-        
-        // Auto-play slider every 4 seconds
-        setInterval(nextSlide, 4000);
+        setInterval(nextSlide, 4500);
 
-        // --- 3. Chat Bot Logic ---
+        // --- Enhanced Chat Bot Logic ---
         const chatModal = document.getElementById('chatModal');
         const chatBox = document.getElementById('chatBox');
         const chatInput = document.getElementById('chatInput');
 
         function openChat() {
             chatModal.classList.remove('hidden');
+            chatModal.classList.add('flex');
         }
 
         function closeChat() {
             chatModal.classList.add('hidden');
+            chatModal.classList.remove('flex');
         }
 
         function askBot(question) {
@@ -321,158 +434,137 @@
             processBotResponse(text);
         }
 
+        // Allow 'Enter' key to send message
+        chatInput.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                handleUserInput();
+            }
+        });
+
         function addMessage(text, sender) {
             const div = document.createElement('div');
             const isUser = sender === 'user';
             
-            div.className = `flex ${isUser ? 'justify-end' : 'justify-start'}`;
-            div.innerHTML = `
-                <div class="${isUser ? 'bg-blue-600 text-white' : 'bg-gray-800 border border-gray-700 text-gray-200'} px-4 py-2 rounded-2xl ${isUser ? 'rounded-tr-none' : 'rounded-tl-none'} max-w-[80%] text-sm">
-                    ${text}
-                </div>
-            `;
+            div.className = `flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`;
+            
+            if (isUser) {
+                div.innerHTML = `
+                    <div class="bg-blue-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-none max-w-[85%] text-sm shadow-md">
+                        ${text}
+                    </div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 border border-slate-200 dark:border-gray-700 text-slate-700 dark:text-gray-200 px-4 py-2.5 rounded-2xl rounded-tl-none max-w-[85%] text-sm shadow-sm leading-relaxed">
+                        ${text}
+                    </div>
+                `;
+            }
             chatBox.appendChild(div);
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
         function processBotResponse(input) {
-            // Simulate typing delay
+            // Loading indicator (optional simple visual delay)
             setTimeout(() => {
-                let response = "I'm sorry, I didn't understand that. You can ask about Vouchers, Swapping, or P2P.";
+                let response = "I'm still learning! You can ask me about Buying AQUAM, Vouchers, Swapping, Games, or P2P Transfers.";
                 const lowerInput = input.toLowerCase();
 
                 if (lowerInput.includes('voucher') || lowerInput.includes('code')) {
-                    response = "To use a voucher, go to the **Profile** section (top left) and select 'Redeem Voucher'. Enter your 12-digit code there.";
+                    response = "To use a voucher, go to your **Profile** and select 'Redeem Voucher'. Enter your 12-digit code to get free tokens!";
                 } else if (lowerInput.includes('buy') || lowerInput.includes('purchase')) {
-                    response = "You can buy AQUAM directly on our **DEX Swap** page using USDT or TON. Click 'DEX Swap' in the menu.";
-                } else if (lowerInput.includes('p2p') || lowerInput.includes('transfer')) {
-                    response = "P2P transfers are instant! Go to the **P2P Transfer** page, enter the recipient's User ID, and the amount.";
-                } else if (lowerInput.includes('hello') || lowerInput.includes('hi')) {
-                    response = "Hello! How can I assist you with the Aqua Ecosystem today?";
+                    response = "You can easily buy AQUAM directly via our **Trusted Vendor** on WhatsApp using the green banner above, or use the **DEX Swap** page to trade USDT/TON for AQUAM.";
+                } else if (lowerInput.includes('p2p') || lowerInput.includes('transfer') || lowerInput.includes('send')) {
+                    response = "Our P2P transfers are instant and zero-fee! Go to the **Send P2P** page, enter the recipient's AquaID, and enter the amount.";
+                } else if (lowerInput.includes('game') || lowerInput.includes('aquarush') || lowerInput.includes('play')) {
+                    response = "Aquarush is our flagship play-to-earn game! Tap 'Aquarush Game' in the Menu to start playing and earning AQUAM directly to your wallet.";
+                } else if (lowerInput.includes('swap') || lowerInput.includes('dex') || lowerInput.includes('exchange')) {
+                    response = "Use the **DEX Swap** tab to exchange TON, USDT, or other assets for AQUAM at the best market rates securely.";
+                } else if (lowerInput.includes('price') || lowerInput.includes('value')) {
+                    response = "1 AQUAM is currently roughly $0.000004. You can check real-time charts in the **Stake/Invest** or **DEX Swap** sections.";
+                } else if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('hey')) {
+                    response = "Hello! 👋 How can I assist you with the Aqua Ecosystem today?";
+                } else if (lowerInput.includes('scam') || lowerInput.includes('trust') || lowerInput.includes('safe')) {
+                    response = "AQUA-APPS is built on secure blockchain infrastructure. We recommend only buying from our official links or the trusted vendor provided on the home page.";
                 }
 
+                // Format bold text visually
+                response = response.replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-600 dark:text-blue-400">$1</strong>');
+                
                 addMessage(response, 'bot');
             }, 800);
         }
 
-// --- Core Variables ---
-let refCount = 0; 
-const maxRefs = 5;
-const refModal = document.getElementById('referralModal');
-const refBar = document.getElementById('refBar');
-const refCountDisplay = document.getElementById('refCountDisplay');
+        // --- Share to Unlock Logic ---
+        let shareCount = 0; 
+        const maxShares = 5;
+        const shareModal = document.getElementById('shareModal');
+        const shareBar = document.getElementById('shareBar');
+        const shareCountDisplay = document.getElementById('shareCountDisplay');
 
-// --- Your Original Functions (Enhanced with Logic) ---
-
-function openReferral() {
-    refModal.classList.remove('hidden');
-    refModal.classList.add('flex'); // Keeps your flex centering
-    updateRefProgress();
-}
-
-function closeReferral() {
-    refModal.classList.add('hidden');
-    refModal.classList.remove('flex');
-}
-
-function updateRefProgress() {
-    const percentage = (refCount / maxRefs) * 100;
-    
-    // UI Updates (Checks if elements exist before updating)
-    if (refBar) {
-        refBar.style.width = `${Math.min(percentage, 100)}%`;
-    }
-    if (refCountDisplay) {
-        refCountDisplay.innerText = `${refCount} / ${maxRefs} Friends`;
-    }
-
-    // THE BOT UNLOCK TRIGGER
-    if (refCount >= maxRefs) {
-        setTimeout(() => {
-            closeReferral(); 
-            openChat(); // This triggers your Bot modal
-            addMessage("🔓 ACCESS GRANTED. You've successfully referred 5 friends. visit Aquacoin bot to get reward https://t.me/aquagamebot", "bot");
-        }, 600);
-    }
-}
-
-// --- Share & Copy Logic ---
-
-function shareRef(platform) {
-    const text = "Join me on AQUA APPS and earn free crypto! 🚀";
-    const url = "https://aquameme.vercel.app";
-    let shareUrl = "";
-
-    if (platform === 'telegram') {
-        shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
-    } else if (platform === 'whatsapp') {
-        shareUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`;
-    }
-
-    if (shareUrl) {
-        window.open(shareUrl, '_blank');
-    }
-    
-    // Increment progress
-    if (refCount < maxRefs) {
-        refCount++;
-        updateRefProgress();
-    }
-}
-
-function copyRef() {
-    const link = "https://Aquameme.vercel.app";
-    navigator.clipboard.writeText(link).then(() => {
-        // Increment progress on successful copy
-        if (refCount < maxRefs) {
-            refCount++;
-            updateRefProgress();
-        }
-    });
-}
-
-
-        // --- 5. Activity Feed Animation ---
-        const activities = [
-            { user: "User882", action: "swapped 10 TON", icon: "fa-sync-alt", color: "t-blue" },
-            { user: "CryptoKing", action: "won 500 AQUAM", icon: "fa-trophy", color: "t-yellow" },
-            { user: "Alice_X", action: "joined via Referral", icon: "fa-user-plus", color: "t-green" },
-            { user: "Trader01", action: "bought NFT #992", icon: "fa-image", color: "t-purple" },
-            { user: "Whale_09", action: "staked 1000 AQUAM", icon: "fa-lock", color: "t-blue" },
-        ];
-
-        const track = document.getElementById('activityTrack');
-        let actIndex = 0;
-
-        function renderActivity() {
-            // Clear current
-            track.innerHTML = '';
-            
-            // Get current data
-            const item = activities[actIndex];
-            
-            // Create element
-            const el = document.createElement('div');
-            el.className = 'activity-item animate-slide-up';
-            el.innerHTML = `
-                <div class="activity-icon ${item.color}">
-                    <i class="fa-solid ${item.icon}"></i>
-                </div>
-                <div>
-                    <span class="opacity-60">${item.user}</span>
-                    <span class="text-blue-400 block">${item.action}</span>
-                </div>
-            `;
-            
-            track.appendChild(el);
-
-            // Cycle index
-            actIndex = (actIndex + 1) % activities.length;
+        function openShare() {
+            shareModal.classList.remove('hidden');
+            // Trigger reflow for animation
+            void shareModal.offsetWidth; 
+            updateShareProgress();
         }
 
-        // Start activity loop
-        renderActivity();
-        setInterval(renderActivity, 3000);
+        function closeShare() {
+            shareModal.classList.add('hidden');
+        }
+
+        function updateShareProgress() {
+            const percentage = (shareCount / maxShares) * 100;
+            
+            if (shareBar) {
+                shareBar.style.width = `${Math.min(percentage, 100)}%`;
+            }
+            if (shareCountDisplay) {
+                shareCountDisplay.innerText = `${shareCount} / ${maxShares} Shared`;
+            }
+
+            // BOT UNLOCK TRIGGER
+            if (shareCount >= maxShares) {
+                setTimeout(() => {
+                    closeShare(); 
+                    openChat(); 
+                    addMessage("🔓 **ACCESS GRANTED**. You've successfully shared 5 times! Visit the Aquacoin bot to claim your exclusive reward: <br><a href='https://t.me/aquagamebot' target='_blank' class='text-blue-500 underline mt-2 block'>https://t.me/aquagamebot</a>", "bot");
+                }, 800);
+            }
+        }
+
+        function triggerShare(platform) {
+            const text = "Join me on AQUA APPS and earn free crypto! 🚀";
+            const url = "https://aquameme.space";
+            let shareUrl = "";
+
+            if (platform === 'telegram') {
+                shareUrl = `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`;
+            } else if (platform === 'whatsapp') {
+                shareUrl = `https://wa.me/?text=${encodeURIComponent(text + " " + url)}`;
+            }
+
+            if (shareUrl) {
+                window.open(shareUrl, '_blank');
+            }
+            
+            incrementShare();
+        }
+
+        function copyShareLink() {
+            const link = "https://aquameme.space";
+            navigator.clipboard.writeText(link).then(() => {
+                incrementShare();
+                // Brief visual feedback on the button could go here
+            });
+        }
+
+        function incrementShare() {
+            if (shareCount < maxShares) {
+                shareCount++;
+                updateShareProgress();
+            }
+        }
 
     </script>
 </body>
