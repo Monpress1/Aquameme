@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -168,6 +169,7 @@
             border: 1px solid rgba(59, 130, 246, 0.2);
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            display: inline-block;
         }
 
         h1 {
@@ -220,6 +222,22 @@
         .btn-primary:hover {
             transform: translateY(-4px);
             box-shadow: 0 15px 35px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--accent);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(37, 99, 235, 0.05);
+            transform: translateY(-4px);
+            border-color: var(--accent-hover);
+        }
+        
+        [data-theme="dark"] .btn-secondary:hover {
+            background: rgba(59, 130, 246, 0.1);
         }
 
         .hero-img {
@@ -383,6 +401,17 @@
             line-height: 1.6;
         }
 
+        .ambassador-list {
+            padding-left: 20px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-top: 15px;
+        }
+        
+        .ambassador-list li {
+            margin-bottom: 8px;
+        }
+
         .cta-section {
             text-align: center;
             padding: 120px 20px;
@@ -525,6 +554,115 @@
             </div>
         </section>
 
+        <!-- BE AN AMBASSADOR SECTION -->
+        <section class="section">
+            <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+                <div class="badge"><i class="fa-solid fa-rocket"></i> Learn. Earn. Build. Hold.</div>
+                <h2 class="section-title">Be an Ambassador</h2>
+                <p class="section-text">
+                    Want to earn by growing the AquaCoins ecosystem? Join our Ambassador Program and get rewarded for every genuine user you onboard.
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <!-- Earn Per User Card -->
+                <div class="card">
+                    <div class="card-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                    <h3>Earn Per User</h3>
+                    <p>Earn up to $1.50 for every user who completes the onboarding journey:</p>
+                    <div class="check-list" style="margin-top: 20px; gap: 12px;">
+                        <div class="list-item" style="gap: 12px;">
+                            <i class="fa-solid fa-circle-check" style="color: var(--accent); font-size: 18px; margin-top: 3px;"></i>
+                            <p style="margin: 0; color: var(--text-main);">Verified Registration – <strong>$0.30</strong></p>
+                        </div>
+                        <div class="list-item" style="gap: 12px;">
+                            <i class="fa-solid fa-circle-check" style="color: var(--accent); font-size: 18px; margin-top: 3px;"></i>
+                            <p style="margin: 0; color: var(--text-main);">Activated AquaCoins Wallet – <strong>$0.30</strong></p>
+                        </div>
+                        <div class="list-item" style="gap: 12px;">
+                            <i class="fa-solid fa-circle-check" style="color: var(--accent); font-size: 18px; margin-top: 3px;"></i>
+                            <p style="margin: 0; color: var(--text-main);">First Transaction – <strong>$0.40</strong></p>
+                        </div>
+                        <div class="list-item" style="gap: 12px;">
+                            <i class="fa-solid fa-circle-check" style="color: var(--accent); font-size: 18px; margin-top: 3px;"></i>
+                            <p style="margin: 0; color: var(--text-main);">Becomes a Token Holder – <strong>$0.50</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Targets Card -->
+                <div class="card">
+                    <div class="card-icon"><i class="fa-solid fa-bullseye"></i></div>
+                    <h3>Monthly Targets</h3>
+                    <ul class="ambassador-list">
+                        <li>100 verified registrations</li>
+                        <li>70 activated wallets</li>
+                        <li>50 first transactions</li>
+                        <li>40 new token holders</li>
+                        <li>80% user retention after 30 days</li>
+                        <li>2 physical seminars</li>
+                        <li>2 online webinars</li>
+                        <li>20 educational content pieces</li>
+                        <li>Active community support</li>
+                    </ul>
+                </div>
+
+                <!-- Performance Bonuses Card -->
+                <div class="card">
+                    <div class="card-icon"><i class="fa-solid fa-trophy"></i></div>
+                    <h3>Performance Bonuses</h3>
+                    <p>Performance bonuses are awarded only after all monthly targets have been achieved and verified:</p>
+                    <div class="check-list" style="margin-top: 20px; gap: 15px;">
+                        <div class="list-item" style="gap: 12px;">
+                            <i class="fa-solid fa-medal" style="color: #cd7f32; font-size: 20px; margin-top: 2px;"></i>
+                            <p style="margin: 0; color: var(--text-main);">Bronze – <strong>$100 Bonus</strong></p>
+                        </div>
+                        <div class="list-item" style="gap: 12px;">
+                            <i class="fa-solid fa-medal" style="color: #c0c0c0; font-size: 20px; margin-top: 2px;"></i>
+                            <p style="margin: 0; color: var(--text-main);">Silver – <strong>$250 Bonus</strong></p>
+                        </div>
+                        <div class="list-item" style="gap: 12px;">
+                            <i class="fa-solid fa-medal" style="color: #ffd700; font-size: 20px; margin-top: 2px;"></i>
+                            <p style="margin: 0; color: var(--text-main);">Gold – <strong>$500 Bonus</strong></p>
+                        </div>
+                        <div class="list-item" style="gap: 12px;">
+                            <i class="fa-solid fa-gem" style="color: #00ffff; font-size: 20px; margin-top: 2px;"></i>
+                            <p style="margin: 0; color: var(--text-main);">Diamond – <strong>$1,000 Bonus</strong></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guidelines & Links Card -->
+                <div class="card">
+                    <div class="card-icon"><i class="fa-solid fa-circle-info"></i></div>
+                    <h3>Guidelines & Links</h3>
+                    <div style="margin-bottom: 20px; padding: 15px; background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; border-radius: 8px;">
+                        <p style="margin: 0; font-size: 15px; color: var(--text-main);">
+                            <i class="fa-solid fa-triangle-exclamation" style="color: #f59e0b; margin-right: 5px;"></i> 
+                            Only genuine users count. Fake accounts, bots, or duplicate registrations will lead to immediate disqualification.
+                        </p>
+                    </div>
+                    
+                    <div class="list-item" style="gap: 12px; margin-bottom: 12px; align-items: center;">
+                        <i class="fa-solid fa-globe" style="color: var(--accent); font-size: 18px;"></i>
+                        <p style="margin: 0;"><a href="https://aquameme.space" target="_blank" style="color: var(--text-main); text-decoration: none; font-weight: 600;">aquameme.space</a></p>
+                    </div>
+                    <div class="list-item" style="gap: 12px; align-items: center;">
+                        <i class="fa-solid fa-link" style="color: var(--accent); font-size: 18px;"></i>
+                        <p style="margin: 0;"><a href="https://linktr.ee/aquacoins" target="_blank" style="color: var(--text-main); text-decoration: none; font-weight: 600;">linktr.ee/aquacoins</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 60px;">
+                <p class="section-text" style="font-weight: 600; margin-bottom: 25px;">Together, let's build the future of AquaCoins.</p>
+                <a href="https://forms.gle/mfZg3i4NsEL8qsow8" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="padding: 18px 45px; font-size: 18px; border-radius: 16px;">
+                    <i class="fa-solid fa-handshake"></i> Sign up as an Ambassador
+                </a>
+            </div>
+        </section>
+        <!-- END AMBASSADOR SECTION -->
+
         <section class="cta-section">
             <h2>Ready to Take Control?</h2>
             <p class="section-text" style="max-width: 650px; margin-bottom: 45px;">
@@ -609,3 +747,4 @@
 
 </body>
 </html>
+
