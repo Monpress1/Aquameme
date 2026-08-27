@@ -323,15 +323,18 @@ function renderHistory() {
 
     container.innerHTML = "";
     txHistory.slice().reverse().forEach(item => {
+        const isCompleted = item.status.toLowerCase().includes("completed");
+        const statusColorClass = isCompleted ? "text-green-500 font-bold" : "text-yellow-500 font-bold";
+
         container.innerHTML += `
-            <div class="flex items-center justify-between text-xs dark:bg-gray-800/30 bg-gray-50 p-3 rounded-lg border-l-2 border-green-500">
+            <div class="flex items-center justify-between text-xs dark:bg-gray-800/30 bg-gray-50 p-3 rounded-lg border-l-2 ${isCompleted ? 'border-green-500' : 'border-yellow-500'}">
                 <div>
                     <div class="font-bold dark:text-white text-gray-900">+${Number(item.aquam).toLocaleString(undefined, {maximumFractionDigits: 2})} AQUAM</div>
                     <div class="dark:text-gray-500 text-gray-400 text-[10px]">${item.date} • Ref: ${item.ref.slice(0, 8)}...</div>
                 </div>
                 <div class="text-right">
                     <div class="font-bold text-green-500">₦${Number(item.ngn).toLocaleString()}</div>
-                    <div class="text-[9px] dark:text-gray-400 text-gray-500 font-mono">${item.status}</div>
+                    <div class="text-[9px] ${statusColorClass} font-mono">${item.status}</div>
                 </div>
             </div>
         `;
@@ -402,8 +405,39 @@ function executePaystackPayment() {
                 status: "Processing..."
             });
 
-            showToast("Payment Complete!", "Verifying transaction and dispatching AQUAM tokens...", "info");
-            startBalanceCheckPoll(response.reference);
+            showToast("Payment Successful!", "Verifying transaction and sending AQUAM to your wallet...", "info");
+
+            // DIRECTLY CALL EDGE FUNCTION TO VERIFY & DISPATCH TOKENS IMMEDIATELY
+            fetch(SUPABASE_ENDPOINT, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "apikey": SUPABASE_ANON_KEY,
+                    "Authorization": "Bearer " + SUPABASE_ANON_KEY
+                },
+                body: JSON.stringify({
+                    reference: response.reference,
+                    walletAddress: friendlyAddr,
+                    amountNgn: payAmount,
+                    aquamAmount: Number(netAquamToReceive.toFixed(4))
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    updateTxStatus(response.reference, "completed");
+                    showToast("Tokens Delivered!", `<b>+${netAquamToReceive.toLocaleString()} AQUAM</b> has been sent to your wallet.`, "success");
+                } else {
+                    console.warn("Backend processing flag:", data);
+                    updateTxStatus(response.reference, "Processing...");
+                }
+            })
+            .catch(err => {
+                console.error("Direct fetch error:", err);
+            })
+            .finally(() => {
+                startBalanceCheckPoll(response.reference);
+            });
         },
         onClose: function() {
             btn.disabled = false;
@@ -422,7 +456,7 @@ function startBalanceCheckPoll(ref) {
         
         if (attempts >= 10) {
             clearInterval(interval);
-            updateTxStatus(ref, "Completed (Check Wallet)");
+            updateTxStatus(ref, "completed");
         }
     }, 4000);
 }
@@ -434,5 +468,3 @@ window.addEventListener('DOMContentLoaded', async () => {
 </script>
 </body>
 </html>
-
-
