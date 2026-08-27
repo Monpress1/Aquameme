@@ -183,9 +183,8 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const PAYSTACK_PUBLIC_KEY = "pk_live_988851c6dff5a63928310640a0265fe5b7d254af";
 const CG_API_KEY = "CG-fVHSbCQ5EZmvuXrwM1K8p1BL";
 
-// Dynamic pricing states
-const SERVICE_FEE_PERCENT = 0.10; // 10%
-let currentAquamPriceUsd = 0.012; // Dynamic state fallback
+const SERVICE_FEE_PERCENT = 0.10; 
+let currentAquamPriceUsd = 0.012; 
 let ngnPerUsd = 1345; 
 let aquamPriceNgn = currentAquamPriceUsd * ngnPerUsd; 
 let minPurchaseNgn = 15;
@@ -197,7 +196,6 @@ let balances = { TON: 0, AQUAM: 0 };
 let netAquamToReceive = 0;
 let txHistory = JSON.parse(localStorage.getItem('aqua_tx_history')) || [];
 
-// --- FETCH REALTIME STON.FI DEX PRICE & USD/NGN EXCHANGE RATE ---
 async function fetchExchangeRate() {
     const minLabel = document.getElementById("minNgnLabel");
     const tokenTag = document.getElementById("tokenPriceTag");
@@ -226,12 +224,11 @@ async function fetchExchangeRate() {
 
     const payInput = document.getElementById("payAmount");
     if (!payInput.value || parseFloat(payInput.value) < minPurchaseNgn) {
-        payInput.value = minPurchaseNgn;
+        payInput.value = Math.ceil(minPurchaseNgn);
     }
     calculateTokens();
 }
 
-// --- THEME ENGINE ---
 const html = document.documentElement;
 const themeIcon = document.getElementById('themeIcon');
 
@@ -268,7 +265,6 @@ const showToast = (title, text, icon = 'success') => {
     });
 };
 
-// --- TON CONNECT SETUP ---
 const tonUI = new TON_CONNECT_UI.TonConnectUI({
   manifestUrl: "https://raw.githubusercontent.com/Monpress1/Aquameme/main/tonconnect-manifest.json",
   buttonRootId: "ton-connect"
@@ -295,7 +291,6 @@ tonUI.onStatusChange(async wallet => {
     await loadBalances();
 });
 
-// --- LOAD BALANCES & HISTORY ---
 async function loadBalances() {
     if(!userAddress) return;
     try {
@@ -324,7 +319,6 @@ function updateDisplay() {
     document.getElementById("balAQUAM").innerText = balances.AQUAM.toLocaleString(undefined, {maximumFractionDigits: 2});
 }
 
-// --- CALCULATIONS ---
 function calculateTokens() {
     const payAmount = parseFloat(document.getElementById("payAmount").value) || 0;
 
@@ -341,7 +335,6 @@ function calculateTokens() {
     document.getElementById("netAquam").innerText = `${netAquamToReceive.toLocaleString(undefined, {maximumFractionDigits: 2})} AQUAM`;
 }
 
-// --- HISTORY DISPLAY FROM LOCALSTORAGE ---
 function renderHistory() {
     const container = document.getElementById("tx-history");
     if (!txHistory || txHistory.length === 0) {
@@ -381,10 +374,16 @@ function updateTxStatus(ref, newStatus) {
     }
 }
 
-// --- PAYSTACK INTEGRATION ---
+// --- FULLY COMPATIBLE PAYSTACK FUNCTION ---
 function executePaystackPayment() {
-    const activeAddress = getConnectedAddress();
+    const btn = document.getElementById("payBtn");
 
+    if (typeof PaystackPop === 'undefined') {
+        showToast("Script Blocked", "Paystack script failed to load. Disable any active adblocker and refresh.", "error");
+        return;
+    }
+
+    const activeAddress = getConnectedAddress();
     if (!activeAddress) {
         showToast("Wallet Required", "Please connect your TON wallet first to make a purchase.", "warning");
         return;
@@ -394,70 +393,12 @@ function executePaystackPayment() {
     const email = document.getElementById("payEmail").value.trim();
 
     if (!payAmount || payAmount < minPurchaseNgn) {
-        showToast("Minimum Limit", `Minimum purchase amount is <b>₦${minPurchaseNgn.toLocaleString()}</b>.`, "error");
+        showToast("Minimum Limit", `Minimum purchase amount is <b>₦${Math.ceil(minPurchaseNgn).toLocaleString()}</b>.`, "error");
         return;
     }
 
-    const friendlyAddr = new TonWeb.utils.Address(activeAddress).toString(true, true, true);
-    const btn = document.getElementById("payBtn");
     btn.disabled = true;
-
-    async function handlePaystackSuccess(response) {
-        btn.disabled = false;
-        
-        const newTx = {
-            ref: response.reference,
-            ngn: payAmount,
-            aquam: netAquamToReceive,
-            date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: "Processing..."
-        };
-
-        saveTransaction(newTx);
-
-        try {
-            const res = await fetch(SUPABASE_ENDPOINT, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "apikey": SUPABASE_ANON_KEY,
-                    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-                },
-                body: JSON.stringify({
-                    reference: response.reference,
-                    walletAddress: friendlyAddr,
-                    rawAddress: activeAddress,
-                    amountNgn: payAmount,
-                    aquamAmount: Number(netAquamToReceive.toFixed(4))
-                })
-            });
-
-            const data = await res.json();
-
-            if (res.ok && data.success) {
-                updateTxStatus(response.reference, "Successful");
-                showToast(
-                    "Payment Successful!", 
-                    `<p class="text-sm"><b>Ref:</b> ${response.reference}</p>
-                     <p class="text-sm text-green-500 mt-2"><b>+${netAquamToReceive.toFixed(2)} AQUAM</b> has been sent to your wallet!</p>`, 
-                    "success"
-                );
-                setTimeout(loadBalances, 4000);
-            } else {
-                updateTxStatus(response.reference, "Failed");
-                showToast("Processing Error", data.error || "Payment received, but token delivery failed. Contact support.", "error");
-            }
-        } catch (err) {
-            console.error("Edge Function dispatch error:", err);
-            updateTxStatus(response.reference, "Pending");
-            showToast("Network Error", "Unable to verify execution with server. Please check your balance shortly.", "warning");
-        }
-    }
-
-    function handlePaystackClose() {
-        btn.disabled = false;
-        showToast("Payment Cancelled", "The payment session was closed.", "info");
-    }
+    const friendlyAddr = new TonWeb.utils.Address(activeAddress).toString(true, true, true);
 
     const handler = PaystackPop.setup({
         key: PAYSTACK_PUBLIC_KEY,
@@ -470,14 +411,65 @@ function executePaystackPayment() {
                 { display_name: "Net AQUAM Tokens", variable_name: "net_aquam", value: netAquamToReceive }
             ]
         },
-        callback: handlePaystackSuccess,
-        onClose: handlePaystackClose
+        callback: function(response) {
+            btn.disabled = false;
+            
+            const newTx = {
+                ref: response.reference,
+                ngn: payAmount,
+                aquam: netAquamToReceive,
+                date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+                status: "Processing..."
+            };
+
+            saveTransaction(newTx);
+
+            fetch(SUPABASE_ENDPOINT, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "apikey": SUPABASE_ANON_KEY,
+                    "Authorization": "Bearer " + SUPABASE_ANON_KEY
+                },
+                body: JSON.stringify({
+                    reference: response.reference,
+                    walletAddress: friendlyAddr,
+                    rawAddress: activeAddress,
+                    amountNgn: payAmount,
+                    aquamAmount: Number(netAquamToReceive.toFixed(4))
+                })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    updateTxStatus(response.reference, "Successful");
+                    showToast(
+                        "Payment Successful!", 
+                        '<p class="text-sm"><b>Ref:</b> ' + response.reference + '</p>' +
+                        '<p class="text-sm text-green-500 mt-2"><b>+' + netAquamToReceive.toFixed(2) + ' AQUAM</b> has been sent to your wallet!</p>', 
+                        "success"
+                    );
+                    setTimeout(loadBalances, 4000);
+                } else {
+                    updateTxStatus(response.reference, "Failed");
+                    showToast("Processing Error", data.error || "Payment received, but token delivery failed.", "error");
+                }
+            })
+            .catch(function(err) {
+                console.error("Edge Function dispatch error:", err);
+                updateTxStatus(response.reference, "Pending");
+                showToast("Network Error", "Unable to verify execution with server. Please check your balance shortly.", "warning");
+            });
+        },
+        onClose: function() {
+            btn.disabled = false;
+            showToast("Payment Cancelled", "The payment session was closed.", "info");
+        }
     });
 
     handler.openIframe();
 }
 
-// --- INITIALIZATION ---
 window.addEventListener('DOMContentLoaded', async () => {
     await fetchExchangeRate();
     renderHistory();
