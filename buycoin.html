@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
@@ -188,7 +189,7 @@ let currentAquamPriceUsd = 0.012; // Dynamic state fallback
 let ngnPerUsd = 1345; 
 let aquamPriceNgn = currentAquamPriceUsd * ngnPerUsd; 
 let minPurchaseNgn = 15;
-const MIN_PURCHASE_USD = 0.01;
+const MIN_PURCHASE_USD = 0.010;
 
 let userAddress = "";
 let jettonWallet = "";
@@ -202,14 +203,12 @@ async function fetchExchangeRate() {
     const tokenTag = document.getElementById("tokenPriceTag");
     
     try {
-        // 1. Fetch live AQUAM USD market price directly from STON.fi DEX
         const resAqua = await fetch(`https://api.ston.fi/v1/assets/${AQUA_JETTON_ADDRESS}`);
         const dataAqua = await resAqua.json();
         if (dataAqua && dataAqua.asset && dataAqua.asset.dex_usd_price) {
             currentAquamPriceUsd = parseFloat(dataAqua.asset.dex_usd_price);
         }
 
-        // 2. Fetch live USD/NGN exchange rate from CoinGecko
         const resNgn = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=ngn&x_cg_demo_api_key=${CG_API_KEY}`);
         const dataNgn = await resNgn.json();
         if (dataNgn && dataNgn.tether && dataNgn.tether.ngn) {
@@ -219,11 +218,9 @@ async function fetchExchangeRate() {
         console.warn("Exchange rate fetch error, applying dynamic fallback:", error);
     }
     
-    // Derive dynamic pricing
     aquamPriceNgn = currentAquamPriceUsd * ngnPerUsd;
     minPurchaseNgn = ngnPerUsd * MIN_PURCHASE_USD;
     
-    // Render dynamic updates to UI
     minLabel.innerText = `Min: ₦${minPurchaseNgn.toLocaleString()} ($1 = ₦${ngnPerUsd.toLocaleString()})`;
     tokenTag.innerText = `1 AQUAM = $${currentAquamPriceUsd.toFixed(4)} (₦${aquamPriceNgn.toFixed(4)})`;
 
@@ -339,7 +336,7 @@ function calculateTokens() {
 
     const grossAquam = payAmount / aquamPriceNgn;
     const feeAquam = grossAquam * SERVICE_FEE_PERCENT;
-    netAquamToReceive = grossAquam - feeAquam;
+    netAquamToReceive = Number((grossAquam - feeAquam).toFixed(4));
 
     document.getElementById("netAquam").innerText = `${netAquamToReceive.toLocaleString(undefined, {maximumFractionDigits: 2})} AQUAM`;
 }
@@ -405,7 +402,7 @@ function executePaystackPayment() {
     const btn = document.getElementById("payBtn");
     btn.disabled = true;
 
-    function handlePaystackSuccess(response) {
+    async function handlePaystackSuccess(response) {
         btn.disabled = false;
         
         const newTx = {
@@ -418,24 +415,26 @@ function executePaystackPayment() {
 
         saveTransaction(newTx);
 
-        // Call Supabase Edge Function to verify payment, log DB record, and issue Jettons
-        fetch(SUPABASE_ENDPOINT, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
-            },
-            body: JSON.stringify({
-                reference: response.reference,
-                walletAddress: friendlyAddr,
-                rawAddress: activeAddress,
-                amountNgn: payAmount,
-                aquamAmount: netAquamToReceive
-            })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
+        try {
+            const res = await fetch(SUPABASE_ENDPOINT, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "apikey": SUPABASE_ANON_KEY,
+                    "Authorization": `Bearer ${SUPABASE_ANON_KEY}`
+                },
+                body: JSON.stringify({
+                    reference: response.reference,
+                    walletAddress: friendlyAddr,
+                    rawAddress: activeAddress,
+                    amountNgn: payAmount,
+                    aquamAmount: Number(netAquamToReceive.toFixed(4))
+                })
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
                 updateTxStatus(response.reference, "Successful");
                 showToast(
                     "Payment Successful!", 
@@ -448,12 +447,11 @@ function executePaystackPayment() {
                 updateTxStatus(response.reference, "Failed");
                 showToast("Processing Error", data.error || "Payment received, but token delivery failed. Contact support.", "error");
             }
-        })
-        .catch(err => {
+        } catch (err) {
             console.error("Edge Function dispatch error:", err);
             updateTxStatus(response.reference, "Pending");
             showToast("Network Error", "Unable to verify execution with server. Please check your balance shortly.", "warning");
-        });
+        }
     }
 
     function handlePaystackClose() {
