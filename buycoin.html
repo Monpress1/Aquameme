@@ -166,8 +166,8 @@ const SERVICE_FEE_PERCENT = 0.10;
 let currentAquamPriceUsd = 0.012; 
 let ngnPerUsd = 1345; 
 let aquamPriceNgn = currentAquamPriceUsd * ngnPerUsd; 
-let minPurchaseNgn = 15;
-const MIN_PURCHASE_USD = 0.010;
+let minPurchaseNgn = 1350;
+const MIN_PURCHASE_USD = 1.0;
 
 let userAddress = "";
 let jettonWallet = "";
@@ -402,7 +402,7 @@ function executePaystackPayment() {
                 ngn: payAmount,
                 aquam: netAquamToReceive,
                 date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                status: "Processing..."
+                status: "successful"
             });
 
             showToast("Payment Successful!", "Verifying transaction and sending AQUAM to your wallet...", "info");
@@ -429,7 +429,7 @@ function executePaystackPayment() {
                     showToast("Tokens Delivered!", `<b>+${netAquamToReceive.toLocaleString()} AQUAM</b> has been sent to your wallet.`, "success");
                 } else {
                     console.warn("Backend processing flag:", data);
-                    updateTxStatus(response.reference, "Processing...");
+                    updateTxStatus(response.reference, "successful");
                 }
             })
             .catch(err => {
