@@ -91,6 +91,18 @@
                         <div class="w-8 h-8 rounded-lg bg-slate-100 dark:bg-gray-700/50 flex items-center justify-center group-hover:bg-blue-500 group-hover:text-white transition"><i class="fa-solid fa-home text-slate-400 group-hover:text-white"></i></div>
                         <span class="text-sm font-bold">Home</span>
                     </a>
+                    <a href="buycoin.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/10 flex items-center justify-center group-hover:bg-emerald-500 transition"><i class="fa-solid fa-coins text-emerald-500 group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">Buy Coin</span>
+                    </a>
+                    <a href="dex.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500 transition"><i class="fa-solid fa-arrow-right-arrow-left text-blue-500 group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">DEX Swap</span>
+                    </a>
+                    <a href="snapshot.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
+                        <div class="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-500/10 flex items-center justify-center group-hover:bg-amber-500 transition"><i class="fa-solid fa-ticket text-amber-500 group-hover:text-white"></i></div>
+                        <span class="text-sm font-bold">Raffle Draw</span>
+                    </a>
                     <a href="aquarush.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
                         <div class="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-500/10 flex items-center justify-center group-hover:bg-purple-500 transition"><i class="fa-solid fa-gamepad text-purple-500 group-hover:text-white"></i></div>
                         <span class="text-sm font-bold">Aquarush Game</span>
@@ -99,12 +111,8 @@
                         <div class="w-8 h-8 rounded-lg bg-pink-100 dark:bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500 transition"><i class="fa-solid fa-dharmachakra text-pink-500 group-hover:text-white"></i></div>
                         <span class="text-sm font-bold">Spin2Win</span>
                     </a>
-                    <a href="dex.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
-                        <div class="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-500/10 flex items-center justify-center group-hover:bg-blue-500 transition"><i class="fa-solid fa-arrow-right-arrow-left text-blue-500 group-hover:text-white"></i></div>
-                        <span class="text-sm font-bold">DEX Swap</span>
-                    </a>
                     <a href="stake.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500 transition"><i class=" fa fa-line-chart text-indigo-500 group-hover:text-white"></i></div>
+                        <div class="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-500/10 flex items-center justify-center group-hover:bg-indigo-500 transition"><i class="fa fa-line-chart text-indigo-500 group-hover:text-white"></i></div>
                         <span class="text-sm font-bold">Stake/Invest</span>
                     </a>
                     <a href="market.html" class="flex items-center gap-3 p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl transition group">
@@ -181,6 +189,18 @@
     <!-- Main Grid -->
     <div class="grid grid-cols-2 gap-4 mb-8">
         
+        <!-- 1. Buy Coin (buycoin.html) -->
+        <div onclick="location.href='buycoin.html'" class="app-btn bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder p-5 flex flex-col justify-between h-36 rounded-2xl shadow-sm cursor-pointer group">
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-100 dark:border-emerald-500/20 group-hover:bg-emerald-500 group-hover:text-white transition">
+                <i class="fa-solid fa-coins"></i>
+            </div>
+            <div>
+                <p class="font-bold text-sm mb-1 text-slate-800 dark:text-white">Buy Aquameme</p>
+                <p class="text-[10px] text-slate-500 dark:opacity-60 leading-tight">Buy Aquam with bank 🔥</p>
+            </div>
+        </div>
+
+        <!-- 2. DEX Swap (dex.html) -->
         <div onclick="location.href='dex.html'" class="app-btn bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder p-5 flex flex-col justify-between h-36 rounded-2xl shadow-sm cursor-pointer group">
             <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center text-blue-500 border border-blue-100 dark:border-blue-500/20 group-hover:bg-blue-500 group-hover:text-white transition">
                 <i class="fa-solid fa-sync-alt"></i>
@@ -191,6 +211,18 @@
             </div>
         </div>
 
+        <!-- 3. Raffle (snapshot.html) -->
+        <div onclick="location.href='snapshot.html'" class="app-btn bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder p-5 flex flex-col justify-between h-36 rounded-2xl shadow-sm cursor-pointer group">
+            <div class="w-10 h-10 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center text-amber-500 border border-amber-100 dark:border-amber-500/20 group-hover:bg-amber-500 group-hover:text-white transition">
+                <i class="fa-solid fa-ticket"></i>
+            </div>
+            <div>
+                <p class="font-bold text-sm mb-1 text-slate-800 dark:text-white">Raffle Draw</p>
+                <p class="text-[10px] text-slate-500 dark:opacity-60 leading-tight">Win Big Prizes</p>
+            </div>
+        </div>
+
+        <!-- 4. Marketplace (market.html) -->
         <div onclick="location.href='market.html'" class="app-btn bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder p-5 flex flex-col justify-between h-36 rounded-2xl shadow-sm cursor-pointer group">
             <div class="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-purple-500 border border-purple-100 dark:border-purple-500/20 group-hover:bg-purple-500 group-hover:text-white transition">
                 <i class="fa-solid fa-store"></i>
@@ -201,6 +233,7 @@
             </div>
         </div>
 
+        <!-- 5. Share -->
         <div onclick="openShare()" class="app-btn bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder p-5 flex flex-col justify-between h-36 rounded-2xl shadow-sm cursor-pointer group">
             <div class="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-500/10 flex items-center justify-center text-green-500 border border-green-100 dark:border-green-500/20 group-hover:bg-green-500 group-hover:text-white transition">
                 <i class="fa-solid fa-share-nodes"></i>
@@ -211,6 +244,7 @@
             </div>
         </div>
 
+        <!-- 6. Send P2P (p2p.html) -->
         <div onclick="location.href='p2p.html'" class="app-btn bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder p-5 flex items-center justify-between h-36 rounded-2xl shadow-sm cursor-pointer group">
             <div class="flex flex-col h-full justify-between w-full">
                 <div class="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-100 dark:border-orange-500/20 group-hover:bg-orange-500 group-hover:text-white transition">
@@ -317,7 +351,7 @@
         </div>
     </div>
 
-    <!-- Share to Unlock Modal (formerly Referral) -->
+    <!-- Share to Unlock Modal -->
     <div id="shareModal" class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/70 hidden backdrop-blur-sm transition-opacity">
         <div class="bg-white dark:bg-darkcard w-full max-w-md p-6 rounded-t-3xl sm:rounded-3xl border-t sm:border border-slate-200 dark:border-blue-500/30 animate-slide-up relative shadow-2xl">
             <button onclick="closeShare()" class="absolute top-4 right-4 bg-slate-100 dark:bg-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-slate-500 dark:text-gray-400"><i class="fa-solid fa-xmark"></i></button>
@@ -434,7 +468,6 @@
             processBotResponse(text);
         }
 
-        // Allow 'Enter' key to send message
         chatInput.addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 handleUserInput();
@@ -465,7 +498,6 @@
         }
 
         function processBotResponse(input) {
-            // Loading indicator (optional simple visual delay)
             setTimeout(() => {
                 let response = "I'm still learning! You can ask me about Buying AQUAM, Vouchers, Swapping, Games, or P2P Transfers.";
                 const lowerInput = input.toLowerCase();
@@ -473,7 +505,9 @@
                 if (lowerInput.includes('voucher') || lowerInput.includes('code')) {
                     response = "To use a voucher, go to your **Profile** and select 'Redeem Voucher'. Enter your 12-digit code to get free tokens!";
                 } else if (lowerInput.includes('buy') || lowerInput.includes('purchase')) {
-                    response = "You can easily buy AQUAM directly via our **Trusted Vendor** on WhatsApp using the green banner above, or use the **DEX Swap** page to trade USDT/TON for AQUAM.";
+                    response = "You can easily buy AQUAM directly via the **Buy Coin** page, our **Trusted Vendor** on WhatsApp, or the **DEX Swap** section.";
+                } else if (lowerInput.includes('raffle') || lowerInput.includes('ticket')) {
+                    response = "Participate in the **Raffle Draw** to win massive token rewards and prizes!";
                 } else if (lowerInput.includes('p2p') || lowerInput.includes('transfer') || lowerInput.includes('send')) {
                     response = "Our P2P transfers are instant and zero-fee! Go to the **Send P2P** page, enter the recipient's AquaID, and enter the amount.";
                 } else if (lowerInput.includes('game') || lowerInput.includes('aquarush') || lowerInput.includes('play')) {
@@ -488,7 +522,6 @@
                     response = "AQUA-APPS is built on secure blockchain infrastructure. We recommend only buying from our official links or the trusted vendor provided on the home page.";
                 }
 
-                // Format bold text visually
                 response = response.replace(/\*\*(.*?)\*\*/g, '<strong class="text-blue-600 dark:text-blue-400">$1</strong>');
                 
                 addMessage(response, 'bot');
@@ -504,7 +537,6 @@
 
         function openShare() {
             shareModal.classList.remove('hidden');
-            // Trigger reflow for animation
             void shareModal.offsetWidth; 
             updateShareProgress();
         }
@@ -523,7 +555,6 @@
                 shareCountDisplay.innerText = `${shareCount} / ${maxShares} Shared`;
             }
 
-            // BOT UNLOCK TRIGGER
             if (shareCount >= maxShares) {
                 setTimeout(() => {
                     closeShare(); 
@@ -555,7 +586,6 @@
             const link = "https://aquameme.space";
             navigator.clipboard.writeText(link).then(() => {
                 incrementShare();
-                // Brief visual feedback on the button could go here
             });
         }
 
@@ -565,7 +595,6 @@
                 updateShareProgress();
             }
         }
-
     </script>
 </body>
 </html>

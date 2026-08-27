@@ -13,12 +13,41 @@
 
 <style>
     :root { 
+        /* Dark Theme Variables (Default) */
         --bg: #0b111b; 
+        --header-bg: rgba(11, 17, 27, 0.9);
+        --nav-bg: rgba(11, 17, 27, 0.95);
         --card: #131b29; 
+        --card-subtle: rgba(255, 255, 255, 0.03);
+        --card-hover: rgba(255, 255, 255, 0.08);
+        --history-bg: rgba(30, 41, 59, 0.3);
         --border: #1e293b; 
         --text: #ffffff; 
         --subtext: #94a3b8; 
         --primary: #3b82f6; 
+        --modal-overlay: rgba(0, 0, 0, 0.8);
+        --pill-bg: rgba(15, 23, 42, 0.6);
+        --btn-icon-color: #ffffff;
+        --modal-close-bg: #1e293b;
+    }
+    
+    [data-theme="light"] {
+        /* Light Theme Variables */
+        --bg: #f8fafc; 
+        --header-bg: rgba(248, 250, 252, 0.9);
+        --nav-bg: rgba(255, 255, 255, 0.95);
+        --card: #ffffff; 
+        --card-subtle: rgba(0, 0, 0, 0.03);
+        --card-hover: rgba(0, 0, 0, 0.06);
+        --history-bg: rgba(241, 245, 249, 0.9);
+        --border: #e2e8f0; 
+        --text: #0f172a; 
+        --subtext: #64748b; 
+        --primary: #2563eb; 
+        --modal-overlay: rgba(15, 23, 42, 0.4);
+        --pill-bg: rgba(226, 232, 240, 0.6);
+        --btn-icon-color: #0f172a;
+        --modal-close-bg: #e2e8f0;
     }
     
     body { 
@@ -27,13 +56,15 @@
         font-family: 'Manrope', sans-serif; 
         -webkit-tap-highlight-color: transparent; 
         margin: 0; 
-        padding-bottom: 120px; /* Extra space for nav */
+        padding-bottom: 120px;
+        transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     .card-bg { 
         background: var(--card); 
         border: 1px solid var(--border); 
         border-radius: 1.25rem; 
+        transition: background-color 0.3s ease, border-color 0.3s ease;
     }
 
     .action-btn {
@@ -43,20 +74,20 @@
         justify-content: center;
         gap: 8px;
         padding: 16px;
-        background: rgba(255, 255, 255, 0.03);
+        background: var(--card-subtle);
         border-radius: 16px;
-        transition: 0.2s;
+        transition: background-color 0.2s, transform 0.2s, border-color 0.2s;
         cursor: pointer;
-        border: 1px solid transparent;
+        border: 1px solid var(--border);
     }
-    .action-btn:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.08); border-color: var(--border); }
-    .action-btn i { font-size: 1.4rem; color: var(--text); }
+    .action-btn:active { transform: scale(0.95); background: var(--card-hover); border-color: var(--border); }
+    .action-btn i { font-size: 1.4rem; }
     .action-btn span { font-size: 0.7rem; font-weight: 600; color: var(--subtext); text-align: center; line-height: 1.1; }
 
     /* Modal Styling */
     .modal-overlay {
         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+        background: var(--modal-overlay); backdrop-filter: blur(5px);
         z-index: 100;
         display: flex; align-items: flex-end;
         opacity: 0; pointer-events: none; transition: 0.3s;
@@ -77,8 +108,14 @@
     .input { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; width: 100%; color: var(--text); outline: none; font-weight: 600; }
     .input:focus { border-color: var(--primary); }
 
-    .asset-pill { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 11px; font-weight: 700; cursor: pointer; opacity: 0.5; display: flex; align-items: center; gap: 6px; }
+    .asset-pill { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); font-size: 11px; font-weight: 700; cursor: pointer; opacity: 0.6; display: flex; align-items: center; gap: 6px; color: var(--text); }
     .asset-pill.selected { background: var(--primary); border-color: var(--primary); color: white; opacity: 1; }
+
+    /* Dynamic UI Theme Clashing Fixes */
+    .dynamic-bg { background-color: var(--bg); }
+    .dynamic-card { background-color: var(--card); }
+    .dynamic-border { border-color: var(--border); }
+    .dynamic-text-subtle { color: var(--subtext); }
 
     /* Nav Styling */
     .nav-item { color: var(--subtext); display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; gap: 4px; font-weight: 700; cursor: pointer; transition: 0.2s; }
@@ -93,14 +130,26 @@
     .loader-ring:after { content: " "; display: block; width: 18px; height: 18px; margin: 1px; border-radius: 50%; border: 2px solid #fff; border-color: #fff transparent #fff transparent; animation: ring 1.2s linear infinite; }
     @keyframes ring { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 </style>
+<script>
+    // Execute early to avoid flash of white/dark context on slow load
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+</script>
 </head>
 
 <body class="select-none">
 
-<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-30 bg-[#0b111b]/90 backdrop-blur-md">
+<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-30 backdrop-blur-md transition-colors duration-300" style="background: var(--header-bg);">
     <div id="ton-connect"></div>
-    <div class="w-10 h-10 rounded-full bg-gray-800/50 flex items-center justify-center text-gray-400 border border-gray-700/50">
-        <i class="fa-solid fa-bell"></i>
+    <div class="flex items-center gap-3">
+        <!-- Theme Toggle Button -->
+        <button id="themeToggleBtn" onclick="toggleTheme()" class="w-10 h-10 rounded-full flex items-center justify-center border transition-colors duration-300" style="background: var(--card-subtle); border-color: var(--border); color: var(--text);">
+            <i id="themeIcon" class="fa-solid fa-moon"></i>
+        </button>
+        <!-- Bell Icon -->
+        <div class="w-10 h-10 rounded-full flex items-center justify-center border transition-colors duration-300" style="background: var(--card-subtle); border-color: var(--border); color: var(--subtext);">
+            <i class="fa-solid fa-bell"></i>
+        </div>
     </div>
 </header>
 
@@ -111,13 +160,13 @@
     <!-- MAIN AQUAM BALANCE -->
     <div class="flex flex-col items-center justify-center">
         <div class="flex items-center gap-2 mb-1 opacity-70">
-            <span class="text-xs font-bold uppercase tracking-widest">AQUAM Balance</span>
+            <span class="text-xs font-bold uppercase tracking-widest" style="color: var(--subtext);">AQUAM Balance</span>
             <i class="fa-solid fa-battery-full text-[10px] battery-pulse"></i>
         </div>
 
         <!-- AQUAM BIG -->
         <div class="flex items-baseline gap-1">
-            <span class="text-4xl font-black tracking-tighter text-white" id="balAQUAM">
+            <span class="text-4xl font-black tracking-tighter" style="color: var(--text);" id="balAQUAM">
                 0.00
             </span>
             <span class="text-lg font-bold text-blue-500">
@@ -127,10 +176,10 @@
 
         <!-- TON SMALL UNDER -->
         <div class="flex items-center gap-1 mt-1 opacity-60">
-            <span class="text-xs font-semibold text-gray-300" id="balTON">
+            <span class="text-xs font-semibold" style="color: var(--subtext);" id="balTON">
                 0.00
             </span>
-            <span class="text-[10px] font-bold text-gray-400">
+            <span class="text-[10px] font-bold" style="color: var(--subtext);">
                 TON
             </span>
         </div>
@@ -138,8 +187,8 @@
 
     <!-- ADDRESS -->
     <div class="flex justify-center mt-2">
-        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/5 border border-blue-500/10">
-            <span id="shortAddr" class="text-[10px] font-mono text-blue-400">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20">
+            <span id="shortAddr" class="text-[10px] font-mono text-blue-500 font-bold">
                 Not Connected
             </span>
         </div>
@@ -148,41 +197,41 @@
 </div>
     <div class="grid grid-cols-3 gap-3 mb-8">
         <div onclick="openModal('sendModal')" class="action-btn">
-            <i class="fa-solid fa-paper-plane text-blue-400"></i>
+            <i class="fa-solid fa-paper-plane text-blue-500"></i>
             <span>Send</span>
         </div>
         <div onclick="openModal('receiveModal')" class="action-btn">
-            <i class="fa-solid fa-qrcode text-white"></i>
+            <i class="fa-solid fa-qrcode" style="color: var(--btn-icon-color);"></i>
             <span>Receive</span>
         </div>
         <div onclick="location.href='app.html'" class="action-btn">
-            <i class="fa-solid fa-wifi text-green-400"></i>
+            <i class="fa-solid fa-wifi text-green-500"></i>
             <span>Airtime & Data</span>
         </div>
 
         <div onclick="location.href='dex.html'" class="action-btn">
-            <i class="fa-solid fa-shuffle text-purple-400"></i>
+            <i class="fa-solid fa-shuffle text-purple-500"></i>
             <span>Swap</span>
         </div>
         <div onclick="location.href='buyandsell.html'" class="action-btn">
-            <i class="fa-solid fa-money-bill-wave text-green-500"></i>
+            <i class="fa-solid fa-money-bill-wave text-emerald-500"></i>
             <span>Buy / Sell</span>
         </div>
         <div onclick="location.href='stake.html'" class="action-btn">
-            <i class="fa-solid fa-layer-group text-yellow-500"></i>
+            <i class="fa-solid fa-layer-group text-amber-500"></i>
             <span>Stake</span>
         </div>
     </div>
 
     <div class="card-bg p-5">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="font-bold text-sm text-gray-400 uppercase tracking-wider">History</h3>
-            <i class="fa-solid fa-clock-rotate-left text-gray-600"></i>
+            <h3 class="font-bold text-xs uppercase tracking-wider" style="color: var(--subtext);">History</h3>
+            <i class="fa-solid fa-clock-rotate-left" style="color: var(--subtext);"></i>
         </div>
         
         <div id="tx-history" class="space-y-3">
             <div class="text-center py-4">
-                <p class="text-xs text-gray-600">No recent transactions found.</p>
+                <p class="text-xs" style="color: var(--subtext);">No recent transactions found.</p>
             </div>
         </div>
     </div>
@@ -193,11 +242,11 @@
 <div id="sendModal" class="modal-overlay" onclick="if(event.target === this) closeModal('sendModal')">
     <div class="modal-content">
         <div class="flex justify-between items-center mb-6">
-            <h3 class="font-bold text-xl">Send Assets</h3>
-            <button onclick="closeModal('sendModal')" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-xl" style="color: var(--text);">Send Assets</h3>
+            <button onclick="closeModal('sendModal')" class="w-8 h-8 rounded-full flex items-center justify-center" style="background: var(--modal-close-bg); color: var(--text);"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <div class="flex gap-3 mb-6 bg-gray-900/50 p-2 rounded-2xl">
+        <div class="flex gap-3 mb-6 p-2 rounded-2xl" style="background: var(--pill-bg);">
             <div onclick="selectAsset('TON')" id="asset-ton" class="asset-pill selected flex-1 justify-center py-3">
                 <div class="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-[8px] text-white">T</div> TON
             </div>
@@ -208,7 +257,7 @@
 
         <div class="space-y-5">
             <div>
-                <label class="text-xs text-gray-400 font-bold ml-1 mb-2 block uppercase">Recipient</label>
+                <label class="text-xs font-bold ml-1 mb-2 block uppercase" style="color: var(--subtext);">Recipient</label>
                 <div class="relative">
                     <input id="p2pAddress" type="text" placeholder="Paste Wallet Address (UQ...)" class="input pr-12 text-xs font-mono">
                     <button onclick="pasteAddress()" class="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500 text-[10px] font-bold bg-blue-500/10 px-2 py-1 rounded">PASTE</button>
@@ -216,16 +265,16 @@
             </div>
 
             <div>
-                <label class="text-xs text-gray-400 font-bold ml-1 mb-2 block uppercase">Amount</label>
+                <label class="text-xs font-bold ml-1 mb-2 block uppercase" style="color: var(--subtext);">Amount</label>
                 <div class="relative">
                     <input id="p2pAmount" type="number" placeholder="0.00" class="input text-2xl font-black">
                     <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                         <span class="text-xs font-bold text-gray-500" id="inputTicker">TON</span>
-                        <button onclick="setMax()" class="text-[10px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded font-bold">MAX</button>
+                         <span class="text-xs font-bold" style="color: var(--subtext);" id="inputTicker">TON</span>
+                        <button onclick="setMax()" class="text-[10px] bg-blue-500/20 text-blue-500 px-2 py-1 rounded font-bold">MAX</button>
                     </div>
                 </div>
                 <div class="text-right mt-2">
-                    <span class="text-xs text-gray-500">Available: <span id="modalBal" class="text-white font-bold">0.00</span></span>
+                    <span class="text-xs" style="color: var(--subtext);">Available: <span id="modalBal" class="font-bold" style="color: var(--text);">0.00</span></span>
                 </div>
             </div>
 
@@ -240,26 +289,26 @@
 <div id="receiveModal" class="modal-overlay" onclick="if(event.target === this) closeModal('receiveModal')">
     <div class="modal-content text-center">
         <div class="flex justify-between items-center mb-4">
-            <h3 class="font-bold text-xl">Receive</h3>
-            <button onclick="closeModal('receiveModal')" class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="font-bold text-xl" style="color: var(--text);">Receive</h3>
+            <button onclick="closeModal('receiveModal')" class="w-8 h-8 rounded-full flex items-center justify-center" style="background: var(--modal-close-bg); color: var(--text);"><i class="fa-solid fa-xmark"></i></button>
         </div>
 
-        <div class="p-6 bg-white rounded-2xl mx-auto w-max mb-6 relative overflow-hidden">
+        <div class="p-6 bg-white rounded-2xl mx-auto w-max mb-6 relative overflow-hidden shadow-md">
             <i class="fa-solid fa-qrcode text-6xl text-black relative z-10"></i>
             <div class="absolute inset-0 bg-gradient-to-tr from-blue-500/20 to-transparent"></div>
         </div>
 
-        <p class="text-gray-400 text-xs mb-2 uppercase font-bold tracking-widest">Your Address</p>
-        <div onclick="copyAddress()" class="bg-gray-800/50 p-4 rounded-xl border border-gray-700 flex items-center justify-between gap-3 cursor-pointer active:bg-gray-800 transition">
-            <div id="fullAddress" class="font-mono text-xs text-gray-300 break-all text-left">Connect Wallet...</div>
+        <p class="text-xs mb-2 uppercase font-bold tracking-widest" style="color: var(--subtext);">Your Address</p>
+        <div onclick="copyAddress()" class="p-4 rounded-xl border flex items-center justify-between gap-3 cursor-pointer active:opacity-80 transition" style="background: var(--card); border-color: var(--border);">
+            <div id="fullAddress" class="font-mono text-xs break-all text-left" style="color: var(--text);">Connect Wallet...</div>
             <i class="fa-regular fa-copy text-blue-500"></i>
         </div>
-        <p class="text-[10px] text-gray-500 mt-4">Only send TON (TRC-20) or AQUAM to this address.</p>
+        <p class="text-[10px] mt-4" style="color: var(--subtext);">Only send TON (TRC-20) or AQUAM to this address.</p>
     </div>
 </div>
 
 
-<nav class="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-gray-800/40 px-4 flex justify-between items-center z-20 h-[85px]" style="background: rgba(11, 17, 27, 0.95)">
+<nav class="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t px-4 flex justify-between items-center z-20 h-[85px] transition-colors duration-300" style="background: var(--nav-bg); border-color: var(--border);">
     <div onclick="location.href='app.html'" class="nav-item">
         <i class="fa-solid fa-house-chimney"></i>
         <span>Home</span>
@@ -299,6 +348,33 @@ const tonUI = new TON_CONNECT_UI.TonConnectUI({
   buttonRootId: "ton-connect"
 });
 
+// --- THEME TOGGLE CONTROLLER ---
+function initTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    updateThemeIcon(currentTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+    const icon = document.getElementById('themeIcon');
+    if (theme === 'light') {
+        icon.className = 'fa-solid fa-sun text-amber-500';
+    } else {
+        icon.className = 'fa-solid fa-moon text-blue-400';
+    }
+}
+
+// Call icon initialization on document ready
+document.addEventListener('DOMContentLoaded', initTheme);
+
 // --- UI HELPERS ---
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -325,8 +401,6 @@ tonUI.onStatusChange(async wallet => {
 });
 
 // --- CORE FUNCTIONS ---
-
-// --- UPDATED CORE FUNCTIONS ---
 
 async function loadBalances() {
   try {
@@ -356,7 +430,7 @@ async function loadHistory() {
         const data = await fetch(`${API}/accounts/${userAddress}/events?limit=10`).then(r => r.json());
         
         if (!data.events || data.events.length === 0) {
-            historyDiv.innerHTML = `<div class="text-center py-4"><p class="text-xs text-gray-600">No transactions found.</p></div>`;
+            historyDiv.innerHTML = `<div class="text-center py-4"><p class="text-xs" style="color: var(--subtext);">No transactions found.</p></div>`;
             return;
         }
 
@@ -375,14 +449,14 @@ async function loadHistory() {
 
             const time = new Date(event.timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             const typeLabel = isOut ? "Sent" : "Received";
-            const colorClass = isOut ? "border-red-500 text-red-400" : "border-green-500 text-green-400";
+            const colorClass = isOut ? "border-red-500 text-red-500" : "border-green-500 text-green-500";
             const sign = isOut ? "-" : "+";
 
             historyDiv.innerHTML += `
-                <div class="flex items-center justify-between text-xs bg-gray-800/30 p-3 rounded-lg border-l-2 ${colorClass}">
+                <div class="flex items-center justify-between text-xs p-3 rounded-lg border-l-2 ${colorClass}" style="background: var(--history-bg);">
                     <div>
-                        <div class="font-bold text-white">${typeLabel}</div>
-                        <div class="text-gray-500 text-[10px]">${time}</div>
+                        <div class="font-bold" style="color: var(--text);">${typeLabel}</div>
+                        <div class="text-[10px]" style="color: var(--subtext);">${time}</div>
                     </div>
                     <div class="font-bold">${sign}${amount}</div>
                 </div>
@@ -393,9 +467,6 @@ async function loadHistory() {
         historyDiv.innerHTML = `<p class="text-[10px] text-center text-red-500">Failed to load history</p>`;
     }
 }
-
-// --- KEEP YOUR EXISTING executeTransfer() ---
-// (Just make sure it calls loadBalances() at the end to refresh everything!)
 
 function updateDisplay() {
     // Main Screen Displays
@@ -494,12 +565,12 @@ async function executeTransfer() {
         const historyDiv = document.getElementById('tx-history');
         if(historyDiv.innerText.includes("No recent")) historyDiv.innerHTML = "";
         historyDiv.innerHTML = `
-            <div class="flex items-center justify-between text-xs bg-gray-800/30 p-3 rounded-lg border-l-2 border-red-500">
+            <div class="flex items-center justify-between text-xs p-3 rounded-lg border-l-2 border-red-500 text-red-500" style="background: var(--history-bg);">
                 <div>
-                    <div class="font-bold text-white">Sent ${currentAsset}</div>
-                    <div class="text-gray-500 text-[10px]">${new Date().toLocaleTimeString()}</div>
+                    <div class="font-bold" style="color: var(--text);">Sent ${currentAsset}</div>
+                    <div class="text-[10px]" style="color: var(--subtext);">${new Date().toLocaleTimeString()}</div>
                 </div>
-                <div class="font-bold text-red-400">-${amount}</div>
+                <div class="font-bold">-${amount}</div>
             </div>
         ` + historyDiv.innerHTML;
 

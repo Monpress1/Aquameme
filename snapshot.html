@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Snapshot Leaderboard | AquaCoinX</title>
+
+<!-- Dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        darkMode: 'class'
+    }
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+<style>
+    :root { 
+        --bg-dark: #0b111b; 
+        --card-dark: #131b29; 
+        --border-dark: #1e293b; 
+        --text-dark: #ffffff; 
+        
+        --bg-light: #f8fafc;
+        --card-light: #ffffff;
+        --border-light: #e2e8f0;
+        --text-light: #0f172a;
+    }
+    
+    body { 
+        font-family: 'Manrope', sans-serif; 
+        -webkit-tap-highlight-color: transparent; 
+        margin: 0; 
+        padding-bottom: 40px;
+        transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    html.dark body { background: var(--bg-dark); color: var(--text-dark); }
+    html:not(.dark) body { background: var(--bg-light); color: var(--text-light); }
+
+    .card-bg { 
+        border-radius: 1.25rem; 
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+    }
+    html.dark .card-bg { background: var(--card-dark); border: 1px solid var(--border-dark); }
+    html:not(.dark) .card-bg { background: var(--card-light); border: 1px solid var(--border-light); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+
+    /* Tier Theme Gradients */
+    .bronze-gradient { background: linear-gradient(135deg, #e59344 0%, #cd7f32 50%, #8c531b 100%); }
+    .silver-gradient { background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 50%, #64748b 100%); }
+    .gold-gradient { background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 50%, #b45309 100%); }
+
+    .pulse-glow { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
+    .user-highlight {
+        animation: highlight-pulse 2.5s infinite alternate;
+    }
+    @keyframes highlight-pulse {
+        0% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.4); }
+        100% { box-shadow: 0 0 18px rgba(59, 130, 246, 0.8); }
+    }
+</style>
+</head>
+
+<body class="select-none">
+
+<!-- HEADER -->
+<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-30 border-b transition-colors duration-300 dark:bg-[#0b111b]/90 bg-white/90 backdrop-blur-md dark:border-gray-800/40 border-gray-200">
+    <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center border border-blue-400/30">
+            <i class="fa-solid fa-camera text-white text-xs"></i>
+        </div>
+        <div>
+            <span class="font-extrabold text-sm tracking-tight dark:text-white text-gray-900 block leading-tight">AquaCoinX Snapshot</span>
+            <span class="text-[9px] font-extrabold text-blue-500 uppercase tracking-wider">Live Tier Leaderboards</span>
+        </div>
+    </div>
+
+    <div class="flex items-center gap-3">
+        <button onclick="toggleTheme()" class="w-9 h-9 rounded-full dark:bg-gray-800 bg-gray-100 flex items-center justify-center border dark:border-gray-700 border-gray-200 transition active:scale-95">
+            <i id="themeIcon" class="fa-solid fa-moon text-yellow-400"></i>
+        </button>
+        <div id="ton-connect"></div>
+    </div>
+</header>
+
+<main class="px-5 space-y-6 mt-4">
+
+    <!-- HERO OVERVIEW BANNER -->
+    <div class="card-bg p-5 relative overflow-hidden border-blue-500/30">
+        <div class="flex justify-between items-start mb-3">
+            <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-blue-600 text-white shadow-md">
+                📸 SNAPSHOT PROGRAM
+            </span>
+            <div id="statusBadge" class="flex items-center gap-1.5 text-xs text-blue-500 font-extrabold bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
+                <i class="fa-solid fa-bolt pulse-glow"></i>
+                <span id="statusText">Accumulation Phase</span>
+            </div>
+        </div>
+
+        <h1 class="text-xl font-black dark:text-white text-gray-900 tracking-tight mb-1">
+            Global Snapshot Leaderboard
+        </h1>
+        <p class="text-xs dark:text-gray-400 text-gray-600 font-medium leading-relaxed">
+            Qualify for snapshot tiers based on your total cumulative purchase volume. Buy more to upgrade your tier status!
+        </p>
+
+        <!-- USER CONNECTED SUMMARY -->
+        <div class="mt-4 pt-4 border-t dark:border-gray-800 border-gray-200 flex items-center justify-between">
+            <div>
+                <div class="text-[10px] font-extrabold dark:text-gray-400 text-gray-500 uppercase">Your Total Volume</div>
+                <div class="flex items-baseline gap-1">
+                    <span id="userSpentUsd" class="text-lg font-black dark:text-white text-gray-900">$0.00</span>
+                    <span class="text-[10px] font-bold text-blue-500">USD</span>
+                </div>
+            </div>
+            <div id="userTierStatus">
+                <span class="px-3 py-1.5 rounded-lg text-[10px] font-extrabold bg-gray-500/10 dark:text-gray-400 text-gray-600 uppercase border border-gray-500/20">
+                    Not Qualified
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TIER 1: GOLD SNAPSHOT ($100.00+) -->
+    <section class="card-bg p-5 space-y-4 border-amber-500/30">
+        <div class="flex items-center justify-between border-b dark:border-gray-800 border-gray-200 pb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl gold-gradient flex items-center justify-center text-white text-base shadow-md">
+                    <i class="fa-solid fa-crown"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-sm dark:text-white text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                        Gold Tier Snapshot
+                    </h3>
+                    <p class="text-[10px] text-amber-500 font-bold">$100.00+ Cumulative Purchases</p>
+                </div>
+            </div>
+            <span id="goldCount" class="text-xs font-black text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+                0 Wallets
+            </span>
+        </div>
+
+        <div id="goldLeaderboard" class="space-y-2">
+            <div class="text-center py-6 text-xs text-gray-500 font-medium">Loading Gold Snapshot...</div>
+        </div>
+    </section>
+
+    <!-- TIER 2: SILVER SNAPSHOT ($10.00 - $99.99) -->
+    <section class="card-bg p-5 space-y-4 border-slate-400/30">
+        <div class="flex items-center justify-between border-b dark:border-gray-800 border-gray-200 pb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl silver-gradient flex items-center justify-center text-white text-base shadow-md">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-sm dark:text-white text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                        Silver Tier Snapshot
+                    </h3>
+                    <p class="text-[10px] text-slate-400 font-bold">$10.00 – $99.99 Cumulative Purchases</p>
+                </div>
+            </div>
+            <span id="silverCount" class="text-xs font-black text-slate-400 bg-slate-400/10 px-2.5 py-1 rounded-full border border-slate-400/20">
+                0 Wallets
+            </span>
+        </div>
+
+        <div id="silverLeaderboard" class="space-y-2">
+            <div class="text-center py-6 text-xs text-gray-500 font-medium">Loading Silver Snapshot...</div>
+        </div>
+    </section>
+
+    <!-- TIER 3: BRONZE SNAPSHOT ($1.00 - $9.99) -->
+    <section class="card-bg p-5 space-y-4 border-amber-700/30">
+        <div class="flex items-center justify-between border-b dark:border-gray-800 border-gray-200 pb-3">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-xl bronze-gradient flex items-center justify-center text-white text-base shadow-md">
+                    <i class="fa-solid fa-award"></i>
+                </div>
+                <div>
+                    <h3 class="font-extrabold text-sm dark:text-white text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                        Bronze Tier Snapshot
+                    </h3>
+                    <p class="text-[10px] text-amber-700 font-bold">$1.00 – $9.99 Cumulative Purchases</p>
+                </div>
+            </div>
+            <span id="bronzeCount" class="text-xs font-black text-amber-600 bg-amber-600/10 px-2.5 py-1 rounded-full border border-amber-600/20">
+                0 Wallets
+            </span>
+        </div>
+
+        <div id="bronzeLeaderboard" class="space-y-2">
+            <div class="text-center py-6 text-xs text-gray-500 font-medium">Loading Bronze Snapshot...</div>
+        </div>
+    </section>
+
+    <!-- BUY COIN REDIRECT BUTTON -->
+    <div class="pt-2">
+        <button onclick="location.href='buycoin.html'" class="w-full py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 rounded-xl font-black text-white shadow-lg shadow-blue-600/20 transition flex items-center justify-center gap-2 text-sm tracking-wide">
+            <i class="fa-solid fa-cart-shopping"></i> BUY AQUACOIN & ELEVATE YOUR TIER
+        </button>
+    </div>
+
+</main>
+
+<!-- CONGRATULATIONS ONE-TIME POPUP MODAL -->
+<div id="congratsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-5">
+    <div class="card-bg p-6 max-w-sm w-full text-center relative animate__animated animate__zoomIn border border-blue-500/40 shadow-2xl">
+        
+        <div id="modalBadgeIcon" class="w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-2xl text-white mb-4 shadow-lg">
+            <i class="fa-solid fa-trophy"></i>
+        </div>
+
+        <h2 class="text-xl font-black dark:text-white text-gray-900 tracking-tight">Congratulations! 🎉</h2>
+        <p class="text-xs dark:text-gray-300 text-gray-600 font-semibold mt-1">You are officially qualified in the Snapshot!</p>
+
+        <div id="modalTierBox" class="my-4 p-3 rounded-xl border text-center font-extrabold text-sm">
+            <!-- Dynamic Tier Content -->
+        </div>
+
+        <p class="text-[11px] dark:text-gray-400 text-gray-500 mb-5">
+            Your cumulative volume qualifies you for upcoming rewards and snapshot distribution phases.
+        </p>
+
+        <button onclick="closeCongratsModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xs uppercase tracking-wider transition active:scale-95 shadow-md">
+            Awesome! Continue
+        </button>
+    </div>
+</div>
+
+<script>
+// --- CONFIGURATION ---
+const SUPABASE_URL = "https://ptllbgdixhesptlkqrqa.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let rawUserAddress = "";
+let friendlyUserAddress = "";
+let walletMapGlobal = {};
+
+// Helper: Normalize any TON address into User-Friendly Non-Bounceable format
+function normalizeTonAddress(addr) {
+    if (!addr) return "";
+    try {
+        const tonAddr = new TonWeb.utils.Address(addr);
+        return tonAddr.toString(true, true, true);
+    } catch (e) {
+        return addr.trim();
+    }
+}
+
+// --- THEME ENGINE ---
+const html = document.documentElement;
+const themeIcon = document.getElementById('themeIcon');
+
+if (localStorage.getItem('theme') === 'light') {
+    html.classList.remove('dark');
+} else {
+    html.classList.add('dark');
+}
+updateThemeIcon();
+
+function toggleTheme() {
+    html.classList.toggle('dark');
+    const isDark = html.classList.contains('dark');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateThemeIcon();
+}
+
+function updateThemeIcon() {
+    const isDark = html.classList.contains('dark');
+    if (themeIcon) {
+        themeIcon.className = isDark ? 'fa-solid fa-moon text-yellow-400' : 'fa-solid fa-sun text-orange-500';
+    }
+}
+
+// --- TON CONNECT SETUP ---
+const tonUI = new TON_CONNECT_UI.TonConnectUI({
+  manifestUrl: "https://raw.githubusercontent.com/Monpress1/Aquameme/main/tonconnect-manifest.json",
+  buttonRootId: "ton-connect"
+});
+
+tonUI.onStatusChange(async wallet => {
+    if (!wallet) {
+        rawUserAddress = "";
+        friendlyUserAddress = "";
+        document.getElementById("userSpentUsd").innerText = "$0.00";
+        updateUserTierBadge(0);
+        loadLeaderboard();
+        return;
+    }
+    
+    rawUserAddress = wallet.account.address;
+    friendlyUserAddress = normalizeTonAddress(rawUserAddress);
+    
+    loadLeaderboard();
+});
+
+// --- LOAD ALL SNAPSHOT TIERS & AGGREGATE PURCHASES ---
+async function loadLeaderboard() {
+    const { data: purchases, error } = await supabaseClient
+        .from('purchases')
+        .select('*');
+
+    if (error) {
+        console.error("Error fetching snapshot purchases:", error);
+        return;
+    }
+
+    // Aggregate by normalized wallet address
+    walletMapGlobal = {};
+    purchases.forEach(item => {
+        const rawAddr = item.wallet_address || "";
+        const normalized = normalizeTonAddress(rawAddr);
+        const usd = parseFloat(item.usd_equivalent || 0);
+        const aquam = parseFloat(item.aquam_amount || 0);
+
+        if (!walletMapGlobal[normalized]) {
+            walletMapGlobal[normalized] = {
+                wallet_address: normalized,
+                total_usd: 0,
+                total_aquam: 0
+            };
+        }
+        walletMapGlobal[normalized].total_usd += usd;
+        walletMapGlobal[normalized].total_aquam += aquam;
+    });
+
+    const allUsers = Object.values(walletMapGlobal);
+
+    // Group into 3 Tiers dynamically based on aggregated DB values
+    const goldUsers = allUsers.filter(u => u.total_usd >= 100.00).sort((a,b) => b.total_usd - a.total_usd);
+    const silverUsers = allUsers.filter(u => u.total_usd >= 10.00 && u.total_usd < 100.00).sort((a,b) => b.total_usd - a.total_usd);
+    const bronzeUsers = allUsers.filter(u => u.total_usd >= 1.00 && u.total_usd < 10.00).sort((a,b) => b.total_usd - a.total_usd);
+
+    // Update Counts
+    document.getElementById("goldCount").innerText = `${goldUsers.length} Wallets`;
+    document.getElementById("silverCount").innerText = `${silverUsers.length} Wallets`;
+    document.getElementById("bronzeCount").innerText = `${bronzeUsers.length} Wallets`;
+
+    // Render Lists
+    renderTierList("goldLeaderboard", goldUsers, "gold");
+    renderTierList("silverLeaderboard", silverUsers, "silver");
+    renderTierList("bronzeLeaderboard", bronzeUsers, "bronze");
+
+    // Current Connected User Display Update
+    syncUserOverview();
+}
+
+function syncUserOverview() {
+    if (friendlyUserAddress && walletMapGlobal[friendlyUserAddress]) {
+        const userStats = walletMapGlobal[friendlyUserAddress];
+        const userUsd = userStats.total_usd;
+        document.getElementById("userSpentUsd").innerText = `$${userUsd.toFixed(2)}`;
+        updateUserTierBadge(userUsd);
+        checkCongratulationsModal(userUsd);
+    } else {
+        document.getElementById("userSpentUsd").innerText = "$0.00";
+        updateUserTierBadge(0);
+    }
+}
+
+function renderTierList(elementId, users, tierType) {
+    const container = document.getElementById(elementId);
+    if (users.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-5 dark:text-gray-400 text-gray-500 text-xs font-medium dark:bg-gray-900/40 bg-gray-50 rounded-xl border dark:border-gray-800 border-gray-200">
+                No participants in this tier yet.
+            </div>
+        `;
+        return;
+    }
+
+    let badgeColor = "text-amber-500";
+    if (tierType === "silver") badgeColor = "text-slate-400";
+    if (tierType === "bronze") badgeColor = "text-amber-600";
+
+    container.innerHTML = "";
+    users.forEach((item, index) => {
+        const rank = index + 1;
+        const walletStr = item.wallet_address || "Anonymous";
+        const shortAddress = walletStr.length > 10 ? walletStr.slice(0, 4) + "..." + walletStr.slice(-4) : walletStr;
+        const isCurrentUser = friendlyUserAddress && (normalizeTonAddress(walletStr) === friendlyUserAddress);
+
+        let cardStyling = `dark:bg-gray-900/40 bg-gray-50 dark:border-gray-800 border-gray-200`;
+        if (isCurrentUser) {
+            cardStyling = `bg-blue-500/10 border-blue-500/50 user-highlight`;
+        }
+
+        container.innerHTML += `
+            <div class="flex items-center justify-between p-3 rounded-xl border transition ${cardStyling}">
+                <div class="flex items-center gap-3">
+                    <span class="w-6 h-6 rounded-md bg-gray-200 dark:bg-gray-800 font-extrabold text-[10px] flex items-center justify-center dark:text-gray-300 text-gray-700">${rank}</span>
+                    <div>
+                        <div class="font-bold text-xs dark:text-white text-gray-900 font-mono flex items-center gap-1.5">
+                            ${shortAddress}
+                            ${isCurrentUser ? '<span class="text-[9px] bg-blue-600 text-white font-sans font-extrabold px-1.5 py-0.5 rounded-full uppercase shadow-sm">YOU</span>' : ''}
+                        </div>
+                        <div class="text-[10px] dark:text-gray-400 text-gray-500 font-semibold">Volume: $${item.total_usd.toFixed(2)} USD</div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="font-black text-xs ${badgeColor} tracking-tight">${Number(item.total_aquam).toLocaleString(undefined, {maximumFractionDigits: 0})} AQUAM</div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function updateUserTierBadge(totalUsd) {
+    const badge = document.getElementById("userTierStatus");
+    if (totalUsd >= 100.00) {
+        badge.innerHTML = `<span class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-amber-500/10 text-amber-500 border border-amber-500/30 uppercase flex items-center gap-1"><i class="fa-solid fa-crown"></i> Gold Tier</span>`;
+    } else if (totalUsd >= 10.00) {
+        badge.innerHTML = `<span class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-slate-400/10 text-slate-400 border border-slate-400/30 uppercase flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> Silver Tier</span>`;
+    } else if (totalUsd >= 1.00) {
+        badge.innerHTML = `<span class="px-3 py-1.5 rounded-lg text-[10px] font-black bg-amber-600/10 text-amber-600 border border-amber-600/30 uppercase flex items-center gap-1"><i class="fa-solid fa-award"></i> Bronze Tier</span>`;
+    } else {
+        badge.innerHTML = `<span class="px-3 py-1.5 rounded-lg text-[10px] font-extrabold bg-gray-500/10 dark:text-gray-400 text-gray-500 uppercase border border-gray-500/20">Not Qualified</span>`;
+    }
+}
+
+// --- ONE-TIME CONGRATULATIONS MODAL LOGIC ---
+function checkCongratulationsModal(totalUsd) {
+    if (totalUsd < 1.00) return;
+
+    let tierName = "";
+    let tierClass = "";
+    let iconClass = "";
+
+    if (totalUsd >= 100.00) {
+        tierName = "🥇 Gold Tier ($100.00+)";
+        tierClass = "bg-amber-500/10 border-amber-500/40 text-amber-500";
+        iconClass = "gold-gradient";
+    } else if (totalUsd >= 10.00) {
+        tierName = "🥈 Silver Tier ($10.00 - $99.99)";
+        tierClass = "bg-slate-400/10 border-slate-400/40 text-slate-400";
+        iconClass = "silver-gradient";
+    } else if (totalUsd >= 1.00) {
+        tierName = "🥉 Bronze Tier ($1.00 - $9.99)";
+        tierClass = "bg-amber-600/10 border-amber-600/40 text-amber-600";
+        iconClass = "bronze-gradient";
+    }
+
+    const storageKey = `congrats_seen_${friendlyUserAddress}_${tierName}`;
+    if (!localStorage.getItem(storageKey)) {
+        document.getElementById("modalBadgeIcon").className = `w-16 h-16 rounded-2xl mx-auto flex items-center justify-center text-2xl text-white mb-4 shadow-lg ${iconClass}`;
+        document.getElementById("modalTierBox").className = `my-4 p-3 rounded-xl border text-center font-extrabold text-sm ${tierClass}`;
+        document.getElementById("modalTierBox").innerText = tierName;
+
+        document.getElementById("congratsModal").classList.remove("hidden");
+
+        // Fire Confetti
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+
+        localStorage.setItem(storageKey, "true");
+    }
+}
+
+function closeCongratsModal() {
+    document.getElementById("congratsModal").classList.add("hidden");
+}
+
+// --- INITIALIZE ---
+window.addEventListener('DOMContentLoaded', () => {
+    loadLeaderboard();
+});
+</script>
+</body>
+</html>

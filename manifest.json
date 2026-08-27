@@ -1,5 +1,5 @@
 {
-  "id": "/",
+  "id": "/app.html",
   "name": "Aquacoinx",
   "short_name": "Aquacoinx",
   "description": "Aquacoinx",
@@ -11,6 +11,8 @@
   "start_url": "/app.html",
   "background_color": "#000000",
   "theme_color": "#000000",
+  "capture_links": "existing_client_navigate",
+  "handle_links": "preferred",
   "icons": [
     {
       "src": "/splash.png",
