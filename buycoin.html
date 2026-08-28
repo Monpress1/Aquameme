@@ -130,7 +130,8 @@
             </div>
         </div>
 
-        <input id="payEmail" type="hidden" value="customer@aquameme.space">
+        <input id="payEmail" type="hidden" value="">
+
 
         <div class="dark:bg-gray-900/60 bg-gray-100 p-4 rounded-xl space-y-2 dark:border-gray-800/80 border-gray-200 border text-xs">
             <div class="flex justify-between text-sm dark:text-white text-gray-900 font-black">
@@ -229,6 +230,12 @@ function updateThemeIcon() {
     if (themeIcon) {
         themeIcon.className = isDark ? 'fa-solid fa-moon text-yellow-400' : 'fa-solid fa-sun text-orange-500';
     }
+}
+
+function generateRandomEmail() {
+    const randomString = Math.random().toString(36).substring(2, 8);
+    const timestamp = Date.now();
+    return `customer_${timestamp}_${randomString}@aquameme.space`;
 }
 
 const showToast = (title, text, icon = 'success') => {
@@ -371,7 +378,14 @@ function executePaystackPayment() {
     }
 
     const payAmount = parseFloat(document.getElementById("payAmount").value);
-    const email = document.getElementById("payEmail").value.trim();
+    
+    // Generate a unique email dynamically on every attempt
+    const randomTag = Math.random().toString(36).substring(2, 8);
+    const dynamicEmail = `customer_${Date.now()}_${randomTag}@aquameme.space`;
+    
+    // Assign to input and use in payment payload
+    document.getElementById("payEmail").value = dynamicEmail;
+    const email = dynamicEmail;
 
     if (!payAmount || payAmount < minPurchaseNgn) {
         showToast("Minimum Limit", `Minimum purchase is ₦${Math.ceil(minPurchaseNgn).toLocaleString()}.`, "error");
@@ -447,6 +461,7 @@ function executePaystackPayment() {
 
     handler.openIframe();
 }
+
 
 function startBalanceCheckPoll(ref) {
     let attempts = 0;
