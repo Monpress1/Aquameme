@@ -132,7 +132,6 @@
 
         <input id="payEmail" type="hidden" value="">
 
-
         <div class="dark:bg-gray-900/60 bg-gray-100 p-4 rounded-xl space-y-2 dark:border-gray-800/80 border-gray-200 border text-xs">
             <div class="flex justify-between text-sm dark:text-white text-gray-900 font-black">
                 <span>You Receive:</span>
@@ -158,8 +157,6 @@
 const AQUA_JETTON_ADDRESS = "EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d";
 const AQUA_MASTER = "0:3bd4bebfed463f684358499fdc7db172533f12b2e7f14d6c8de4073cd01b57f1"; 
 const API = "https://tonapi.io/v2";
-const SUPABASE_ENDPOINT = "https://ptllbgdixhesptlkqrqa.supabase.co/functions/v1/Buycoin";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
 const PAYSTACK_PUBLIC_KEY = "pk_live_988851c6dff5a63928310640a0265fe5b7d254af";
 const CG_API_KEY = "CG-fVHSbCQ5EZmvuXrwM1K8p1BL";
 
@@ -416,42 +413,13 @@ function executePaystackPayment() {
                 ngn: payAmount,
                 aquam: netAquamToReceive,
                 date: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                status: "successful"
+                status: "pending"
             });
 
-            showToast("Payment Successful!", "Verifying transaction and sending AQUAM to your wallet...", "info");
+            showToast("Payment Received!", "Your payment has been verified. Our webhook is processing your AQUAM tokens...", "info");
 
-            // DIRECTLY CALL EDGE FUNCTION TO VERIFY & DISPATCH TOKENS IMMEDIATELY
-            fetch(SUPABASE_ENDPOINT, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "apikey": SUPABASE_ANON_KEY,
-                    "Authorization": "Bearer " + SUPABASE_ANON_KEY
-                },
-                body: JSON.stringify({
-                    reference: response.reference,
-                    walletAddress: friendlyAddr,
-                    amountNgn: payAmount,
-                    aquamAmount: Number(netAquamToReceive.toFixed(4))
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    updateTxStatus(response.reference, "completed");
-                    showToast("Tokens Delivered!", `<b>+${netAquamToReceive.toLocaleString()} AQUAM</b> has been sent to your wallet.`, "success");
-                } else {
-                    console.warn("Backend processing flag:", data);
-                    updateTxStatus(response.reference, "successful");
-                }
-            })
-            .catch(err => {
-                console.error("Direct fetch error:", err);
-            })
-            .finally(() => {
-                startBalanceCheckPoll(response.reference);
-            });
+            // Hand off token distribution entirely to the Webhook and poll for updated wallet balance
+            startBalanceCheckPoll(response.reference);
         },
         onClose: function() {
             btn.disabled = false;
@@ -461,7 +429,6 @@ function executePaystackPayment() {
 
     handler.openIframe();
 }
-
 
 function startBalanceCheckPoll(ref) {
     let attempts = 0;
