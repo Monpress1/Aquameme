@@ -1,14 +1,18 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Aquam | Swap </title>
+<title>Aquam | Swap DEX</title>
 
+<!-- Dependencies -->
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://widget.ston.fi/v0/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
 
 <style>
     :root { 
@@ -20,8 +24,8 @@
         --primary: #3b82f6; 
     }
     main { 
-    padding-bottom: 140px; 
-}
+        padding-bottom: 140px; 
+    }
 
     body { 
         background: var(--bg); 
@@ -39,7 +43,6 @@
         overflow: hidden;
     }
 
-    /* Wiggle Animation: Fast-Fast-Slow-Pause */
     @keyframes wiggle-pro {
         0%, 20%, 40%, 100% { transform: rotate(0); }
         5% { transform: rotate(20deg); }
@@ -50,7 +53,6 @@
     }
     .wiggle-icon { animation: wiggle-pro 3.5s infinite ease-in-out; display: inline-block; }
 
-    /* Nav Styling */
     .nav-item { color: var(--subtext); display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; gap: 4px; font-weight: 700; cursor: pointer; transition: 0.2s; }
     .nav-item.active { color: var(--primary); }
     .nav-item i { font-size: 1.2rem; }
@@ -72,9 +74,9 @@
   <div class="flex items-center gap-3">
     <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/20">A</div>
     <div>
-      <div class="font-extrabold text-lg tracking-tight">Aquam</div>
+      <div class="font-extrabold text-lg tracking-tight">Aquam DEX</div>
       <div id="status" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-        <i class="fa-solid fa-circle text-[6px] text-green-500 animate-pulse"></i> Active
+        <i class="fa-solid fa-circle text-[6px] text-green-500 animate-pulse"></i> Active Pool
       </div>
     </div>
   </div>
@@ -94,13 +96,18 @@
 
   <div class="card-bg p-5 flex items-center gap-4 border-dashed border-blue-500/30 bg-blue-500/5">
     <div class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
-        <i class="fa-solid fa-shield-halved text-xl"></i>
+        <i class="fa-solid fa-camera-retro text-xl"></i>
     </div>
     <div>
-        <p class="font-bold text-sm text-white">Secure Routing</p>
-        <p class="text-xs text-gray-400">Transactions are executed directly on the TON blockchain.</p>
+        <p class="font-bold text-sm text-white">Snapshot Rewards Active</p>
+        <p class="text-xs text-gray-400">Every AQUAM swap on this page automatically increases your Snapshot Leaderboard Volume!</p>
     </div>
   </div>
+
+  <!-- LEADERBOARD QUICK LINK -->
+  <button onclick="location.href='snapshot.html'" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 active:scale-95 transition-all rounded-2xl font-black text-white text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25">
+    <i class="fa-solid fa-trophy text-yellow-400"></i> View Snapshot Tier Leaderboard
+  </button>
 
 </main>
 
@@ -108,19 +115,16 @@
     <div class="bg-[#131b29] w-full max-w-sm p-6 rounded-3xl border border-gray-800 shadow-2xl">
         <h3 class="font-bold text-lg mb-4 text-white">How to Swap</h3>
         <ul class="space-y-4 text-sm text-gray-400 font-medium">
-            <i class="fa-solid fa-lightbulb wiggle-icon text-yellow-400" style="font-size:22.7px;"></i>
-            
-            <li class="flex gap-3"><span class="text-blue-500 font-bold">1.</span> Connect your wallet.</li>
-            <li class="flex gap-3"><span class="text-blue-500 font-bold">2.</span> Click "Select Asset" on the bottom field.</li>
-            <li class="flex gap-3"><span class="text-blue-500 font-bold">3.</span> Search and select AQUAM.</li>
-            <li class="flex gap-3"><span class="text-blue-500 font-bold">4.</span> Input the amount you want to convert.</li>
+            <li class="flex gap-3"><span class="text-blue-500 font-bold"><i class="fa-solid fa-wallet text-blue-400"></i></span> Connect your TON Wallet inside the widget.</li>
+            <li class="flex gap-3"><span class="text-blue-500 font-bold"><i class="fa-solid fa-right-left text-blue-400"></i></span> Select TON and AQUAM as your target pair.</li>
+            <li class="flex gap-3"><span class="text-blue-500 font-bold"><i class="fa-solid fa-calculator text-blue-400"></i></span> Input the amount you want to swap.</li>
+            <li class="flex gap-3"><span class="text-blue-500 font-bold"><i class="fa-solid fa-check-double text-blue-400"></i></span> Confirm transaction in your wallet. Your tier volume automatically updates!</li>
         </ul>
         <button onclick="closeHelp()" class="w-full mt-8 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 active:scale-95 transition-all">GOT IT</button>
     </div>
 </div>
 
 <nav class="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-gray-800/40 px-4 flex justify-between items-center z-10 h-[85px]" style="background: rgba(11, 17, 27, 0.9)">
-    
     <div onclick="location.href='app.html'" class="nav-item">
         <i class="fa-solid fa-house-chimney"></i>
         <span>Home</span>
@@ -144,36 +148,92 @@
 </nav>
 
 <script>
+  // --- CONFIGURATION ---
+  const SUPABASE_URL = 'https://ptllbgdixhesptlkqrqa.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c';
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
   function openHelp() { document.getElementById('helpModal').classList.remove('hidden'); }
   function closeHelp() { document.getElementById('helpModal').classList.add('hidden'); }
 
-  /* Initialize Omniston Widget with Default Pair */
+  function normalizeTonAddress(addr) {
+    if (!addr) return "";
+    try {
+      const tonAddr = new TonWeb.utils.Address(addr);
+      return tonAddr.toString(true, true, true);
+    } catch (e) {
+      return addr.trim();
+    }
+  }
+
+  /* Mount STON.fi Omniston Widget */
   const widget = new window.OmnistonWidget({
     tonconnect: {
       type: "standalone",
       options: {
-        // Ensure this URL is live and contains valid JSON! 
-        // If this URL returns a 404, you'll get that "Failed to" error.
         manifestUrl: "https://aquameme.vercel.app/tonconnect-manifest.json"
       }
     },
     widget: {
-      // TON is correct as "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c"
       defaultBidAsset: "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c", 
-      
-      // BOSS: Replace the address below with your actual AQUAM Jetton Master Contract Address
-      // If EQC4R... is your wallet, it WILL cause that JSON error.
       defaultAskAsset: "EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d", 
-      
       referrerAddress: "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D",
       referrerFeeBps: 100 
     }
   });
 
   widget.mount(document.getElementById("omniston"));
-</script>
 
+  // --- RECORD USER SWAPS TO SUPABASE DATABASE ---
+  async function recordSwapToDatabase(swapDetails) {
+    const rawWallet = swapDetails.walletAddress || "";
+    if (!rawWallet) return;
+
+    const walletAddress = normalizeTonAddress(rawWallet);
+    const aquamAmount = parseFloat(swapDetails.aquamAmount || 0);
+    const usdValue = parseFloat(swapDetails.usdValue || (aquamAmount * 0.0025));
+
+    const { data, error } = await supabaseClient
+      .from('swaps')
+      .insert([
+        {
+          wallet_address: walletAddress,
+          tx_hash: swapDetails.txHash || ("swap_" + Date.now()),
+          from_asset: swapDetails.fromAsset || "TON",
+          to_asset: swapDetails.toAsset || "AQUAM",
+          aquam_amount: aquamAmount,
+          usd_equivalent: usdValue
+        }
+      ]);
+
+    if (error) {
+      console.error("Error logging swap to database:", error);
+    } else {
+      console.log("Swap recorded successfully for wallet:", walletAddress);
+    }
+  }
+
+  // Monitor widget message events for completed swaps
+  window.addEventListener('message', async (event) => {
+    if (!event.data) return;
+    
+    // Catch Omniston success event signals
+    if (event.data.type === 'OMNISTON_SWAP_SUCCESS' || event.data.name === 'swap_completed' || event.data.type === 'TON_TRANSACTION_SUCCESS') {
+      const payload = event.data.payload || event.data.data || {};
+      
+      const swapDetails = {
+        walletAddress: payload.walletAddress || payload.account || (widget.getWalletAddress ? widget.getWalletAddress() : ""),
+        txHash: payload.boc || payload.txHash || payload.hash || ("tx_" + Date.now()),
+        fromAsset: payload.bidAsset || "TON",
+        toAsset: payload.askAsset || "AQUAM",
+        aquamAmount: payload.askAmount || payload.amount || payload.receivedAmount || 0,
+        usdValue: payload.usdValue || 0
+      };
+
+      await recordSwapToDatabase(swapDetails);
+    }
+  });
+</script>
 
 </body>
 </html>
-
