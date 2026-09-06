@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
@@ -51,7 +52,6 @@
     html.dark .card-bg { background: var(--card-dark); border: 1px solid var(--border-dark); }
     html:not(.dark) .card-bg { background: var(--card-light); border: 1px solid var(--border-light); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
 
-    /* Tier Theme Gradients */
     .bronze-gradient { background: linear-gradient(135deg, #e59344 0%, #cd7f32 50%, #8c531b 100%); }
     .silver-gradient { background: linear-gradient(135deg, #cbd5e1 0%, #94a3b8 50%, #64748b 100%); }
     .gold-gradient { background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 50%, #b45309 100%); }
@@ -79,7 +79,7 @@
         </div>
         <div>
             <span class="font-extrabold text-sm tracking-tight dark:text-white text-gray-900 block leading-tight">AquaCoinX Snapshot</span>
-            <span class="text-[9px] font-extrabold text-blue-500 uppercase tracking-wider">Live Tier Leaderboards</span>
+            <span class="text-[9px] font-extrabold text-blue-500 uppercase tracking-wider">Live DEX Tier Leaderboards</span>
         </div>
     </div>
 
@@ -106,10 +106,10 @@
         </div>
 
         <h1 class="text-xl font-black dark:text-white text-gray-900 tracking-tight mb-1">
-            Global Snapshot Leaderboard
+            Global DEX Snapshot Leaderboard
         </h1>
         <p class="text-xs dark:text-gray-400 text-gray-600 font-medium leading-relaxed">
-            Qualify for snapshot tiers based on your total cumulative purchase volume. Buy more to upgrade your tier status!
+            Qualify for snapshot tiers by swapping AQUAM on our DEX! Every swap increases your cumulative snapshot volume and elevates your rank.
         </p>
 
         <!-- USER CONNECTED SUMMARY -->
@@ -140,7 +140,7 @@
                     <h3 class="font-extrabold text-sm dark:text-white text-gray-900 uppercase tracking-wider flex items-center gap-2">
                         Gold Tier Snapshot
                     </h3>
-                    <p class="text-[10px] text-amber-500 font-bold">$100.00+ Cumulative Purchases</p>
+                    <p class="text-[10px] text-amber-500 font-bold">$100.00+ Cumulative Swaps</p>
                 </div>
             </div>
             <span id="goldCount" class="text-xs font-black text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
@@ -164,7 +164,7 @@
                     <h3 class="font-extrabold text-sm dark:text-white text-gray-900 uppercase tracking-wider flex items-center gap-2">
                         Silver Tier Snapshot
                     </h3>
-                    <p class="text-[10px] text-slate-400 font-bold">$10.00 – $99.99 Cumulative Purchases</p>
+                    <p class="text-[10px] text-slate-400 font-bold">$10.00 – $99.99 Cumulative Volume</p>
                 </div>
             </div>
             <span id="silverCount" class="text-xs font-black text-slate-400 bg-slate-400/10 px-2.5 py-1 rounded-full border border-slate-400/20">
@@ -188,7 +188,7 @@
                     <h3 class="font-extrabold text-sm dark:text-white text-gray-900 uppercase tracking-wider flex items-center gap-2">
                         Bronze Tier Snapshot
                     </h3>
-                    <p class="text-[10px] text-amber-700 font-bold">$1.00 – $9.99 Cumulative Purchases</p>
+                    <p class="text-[10px] text-amber-700 font-bold">$1.00 – $9.99 Cumulative Volume</p>
                 </div>
             </div>
             <span id="bronzeCount" class="text-xs font-black text-amber-600 bg-amber-600/10 px-2.5 py-1 rounded-full border border-amber-600/20">
@@ -201,16 +201,16 @@
         </div>
     </section>
 
-    <!-- BUY COIN REDIRECT BUTTON -->
+    <!-- REDIRECT BUTTON TO DEX SWAP -->
     <div class="pt-2">
-        <button onclick="location.href='buycoin.html'" class="w-full py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 rounded-xl font-black text-white shadow-lg shadow-blue-600/20 transition flex items-center justify-center gap-2 text-sm tracking-wide">
-            <i class="fa-solid fa-cart-shopping"></i> BUY AQUACOIN & ELEVATE YOUR TIER
+        <button onclick="location.href='dex.html'" class="w-full py-4 bg-blue-600 hover:bg-blue-500 active:scale-95 rounded-xl font-black text-white shadow-lg shadow-blue-600/20 transition flex items-center justify-center gap-2 text-sm tracking-wide">
+            <i class="fa-solid fa-arrows-rotate"></i> SWAP AQUAM ON DEX & ELEVATE YOUR TIER
         </button>
     </div>
 
 </main>
 
-<!-- CONGRATULATIONS ONE-TIME POPUP MODAL -->
+<!-- CONGRATULATIONS MODAL -->
 <div id="congratsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-5">
     <div class="card-bg p-6 max-w-sm w-full text-center relative animate__animated animate__zoomIn border border-blue-500/40 shadow-2xl">
         
@@ -226,7 +226,7 @@
         </div>
 
         <p class="text-[11px] dark:text-gray-400 text-gray-500 mb-5">
-            Your cumulative volume qualifies you for upcoming rewards and snapshot distribution phases.
+            Your cumulative DEX volume qualifies you for upcoming rewards and snapshot distribution phases.
         </p>
 
         <button onclick="closeCongratsModal()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xs uppercase tracking-wider transition active:scale-95 shadow-md">
@@ -237,8 +237,8 @@
 
 <script>
 // --- CONFIGURATION ---
-const SUPABASE_URL = "https://ptllbgdixhesptlkqrqa.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c";
+const SUPABASE_URL = 'https://ptllbgdixhesptlkqrqa.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c';
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -246,7 +246,7 @@ let rawUserAddress = "";
 let friendlyUserAddress = "";
 let walletMapGlobal = {};
 
-// Helper: Normalize any TON address into User-Friendly Non-Bounceable format
+// Normalize any TON address format
 function normalizeTonAddress(addr) {
     if (!addr) return "";
     try {
@@ -304,55 +304,67 @@ tonUI.onStatusChange(async wallet => {
     loadLeaderboard();
 });
 
-// --- LOAD ALL SNAPSHOT TIERS & AGGREGATE PURCHASES ---
+// --- LOAD ALL SNAPSHOT TIERS & AGGREGATE DEX SWAPS ---
 async function loadLeaderboard() {
-    const { data: purchases, error } = await supabaseClient
-        .from('purchases')
-        .select('*');
+    try {
+        // 1. Fetch data
+        const swapsRes = await supabaseClient.from('swaps').select('*');
 
-    if (error) {
-        console.error("Error fetching snapshot purchases:", error);
-        return;
-    }
-
-    // Aggregate by normalized wallet address
-    walletMapGlobal = {};
-    purchases.forEach(item => {
-        const rawAddr = item.wallet_address || "";
-        const normalized = normalizeTonAddress(rawAddr);
-        const usd = parseFloat(item.usd_equivalent || 0);
-        const aquam = parseFloat(item.aquam_amount || 0);
-
-        if (!walletMapGlobal[normalized]) {
-            walletMapGlobal[normalized] = {
-                wallet_address: normalized,
-                total_usd: 0,
-                total_aquam: 0
-            };
+        // 2. FORCE THE ERROR TO SHOW IN A POPUP IF IT FAILS
+        if (swapsRes.error) {
+            const errorDetails = JSON.stringify(swapsRes.error, null, 2);
+            console.error("Exact Supabase Error:", errorDetails);
+            alert("SUPABASE ERROR:\n" + errorDetails); 
+            return; // Stop execution
         }
-        walletMapGlobal[normalized].total_usd += usd;
-        walletMapGlobal[normalized].total_aquam += aquam;
-    });
 
-    const allUsers = Object.values(walletMapGlobal);
+        const swaps = swapsRes.data || [];
+        walletMapGlobal = {};
 
-    // Group into 3 Tiers dynamically based on aggregated DB values
-    const goldUsers = allUsers.filter(u => u.total_usd >= 100.00).sort((a,b) => b.total_usd - a.total_usd);
-    const silverUsers = allUsers.filter(u => u.total_usd >= 10.00 && u.total_usd < 100.00).sort((a,b) => b.total_usd - a.total_usd);
-    const bronzeUsers = allUsers.filter(u => u.total_usd >= 1.00 && u.total_usd < 10.00).sort((a,b) => b.total_usd - a.total_usd);
+        // 3. Process the data
+        const processItem = (item) => {
+            const rawAddr = item.wallet_address || "";
+            const normalized = normalizeTonAddress(rawAddr);
+            const usd = parseFloat(item.usd_equivalent || 0);
+            const aquam = parseFloat(item.aquam_amount || 0);
 
-    // Update Counts
-    document.getElementById("goldCount").innerText = `${goldUsers.length} Wallets`;
-    document.getElementById("silverCount").innerText = `${silverUsers.length} Wallets`;
-    document.getElementById("bronzeCount").innerText = `${bronzeUsers.length} Wallets`;
+            if (!walletMapGlobal[normalized]) {
+                walletMapGlobal[normalized] = {
+                    wallet_address: normalized,
+                    total_usd: 0,
+                    total_aquam: 0
+                };
+            }
+            walletMapGlobal[normalized].total_usd += usd;
+            walletMapGlobal[normalized].total_aquam += aquam;
+        };
 
-    // Render Lists
-    renderTierList("goldLeaderboard", goldUsers, "gold");
-    renderTierList("silverLeaderboard", silverUsers, "silver");
-    renderTierList("bronzeLeaderboard", bronzeUsers, "bronze");
+        swaps.forEach(processItem);
 
-    // Current Connected User Display Update
-    syncUserOverview();
+        const allUsers = Object.values(walletMapGlobal);
+
+        // Group into Tiers
+        const goldUsers = allUsers.filter(u => u.total_usd >= 100.00).sort((a,b) => b.total_usd - a.total_usd);
+        const silverUsers = allUsers.filter(u => u.total_usd >= 10.00 && u.total_usd < 100.00).sort((a,b) => b.total_usd - a.total_usd);
+        const bronzeUsers = allUsers.filter(u => u.total_usd >= 1.00 && u.total_usd < 10.00).sort((a,b) => b.total_usd - a.total_usd);
+
+        // Update Tier Counts
+        document.getElementById("goldCount").innerText = `${goldUsers.length} Wallets`;
+        document.getElementById("silverCount").innerText = `${silverUsers.length} Wallets`;
+        document.getElementById("bronzeCount").innerText = `${bronzeUsers.length} Wallets`;
+
+        // Render Lists
+        renderTierList("goldLeaderboard", goldUsers, "gold");
+        renderTierList("silverLeaderboard", silverUsers, "silver");
+        renderTierList("bronzeLeaderboard", bronzeUsers, "bronze");
+
+        // Sync Overview UI
+        syncUserOverview();
+        
+    } catch (err) {
+        // Catch any network crashes (like adblockers or lack of internet)
+        alert("CRITICAL NETWORK ERROR:\n" + err.message);
+    }
 }
 
 function syncUserOverview() {
@@ -428,7 +440,6 @@ function updateUserTierBadge(totalUsd) {
     }
 }
 
-// --- ONE-TIME CONGRATULATIONS MODAL LOGIC ---
 function checkCongratulationsModal(totalUsd) {
     if (totalUsd < 1.00) return;
 
@@ -458,7 +469,6 @@ function checkCongratulationsModal(totalUsd) {
 
         document.getElementById("congratsModal").classList.remove("hidden");
 
-        // Fire Confetti
         confetti({
             particleCount: 100,
             spread: 70,
@@ -473,7 +483,6 @@ function closeCongratsModal() {
     document.getElementById("congratsModal").classList.add("hidden");
 }
 
-// --- INITIALIZE ---
 window.addEventListener('DOMContentLoaded', () => {
     loadLeaderboard();
 });
