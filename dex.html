@@ -3,236 +3,690 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>Aquam | Swap DEX</title>
 
-<!-- Dependencies -->
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 <script src="https://widget.ston.fi/v0/index.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/tonweb@0.0.66/dist/tonweb.min.js"></script>
 
 <style>
-    :root { 
-        --bg: #0b111b; 
-        --card: #131b29; 
-        --border: #1e293b; 
-        --text: #ffffff; 
-        --subtext: #94a3b8; 
-        --primary: #3b82f6; 
-    }
-    main { 
-        padding-bottom: 140px; 
-    }
-
-    body { 
-        background: var(--bg); 
-        color: var(--text); 
-        font-family: 'Manrope', sans-serif; 
-        -webkit-tap-highlight-color: transparent; 
-        margin: 0; 
-        padding-bottom: 100px;
-    }
-
-    .card-bg { 
-        background: var(--card); 
-        border: 1px solid var(--border); 
-        border-radius: 1.5rem; 
-        overflow: hidden;
-    }
-
-    @keyframes wiggle-pro {
-        0%, 20%, 40%, 100% { transform: rotate(0); }
-        5% { transform: rotate(20deg); }
-        10% { transform: rotate(-20deg); }
-        15% { transform: rotate(20deg); }
-        25% { transform: rotate(8deg); }
-        35% { transform: rotate(-8deg); }
-    }
-    .wiggle-icon { animation: wiggle-pro 3.5s infinite ease-in-out; display: inline-block; }
-
-    .nav-item { color: var(--subtext); display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; gap: 4px; font-weight: 700; cursor: pointer; transition: 0.2s; }
-    .nav-item.active { color: var(--primary); }
-    .nav-item i { font-size: 1.2rem; }
-
-    #omniston {
-        --omniston-bg: var(--card);
-        --omniston-container-bg: var(--card);
-        --omniston-primary: var(--primary);
-        --omniston-text-primary: #ffffff;
-        --omniston-text-secondary: var(--subtext);
-        --omniston-border-color: var(--border);
-    }
+:root{
+--bg:#0b111b;
+--card:#131b29;
+--border:#1e293b;
+--text:#fff;
+--subtext:#94a3b8;
+--primary:#3b82f6
+}
+html.light{
+--bg:#f8fafc;
+--card:#ffffff;
+--border:#e2e8f0;
+--text:#0f172a;
+--subtext:#64748b;
+--primary:#3b82f6
+}
+html.light body{color:var(--text)}
+main{padding-bottom:140px}
+body{
+background:var(--bg);
+color:var(--text);
+font-family:'Manrope',sans-serif;
+-webkit-tap-highlight-color:transparent;
+margin:0;
+padding-bottom:100px
+}
+.card-bg{
+background:var(--card);
+border:1px solid var(--border);
+border-radius:1.5rem;
+overflow:hidden
+}
+@keyframes wiggle{
+0%,20%,40%,100%{transform:rotate(0)}
+5%{transform:rotate(20deg)}
+10%{transform:rotate(-20deg)}
+15%{transform:rotate(20deg)}
+25%{transform:rotate(8deg)}
+35%{transform:rotate(-8deg)}
+}
+.wiggle-icon{
+animation:wiggle 3.5s infinite ease-in-out;
+display:inline-block
+}
+.nav-item{
+color:var(--subtext);
+display:flex;
+flex-direction:column;
+align-items:center;
+font-size:.65rem;
+gap:4px;
+font-weight:700;
+cursor:pointer
+}
+.nav-item.active{color:var(--primary)}
+.nav-item i{font-size:1.2rem}
+#omniston{
+--omniston-bg:var(--card);
+--omniston-container-bg:var(--card);
+--omniston-primary:var(--primary);
+--omniston-text-primary:#fff;
+--omniston-text-secondary:var(--subtext);
+--omniston-border-color:var(--border)
+}
 </style>
 </head>
 
 <body class="select-none">
 
-<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 border-b border-gray-800/30" style="background-color: var(--bg)">
-  <div class="flex items-center gap-3">
-    <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg shadow-lg shadow-blue-500/20">A</div>
-    <div>
-      <div class="font-extrabold text-lg tracking-tight">Aquam DEX</div>
-      <div id="status" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-        <i class="fa-solid fa-circle text-[6px] text-green-500 animate-pulse"></i> Active Pool
-      </div>
-    </div>
-  </div>
-  
-  <div class="flex items-center gap-2">
-      <button onclick="openHelp()" class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400">
-        <i class="fa-solid fa-circle-question text-lg wiggle-icon"></i>
-      </button>
-  </div>
+<header class="px-5 py-4 flex justify-between items-center sticky top-0 z-40 border-b border-gray-800/30" style="background-color:var(--bg)">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">A</div>
+<div>
+<div class="font-extrabold text-lg tracking-tight">Aquam DEX</div>
+<div id="status" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Checking wallet...</div>
+<div id="priceTag" class="text-[10px] font-bold text-gray-500 mt-0.5">Loading price...</div>
+</div>
+</div>
+
+<div class="flex items-center gap-2">
+<button onclick="toggleTheme()" class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20">
+<i id="themeIcon" class="fa-solid fa-moon text-blue-300 text-lg"></i>
+</button>
+<button onclick="openHelp()" class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 text-blue-400">
+<i class="fa-solid fa-circle-question text-lg wiggle-icon"></i>
+</button>
+</div>
 </header>
 
 <main class="p-4 space-y-6">
-  
-  <div class="card-bg p-2 shadow-2xl">
-    <div id="omniston"></div>
-  </div>
 
-  <div class="card-bg p-5 flex items-center gap-4 border-dashed border-blue-500/30 bg-blue-500/5">
-    <div class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
-        <i class="fa-solid fa-camera-retro text-xl"></i>
-    </div>
-    <div>
-        <p class="font-bold text-sm text-white">Snapshot Rewards Active</p>
-        <p class="text-xs text-gray-400">Every AQUAM swap on this page automatically increases your Snapshot Leaderboard Volume!</p>
-    </div>
-  </div>
+<div class="card-bg p-2 shadow-2xl">
+<div id="omniston"></div>
+</div>
 
-  <!-- LEADERBOARD QUICK LINK -->
-  <button onclick="location.href='snapshot.html'" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 active:scale-95 transition-all rounded-2xl font-black text-white text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25">
-    <i class="fa-solid fa-trophy text-yellow-400"></i> View Snapshot Tier Leaderboard
-  </button>
+<div class="card-bg p-5 flex items-center gap-4 border-dashed border-blue-500/30 bg-blue-500/5">
+<div class="w-12 h-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-400">
+<i class="fa-solid fa-camera-retro text-xl"></i>
+</div>
+<div>
+<p class="font-bold text-sm text-white">Snapshot Rewards Active</p>
+<p class="text-xs text-gray-400">Every AQUAM swap on this page automatically increases your Snapshot Leaderboard Volume!</p>
+</div>
+</div>
+
+<button onclick="location.href='snapshot.html'" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 active:scale-95 transition-all rounded-2xl font-black text-white text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25">
+<i class="fa-solid fa-trophy text-yellow-400"></i>
+View Snapshot Tier Leaderboard
+</button>
 
 </main>
 
 <div id="helpModal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-6 bg-black/80 backdrop-blur-sm">
-    <div class="bg-[#131b29] w-full max-w-sm p-6 rounded-3xl border border-gray-800 shadow-2xl">
-        <h3 class="font-bold text-lg mb-4 text-white">How to Swap</h3>
-        <ul class="space-y-4 text-sm text-gray-400 font-medium">
-            <li class="flex gap-3"><span class="text-blue-500 font-bold"><i class="fa-solid fa-wallet text-blue-400"></i></span> Connect your TON Wallet inside the widget.</li>
-            <li class="flex gap-3"><span class="text-blue-500 font-bold"><i class="fa-solid fa-right-left text-blue-400"></i></span> Select TON and AQUAM as your target pair.</li>
-            <li class="flex gap-3"><span class="text-blue-500 font-bold"><i class="fa-solid fa-calculator text-blue-400"></i></span> Input the amount you want to swap.</li>
-            <li class="flex gap-3"><span class="text-blue-500 font-bold"><i class="fa-solid fa-check-double text-blue-400"></i></span> Confirm transaction in your wallet. Your tier volume automatically updates!</li>
-        </ul>
-        <button onclick="closeHelp()" class="w-full mt-8 py-4 bg-blue-600 text-white rounded-2xl font-black shadow-lg shadow-blue-500/30 active:scale-95 transition-all">GOT IT</button>
-    </div>
+<div class="bg-[#131b29] w-full max-w-sm p-6 rounded-3xl border border-gray-800 shadow-2xl">
+<h3 class="font-bold text-lg mb-4 text-white">How to Swap</h3>
+<ul class="space-y-4 text-sm text-gray-400 font-medium">
+<li><i class="fa-solid fa-wallet text-blue-400 mr-2"></i>Connect your TON Wallet inside the widget.</li>
+<li><i class="fa-solid fa-right-left text-blue-400 mr-2"></i>Select TON and AQUAM.</li>
+<li><i class="fa-solid fa-calculator text-blue-400 mr-2"></i>Enter the amount.</li>
+<li><i class="fa-solid fa-check-double text-blue-400 mr-2"></i>Confirm the transaction.</li>
+</ul>
+<button onclick="closeHelp()" class="w-full mt-8 py-4 bg-blue-600 text-white rounded-2xl font-black">GOT IT</button>
+</div>
 </div>
 
-<nav class="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-gray-800/40 px-4 flex justify-between items-center z-10 h-[85px]" style="background: rgba(11, 17, 27, 0.9)">
-    <div onclick="location.href='app.html'" class="nav-item">
-        <i class="fa-solid fa-house-chimney"></i>
-        <span>Home</span>
-    </div>
-    <div onclick="location.href='s2w.html'" class="nav-item">
-        <i class="fa-solid fa-clover"></i>
-        <span>Spin2Win</span>
-    </div>
-    <div onclick="location.href='dex.html'" class="nav-item active">
-        <i class="fa-solid fa-arrows-rotate"></i>
-        <span>Dex</span>
-    </div>
-    <div onclick="location.href='p2p.html'" class="nav-item">
-        <i class="fa-solid fa-handshake"></i>
-        <span>P2P</span>
-    </div>
-    <div onclick="location.href='market.html'" class="nav-item">
-        <i class="fa-solid fa-shopping-cart"></i>
-        <span>Market</span>
-    </div>
+<nav class="fixed bottom-0 left-0 right-0 backdrop-blur-xl border-t border-gray-800/40 px-4 flex justify-between items-center z-10 h-[85px]" style="background:rgba(11,17,27,.9)">
+<div onclick="location.href='app.html'" class="nav-item"><i class="fa-solid fa-house-chimney"></i><span>Home</span></div>
+<div onclick="location.href='s2w.html'" class="nav-item"><i class="fa-solid fa-clover"></i><span>Spin2Win</span></div>
+<div onclick="location.href='dex.html'" class="nav-item active"><i class="fa-solid fa-arrows-rotate"></i><span>Dex</span></div>
+<div onclick="location.href='p2p.html'" class="nav-item"><i class="fa-solid fa-handshake"></i><span>P2P</span></div>
+<div onclick="location.href='market.html'" class="nav-item"><i class="fa-solid fa-shopping-cart"></i><span>Market</span></div>
 </nav>
 
 <script>
-  // --- CONFIGURATION ---
-  const SUPABASE_URL = 'https://ptllbgdixhesptlkqrqa.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c';
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const SUPABASE_URL='https://ptllbgdixhesptlkqrqa.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB0bGxiZ2RpeGhlc3B0bGtxcnFhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk5MzU5MzMsImV4cCI6MjA4NTUxMTkzM30.KGa_rx-CttqT6foXSfHVF2-SiQalOcpWTtRMsdT9R_c';
 
-  function openHelp() { document.getElementById('helpModal').classList.remove('hidden'); }
-  function closeHelp() { document.getElementById('helpModal').classList.add('hidden'); }
+const TONAPI_KEY='AEI4QC7AXO4FDVAAAAALUGGBXAM2TT24AI7BZDBEYH35BRG26UTNVNOKJP67KCEJAH7JJYY';
 
-  function normalizeTonAddress(addr) {
-    if (!addr) return "";
-    try {
-      const tonAddr = new TonWeb.utils.Address(addr);
-      return tonAddr.toString(true, true, true);
-    } catch (e) {
-      return addr.trim();
-    }
-  }
+const AQUAM='EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d';
 
-  /* Mount STON.fi Omniston Widget */
-  const widget = new window.OmnistonWidget({
-    tonconnect: {
-      type: "standalone",
-      options: {
-        manifestUrl: "https://aquameme.vercel.app/tonconnect-manifest.json"
-      }
-    },
-    widget: {
-      defaultBidAsset: "EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c", 
-      defaultAskAsset: "EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d", 
-      referrerAddress: "UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D",
-      referrerFeeBps: 100 
-    }
-  });
+/*
+Paste your real CoinGecko demo API key here. Left blank, the
+public endpoint still works but with lower rate limits.
+*/
+const CG_API_KEY='';
 
-  widget.mount(document.getElementById("omniston"));
+const MANIFEST='https://aquameme.vercel.app/tonconnect-manifest.json';
 
-  // --- RECORD USER SWAPS TO SUPABASE DATABASE ---
-  async function recordSwapToDatabase(swapDetails) {
-    const rawWallet = swapDetails.walletAddress || "";
-    if (!rawWallet) return;
+const db=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 
-    const walletAddress = normalizeTonAddress(rawWallet);
-    const aquamAmount = parseFloat(swapDetails.aquamAmount || 0);
-    const usdValue = parseFloat(swapDetails.usdValue || (aquamAmount * 0.0025));
+function openHelp(){
+document.getElementById('helpModal').classList.remove('hidden');
+}
 
-    const { data, error } = await supabaseClient
-      .from('swaps')
-      .insert([
-        {
-          wallet_address: walletAddress,
-          tx_hash: swapDetails.txHash || ("swap_" + Date.now()),
-          from_asset: swapDetails.fromAsset || "TON",
-          to_asset: swapDetails.toAsset || "AQUAM",
-          aquam_amount: aquamAmount,
-          usd_equivalent: usdValue
-        }
-      ]);
+function closeHelp(){
+document.getElementById('helpModal').classList.add('hidden');
+}
 
-    if (error) {
-      console.error("Error logging swap to database:", error);
-    } else {
-      console.log("Swap recorded successfully for wallet:", walletAddress);
-    }
-  }
+/* PRICE FETCHING (Ston.fi jetton price + CoinGecko USD/NGN rate) */
 
-  // Monitor widget message events for completed swaps
-  window.addEventListener('message', async (event) => {
-    if (!event.data) return;
-    
-    // Catch Omniston success event signals
-    if (event.data.type === 'OMNISTON_SWAP_SUCCESS' || event.data.name === 'swap_completed' || event.data.type === 'TON_TRANSACTION_SUCCESS') {
-      const payload = event.data.payload || event.data.data || {};
-      
-      const swapDetails = {
-        walletAddress: payload.walletAddress || payload.account || (widget.getWalletAddress ? widget.getWalletAddress() : ""),
-        txHash: payload.boc || payload.txHash || payload.hash || ("tx_" + Date.now()),
-        fromAsset: payload.bidAsset || "TON",
-        toAsset: payload.askAsset || "AQUAM",
-        aquamAmount: payload.askAmount || payload.amount || payload.receivedAmount || 0,
-        usdValue: payload.usdValue || 0
-      };
+let currentAquamPriceUsd=0;
+let ngnPerUsd=0;
 
-      await recordSwapToDatabase(swapDetails);
-    }
-  });
+async function fetchExchangeRate(){
+const priceTagEl=document.getElementById('priceTag');
+
+try{
+
+const resAqua=await fetch(`https://api.ston.fi/v1/assets/${AQUAM}`);
+const dataAqua=await resAqua.json();
+
+if(dataAqua?.asset?.dex_usd_price){
+currentAquamPriceUsd=parseFloat(dataAqua.asset.dex_usd_price);
+}
+
+const cgUrl=CG_API_KEY
+?`https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd,ngn&x_cg_demo_api_key=${CG_API_KEY}`
+:`https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=ngn`;
+
+const resNgn=await fetch(cgUrl);
+const dataNgn=await resNgn.json();
+
+if(dataNgn?.tether?.ngn){
+ngnPerUsd=Math.ceil(dataNgn.tether.ngn);
+}
+
+}catch(error){
+console.warn("Exchange rate fetch failed:",error);
+}
+
+if(priceTagEl){
+if(currentAquamPriceUsd>0){
+const ngnPrice=ngnPerUsd>0?(currentAquamPriceUsd*ngnPerUsd):0;
+priceTagEl.innerText=ngnPerUsd>0
+?`1 AQUAM = $${currentAquamPriceUsd.toFixed(6)} (₦${ngnPrice.toFixed(2)})`
+:`1 AQUAM = $${currentAquamPriceUsd.toFixed(6)}`;
+}else{
+priceTagEl.innerText="Price unavailable";
+}
+}
+}
+
+fetchExchangeRate();
+setInterval(fetchExchangeRate,60000);
+
+/* THEME TOGGLE */
+
+const html=document.documentElement;
+
+function applyStoredTheme(){
+if(localStorage.getItem('theme')==='light'){
+html.classList.add('light');
+}else{
+html.classList.remove('light');
+}
+updateThemeIcon();
+}
+
+function toggleTheme(){
+html.classList.toggle('light');
+localStorage.setItem('theme',html.classList.contains('light')?'light':'dark');
+updateThemeIcon();
+}
+
+function updateThemeIcon(){
+const themeIconEl=document.getElementById('themeIcon');
+if(!themeIconEl)return;
+const isLight=html.classList.contains('light');
+themeIconEl.className=isLight?'fa-solid fa-sun text-orange-500 text-lg':'fa-solid fa-moon text-blue-300 text-lg';
+}
+
+applyStoredTheme();
+
+/* TON CONNECT */
+
+const tonConnectUI=new TON_CONNECT_UI.TonConnectUI({
+manifestUrl:MANIFEST
+});
+
+/* STON.FI */
+
+try{
+const widget=new window.OmnistonWidget({
+tonconnect:{
+type:"integrated",
+instance:tonConnectUI
+},
+widget:{
+defaultBidAsset:"EQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM9c",
+defaultAskAsset:AQUAM,
+referrerAddress:"UQC4RmumETyDDKR1IaM8CST_pHeTFBdzgRqAj96TTM2J8w1D",
+referrerFeeBps:100
+}
+});
+
+widget.mount(document.getElementById("omniston"));
+console.log("STON.FI widget loaded");
+}catch(error){
+console.error("STON.FI ERROR:",error);
+}
+
+/* WALLET */
+
+let walletAddress=null;
+let checking=false;
+
+tonConnectUI.onStatusChange(async wallet=>{
+if(!wallet){
+walletAddress=null;
+
+document.getElementById('status').innerHTML=
+'<i class="fa-solid fa-circle text-[6px] text-gray-500"></i> Wallet not connected';
+
+console.log("WALLET DISCONNECTED");
+return;
+}
+
+/*
+IMPORTANT:
+Use the exact address supplied by TON Connect.
+Do not convert it through TonWeb.
+*/
+
+walletAddress=wallet.account.address;
+
+document.getElementById('status').innerHTML=
+'<i class="fa-solid fa-circle text-[6px] text-green-500 animate-pulse"></i> Wallet connected';
+
+console.log("CONNECTED WALLET:",walletAddress);
+
+await checkAquamHistory();
+});
+
+/* TONAPI */
+
+async function api(url){
+try{
+console.log("TONAPI REQUEST:",url);
+
+const response=await fetch(url,{
+headers:{
+Authorization:`Bearer ${TONAPI_KEY}`
+}
+});
+
+const text=await response.text();
+
+if(!response.ok){
+console.error("TONAPI ERROR:",response.status,text);
+return null;
+}
+
+try{
+return JSON.parse(text);
+}catch(error){
+console.error("TONAPI JSON ERROR:",text);
+return null;
+}
+
+}catch(error){
+console.error("TONAPI REQUEST FAILED:",error);
+return null;
+}
+}
+
+/*
+TON addresses come in two encodings that represent the SAME
+address:
+  - "raw": workchain:hex64  e.g. 0:3bd4beb...
+  - "friendly": base64url,  e.g. EQA71L6_7UY_...
+
+TonAPI's event payloads return raw form for jetton/user
+addresses. TON Connect wallets and hardcoded constants (like
+AQUAM below) are often in friendly form. A plain string
+compare between the two will NEVER match even though they
+point to the same address - this was silently skipping every
+real AQUAM swap. toRawAddress() below normalizes either
+format down to raw workchain:hex so comparisons are reliable.
+*/
+
+function toRawAddress(address){
+if(!address)return "";
+
+address=address.trim();
+
+/* Already raw form: "0:hex64" or "-1:hex64" */
+
+if(/^-?\d+:[0-9a-fA-F]{64}$/.test(address)){
+const [wc,hash]=address.split(":");
+return `${parseInt(wc,10)}:${hash.toLowerCase()}`;
+}
+
+/* Otherwise assume friendly base64/base64url form */
+
+try{
+const b64=address.replace(/-/g,"+").replace(/_/g,"/");
+const padded=b64+"=".repeat((4-(b64.length%4))%4);
+const binary=atob(padded);
+
+const bytes=new Uint8Array(binary.length);
+for(let i=0;i<binary.length;i++){
+bytes[i]=binary.charCodeAt(i);
+}
+
+if(bytes.length<34){
+console.error("ADDRESS DECODE ERROR: too short",address);
+return address.toLowerCase();
+}
+
+let wcByte=bytes[1];
+const wcSigned=wcByte<128?wcByte:wcByte-256;
+
+const hashBytes=bytes.slice(2,34);
+const hashHex=Array.from(hashBytes)
+.map(b=>b.toString(16).padStart(2,"0"))
+.join("");
+
+return `${wcSigned}:${hashHex}`;
+
+}catch(error){
+console.error("ADDRESS DECODE FAILED:",address,error);
+return address.toLowerCase();
+}
+}
+
+function addressesMatch(a,b){
+if(!a||!b)return false;
+return toRawAddress(a)===toRawAddress(b);
+}
+
+/*
+Track the newest event timestamp we've already processed,
+per wallet, in localStorage. Without this, every 15-second
+check re-walks all 50 events and re-queries Supabase for
+each one just to find out they're already saved. Only
+events newer than the last processed timestamp get handled.
+*/
+
+/*
+Hard floor: never record any swap at or before this timestamp,
+no matter what. This takes priority over the per-wallet
+last-processed value below.
+*/
+const MIN_TIMESTAMP=1788745445;
+
+const LAST_TS_PREFIX="aquam_last_ts_";
+
+function getLastProcessedTs(wallet){
+const stored=localStorage.getItem(LAST_TS_PREFIX+wallet);
+const storedTs=stored?Number(stored):0;
+return Math.max(storedTs,MIN_TIMESTAMP);
+}
+
+function setLastProcessedTs(wallet,ts){
+localStorage.setItem(LAST_TS_PREFIX+wallet,String(ts));
+}
+
+/* AQUAM HISTORY */
+
+async function checkAquamHistory(){
+if(!walletAddress)return;
+if(checking)return;
+
+checking=true;
+
+try{
+console.log("CHECKING AQUAM HISTORY FOR:",walletAddress);
+
+const url=
+`https://tonapi.io/v2/accounts/${encodeURIComponent(walletAddress)}/events?limit=50`;
+
+const data=await api(url);
+
+if(!data||!data.events){
+console.log("NO EVENTS");
+return;
+}
+
+const lastTs=getLastProcessedTs(walletAddress);
+
+/* Only keep events newer than the last one we processed */
+
+const newEvents=data.events
+.filter(event=>(event.timestamp||0)>lastTs)
+.sort((a,b)=>(a.timestamp||0)-(b.timestamp||0));
+
+console.log("EVENTS FOUND:",data.events.length,"NEW:",newEvents.length);
+
+let maxTs=lastTs;
+
+for(const event of newEvents){
+await processEvent(event);
+
+if((event.timestamp||0)>maxTs){
+maxTs=event.timestamp;
+}
+}
+
+if(maxTs>lastTs){
+setLastProcessedTs(walletAddress,maxTs);
+}
+
+}catch(error){
+console.error("AQUAM HISTORY ERROR:",error);
+}finally{
+checking=false;
+}
+}
+
+/* PROCESS ONE EVENT (an event can contain multiple actions) */
+
+async function processEvent(event){
+console.log("PROCESSING EVENT:",event.event_id);
+
+if(!event.actions||!event.actions.length){
+console.log("Skipping event: no actions");
+return;
+}
+
+for(const action of event.actions){
+
+if(action.status!=="ok"){
+console.log("Skipping action: status not ok");
+continue;
+}
+
+let rawAmount=0;
+let decimals=9;
+let actorAddress="";
+let jettonAddress="";
+
+if(action.type==="JettonSwap"){
+
+/*
+DEX swaps (e.g. via the STON.fi widget) come through as
+JettonSwap, not JettonTransfer. This is the action type
+that actually fires when a user swaps TON -> AQUAM here.
+*/
+
+const js=action.JettonSwap;
+
+if(!js){
+continue;
+}
+
+jettonAddress=js.jetton_master_out?.address||"";
+actorAddress=js.user_wallet?.address||"";
+rawAmount=Number(js.amount_out||0);
+decimals=Number(js.jetton_master_out?.decimals??9);
+
+}else if(action.type==="JettonTransfer"){
+
+/* Plain wallet-to-wallet jetton transfers */
+
+const jt=action.JettonTransfer;
+
+if(!jt){
+continue;
+}
+
+jettonAddress=jt.jetton?.address||"";
+actorAddress=jt.recipient?.address||"";
+rawAmount=Number(jt.amount||0);
+decimals=Number(jt.jetton?.decimals??9);
+
+}else{
+continue;
+}
+
+/* Only accept the AQUAM jetton */
+
+if(!addressesMatch(jettonAddress,AQUAM)){
+console.log("Skipping: not AQUAM jetton");
+continue;
+}
+
+/* Only accept actions involving the connected wallet */
+
+if(!addressesMatch(actorAddress,walletAddress)){
+console.log("Skipping: not the connected wallet");
+continue;
+}
+
+if(!rawAmount||rawAmount<=0){
+console.log("Skipping: no amount");
+continue;
+}
+
+/* Use the event_id as the unique dedupe key */
+
+const uniqueHash=event.event_id;
+
+if(!uniqueHash){
+console.log("Skipping: no event_id");
+continue;
+}
+
+const realAmount=rawAmount/Math.pow(10,decimals);
+
+/*
+usd_equivalent uses the same AQUAM/USD price fetched by
+fetchExchangeRate() (Ston.fi dex_usd_price). If the price
+hasn't loaded yet (e.g. Ston.fi request failed), this falls
+back to 0 rather than saving a wrong number.
+*/
+
+const usdEquivalent=currentAquamPriceUsd>0
+?realAmount*currentAquamPriceUsd
+:0;
+
+console.log("ACTION TYPE:",action.type);
+console.log("AQUAM RAW:",rawAmount);
+console.log("AQUAM DECIMALS:",decimals);
+console.log("AQUAM REAL:",realAmount);
+console.log("USD EQUIVALENT:",usdEquivalent);
+
+/* DUPLICATE CHECK */
+
+const {data:existing,error:checkError}=await db
+.from("swaps")
+.select("id")
+.eq("tx_hash",uniqueHash)
+.maybeSingle();
+
+if(checkError){
+console.error("SUPABASE CHECK ERROR:",checkError);
+continue;
+}
+
+if(existing){
+console.log("SWAP ALREADY EXISTS:",uniqueHash);
+continue;
+}
+
+/* SAVE */
+
+const {data:inserted,error:insertError}=await db
+.from("swaps")
+.insert({
+wallet_address:walletAddress,
+tx_hash:uniqueHash,
+from_asset:"TON",
+to_asset:"AQUAM",
+aquam_amount:realAmount,
+usd_equivalent:usdEquivalent
+})
+.select();
+
+console.log("SUPABASE SWAP RESULT:",{
+inserted,
+insertError
+});
+
+if(insertError){
+console.error("FAILED TO SAVE SWAP:",insertError);
+continue;
+}
+
+console.log("AQUAM SWAP SAVED SUCCESSFULLY:",realAmount);
+
+/*
+Force the next check to see the database state.
+*/
+
+const {data:verifyRow,error:verifyError}=await db
+.from("swaps")
+.select("*")
+.eq("tx_hash",uniqueHash)
+.maybeSingle();
+
+console.log("DATABASE VERIFICATION:",{
+verifyRow,
+verifyError
+});
+
+}
+
+}
+
+/* CHECK EVERY 15 SECONDS */
+
+setInterval(()=>{
+if(walletAddress){
+checkAquamHistory();
+}
+},15000);
+
+/*
+TON Connect restores an existing connection
+automatically. Check after page loads too.
+*/
+
+setTimeout(async()=>{
+try{
+if(tonConnectUI.wallet){
+walletAddress=tonConnectUI.wallet.account.address;
+
+console.log(
+"RESTORED WALLET:",
+walletAddress
+);
+
+document.getElementById('status').innerHTML=
+'<i class="fa-solid fa-circle text-[6px] text-green-500 animate-pulse"></i> Wallet connected';
+
+await checkAquamHistory();
+}
+}catch(error){
+console.error("RESTORE ERROR:",error);
+}
+},1500);
+
 </script>
 
 </body>
