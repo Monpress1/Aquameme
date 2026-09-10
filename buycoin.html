@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
@@ -178,16 +179,22 @@ async function fetchExchangeRate() {
     const tokenTag = document.getElementById("tokenPriceTag");
     
     try {
-        const resAqua = await fetch(`https://api.ston.fi/v1/assets/${AQUA_JETTON_ADDRESS}`);
+        // 1. Fetch live AQUAM price from TonAPI using the raw master address
+        const resAqua = await fetch(`${API}/rates?tokens=${AQUA_MASTER}&currencies=usd`);
         const dataAqua = await resAqua.json();
-        if (dataAqua?.asset?.dex_usd_price) {
-            currentAquamPriceUsd = parseFloat(dataAqua.asset.dex_usd_price);
+        
+        // TonAPI keys rates by raw address format (0:3bd4...)
+        const tokenRate = dataAqua?.rates?.[AQUA_MASTER]?.prices?.USD;
+
+        if (tokenRate && !isNaN(tokenRate) && tokenRate > 0) {
+            currentAquamPriceUsd = parseFloat(tokenRate);
         }
 
-        const resNgn = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=ngn&x_cg_demo_api_key=${CG_API_KEY}`);
+        // 2. Fetch live USD to NGN rate matching open.er-api.com
+        const resNgn = await fetch(`https://open.er-api.com/v6/latest/USD`);
         const dataNgn = await resNgn.json();
-        if (dataNgn?.tether?.ngn) {
-            ngnPerUsd = Math.ceil(dataNgn.tether.ngn);
+        if (dataNgn?.rates?.NGN) {
+            ngnPerUsd = Math.ceil(dataNgn.rates.NGN);
         }
     } catch (error) {
         console.warn("Exchange rate fallback applied:", error);
@@ -197,7 +204,7 @@ async function fetchExchangeRate() {
     minPurchaseNgn = ngnPerUsd * MIN_PURCHASE_USD;
     
     minLabel.innerText = `Min: ₦${minPurchaseNgn.toLocaleString()} ($1 = ₦${ngnPerUsd.toLocaleString()})`;
-    tokenTag.innerText = `1 AQUAM = $${currentAquamPriceUsd.toFixed(4)} (₦${aquamPriceNgn.toFixed(4)})`;
+    tokenTag.innerText = `1 AQUAM = $${currentAquamPriceUsd.toFixed(6)} (₦${aquamPriceNgn.toFixed(4)})`;
 
     const payInput = document.getElementById("payAmount");
     if (!payInput.value || parseFloat(payInput.value) < minPurchaseNgn) {
