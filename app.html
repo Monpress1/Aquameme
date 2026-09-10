@@ -609,17 +609,21 @@ tonUI.onStatusChange(async wallet => {
 
 async function fetchRates() {
     try {
-        const resAqua = await fetch(`https://api.ston.fi/v1/assets/EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d`);
+        // 1. Fetch live AQUAM price from TonAPI
+        const resAqua = await fetch(`https://tonapi.io/v2/rates?tokens=EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d&currencies=usd`);
         const dataAqua = await resAqua.json();
         
-        if (dataAqua.asset && dataAqua.asset.dex_usd_price) {
-            currentAquamPriceUsd = parseFloat(dataAqua.asset.dex_usd_price);
-            const aquamPerDollar = (1 / currentAquamPriceUsd).toLocaleString(undefined, {maximumFractionDigits: 0});
+        const tokenRate = dataAqua?.rates?.['EQA71L6_7UY_aENYSZ_cfbFyUz8SsufxTWyN5Ac80BtX8W9d']?.prices?.USD;
+
+        if (tokenRate && !isNaN(tokenRate) && tokenRate > 0) {
+            currentAquamPriceUsd = parseFloat(tokenRate);
+            const aquamPerDollar = (1 / currentAquamPriceUsd).toLocaleString(undefined, { maximumFractionDigits: 0 });
             document.getElementById('aquamRateHeader').innerText = `$1 = ${aquamPerDollar} AQUAM`;
         } else {
             document.getElementById('aquamRateHeader').innerText = "Rate Offline";
         }
 
+        // 2. Fetch live USD to NGN exchange rate
         const resNgn = await fetch(`https://open.er-api.com/v6/latest/USD`);
         const dataNgn = await resNgn.json();
         if (dataNgn && dataNgn.rates && dataNgn.rates.NGN) {
@@ -630,6 +634,7 @@ async function fetchRates() {
         console.error("Price fetch error:", e);
     }
 }
+
 
 function updateConversion() {
     let naira = currentService === 'Data' ? selectedPlanPrice : Number(document.getElementById("nairaAmount").value);
@@ -1151,3 +1156,4 @@ function finishTour() {
 </script>
 </body>
 </html>
+
