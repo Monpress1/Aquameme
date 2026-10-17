@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Connect wallet</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head><body>
+<main class="wrap"><h1 class="pg">Wallet</h1><p class="sub">Connect the wallet that holds your MACO. We read your MACO balance only and ask for a free signed message to log you in.</p><div id="box"></div>
+<div class="card"><h2 class="ttl" style="color:var(--go);font-size:17px">Get MACO</h2><p class="sub" style="margin:8px 0 12px">Swap ETH for MACO in any EVM trading app using the contract address, or open the launchpad link in your wallet browser.</p>
+<p class="mono" id="ca"></p><button class="btn alt sm" id="cp" style="margin:6px 8px 0 0">Copy contract</button><a class="btn sm gold" id="bl" target="_blank" rel="noopener" style="margin-top:6px">Open launchpad</a></div></main>
+<script src="assets/config.js"></script>
+<script src="assets/catalog.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/app.js"></script>
+<script>
+
+const q=new URLSearchParams(location.search),next=q.get('next')||'index.html',W=App.W,C=CONFIG,$=s=>document.querySelector(s);
+$('#ca').textContent=C.MACO_ADDRESS;$('#bl').href=C.BUY_URL;
+$('#cp').onclick=()=>{try{navigator.clipboard.writeText(C.MACO_ADDRESS);App.toast('Contract copied')}catch(e){App.toast(C.MACO_ADDRESS)}};
+async function link(k){try{App.busy('Connecting…');await W.connect(k);App.unbusy()}catch(e){App.unbusy();if(e&&e.message==='NEEDS_WC_ID'){wcSetup();return}App.toast(e.code===4001?'Connection cancelled':(e&&e.message)||'Could not connect')}}
+function wcSetup(){const b=$('#box');b.innerHTML='<div class="card"><h2 class="ttl" style="color:var(--cy);font-size:18px">WalletConnect setup</h2><p class="sub" style="margin:8px 0 12px">WalletConnect needs a free Project ID. Create one at <a href="https://dashboard.reown.com" target="_blank" rel="noopener" style="color:var(--cy)">dashboard.reown.com</a> (formerly WalletConnect Cloud), add this site&#39;s domain to the project&#39;s allowed list, then paste the ID here. You can also put it in <b>WC_PROJECT_ID</b> in config.js.</p><input id="wid" placeholder="Project ID" style="width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--ink);font:600 14px Sora,sans-serif;margin-bottom:10px"><button class="btn" id="ws">Save &amp; connect</button><button class="btn alt" id="wb">Back</button></div>';
+  $('#wb').onclick=paint;$('#ws').onclick=()=>{const v=$('#wid').value.trim();if(!/^[0-9a-f]{32}$/i.test(v)){App.toast('That does not look like a Project ID (32 characters)');return}localStorage.setItem('maco_wc_id',v);paint();link('wc')}}
+async function sign(){try{App.busy('Sign the message in your wallet…');const n=await App.API.call('nonce');const msg='Sign in to MACO Rush\nAddress: '+W.addr+'\nNonce: '+n.nonce;const sig=await W.sign(msg);const r=await App.API.call('login',{message:msg,signature:sig});sessionStorage.setItem('maco_tok',r.token);App.unbusy();location.href=next}catch(e){App.unbusy();App.toast(e.code===4001?'Signature cancelled':e.message||'Sign-in failed')}}
+function paint(){const b=$('#box');
+  if(!W.addr){b.innerHTML='<div class="card"><h2 class="ttl" style="color:var(--cy);font-size:18px">Connect</h2><p class="sub" style="margin:8px 0 14px">Pick how you want to connect.</p><button class="btn" id="b1">Browser wallet (MetaMask, Trust, Coinbase…)</button><button class="btn alt" id="b2">WalletConnect</button>'+(App.DEMO?'<button class="btn alt" id="b3">Use demo wallet</button>':'')+'</div>';
+    $('#b1').onclick=()=>link('injected');$('#b2').onclick=()=>link('wc');if($('#b3'))$('#b3').onclick=()=>link('demo');return}
+  b.innerHTML='<div class="card" style="text-align:center">'+Icons.svg('mcoin',64)+'<div class="big">'+W.bal()+'</div><div class="sub" style="margin:0">'+W.sym+' balance</div><p class="mono">'+W.addr+'</p>'+
+    (C.CHAIN_ID?(W.wrong?'<p class="bad" style="font-weight:700">Wrong network</p><button class="btn alt" id="sw">Switch network</button>':'<p class="ok" style="font-weight:700;font-size:13px">Network OK</p>'):'')+'</div>'+
+    '<div class="card"><button class="btn" id="si">Sign in &amp; continue</button><button class="btn alt" id="dc">Disconnect</button></div>';
+  $('#si').onclick=sign;$('#dc').onclick=()=>W.disconnect();if($('#sw'))$('#sw').onclick=async()=>{try{await W.ensureChain()}catch(e){App.toast(e.message)}}}
+App.init({page:'wallet'}).then(()=>{W.on(paint);paint()});
+</script>
+</body></html>

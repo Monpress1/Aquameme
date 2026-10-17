@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Heroes</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:dark;--bg:#060814;--ink:#eef2ff;--mu:#8d98c8;--line:rgba(150,170,255,.16);--cy:#3de8ff;--vi:#8b6bff;--mg:#ff4fd8;--go:#ffc933;--ok:#46f0a0;--bad:#ff5470;box-sizing:border-box;font-family:'Sora',system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink)}
+body{background:radial-gradient(900px 520px at 85% -10%,rgba(139,107,255,.24),transparent 60%),radial-gradient(700px 480px at -10% 8%,rgba(61,232,255,.14),transparent 60%),var(--bg);background-attachment:fixed;padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))}
+a{color:inherit;text-decoration:none}
+.top{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:calc(10px + env(safe-area-inset-top,0px)) 16px 10px;background:linear-gradient(180deg,rgba(6,8,20,.92),rgba(6,8,20,.6));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.brand{display:flex;align-items:center;gap:8px;font:900 17px 'Orbitron',sans-serif;letter-spacing:.02em}
+.brand span{color:var(--cy);margin-left:5px}
+.wchip{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.05);font-size:13px;font-weight:600}
+.wchip b{font-family:'Orbitron',sans-serif;font-size:13px;color:var(--go)}.wchip i{font-style:normal;color:var(--mu);font-size:12px}
+.demo{margin:0 16px 8px;padding:8px 12px;border-radius:12px;background:rgba(255,201,51,.1);border:1px solid rgba(255,201,51,.3);color:#ffe9a0;font-size:12.5px;line-height:1.35}
+.wrap{max-width:560px;margin:0 auto;padding:6px 16px 16px}
+h1.pg{font:900 26px/1.1 'Orbitron',sans-serif;margin:10px 0 4px}.sub{color:var(--mu);font-size:14px;margin:0 0 16px;line-height:1.45}
+.card{border-radius:24px;padding:18px;background:linear-gradient(160deg,rgba(32,36,96,.5),rgba(12,10,44,.7));border:1px solid var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 16px 50px rgba(0,0,0,.35);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.card+.card,.card+.row,.row+.card{margin-top:12px}
+.btn{position:relative;display:block;width:100%;border:0;border-radius:16px;padding:15px;font:800 15px 'Sora',sans-serif;color:#04061a;cursor:pointer;text-align:center;background:linear-gradient(90deg,var(--cy),var(--vi) 60%,var(--mg));box-shadow:0 10px 30px rgba(139,107,255,.4);transition:transform .15s,opacity .2s}
+.btn:active{transform:scale(.97)}.btn:disabled{opacity:.45;pointer-events:none}
+.btn.alt{margin-top:9px;background:rgba(255,255,255,.06);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line);font-weight:700}
+.btn.gold{background:linear-gradient(90deg,#ffe27a,#ff9a2b);box-shadow:0 10px 30px rgba(255,170,40,.35)}
+.btn.sm{display:inline-block;width:auto;padding:10px 16px;font-size:13px;border-radius:12px;margin:0}
+.row{display:flex;gap:10px}.stat{flex:1;padding:12px;border-radius:16px;background:rgba(255,255,255,.045);border:1px solid var(--line);text-align:left}
+.stat small{display:block;color:var(--mu);font-size:11.5px;margin-bottom:4px}.stat b{font:700 18px 'Orbitron',sans-serif}
+.stat svg{vertical-align:-4px;margin-right:4px}
+.lab{margin:14px 0 8px;color:var(--mu);font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+.grid{display:grid;gap:10px}
+.chip{padding:8px 4px 6px;border-radius:14px;border:1px solid var(--line);background:rgba(255,255,255,.04);cursor:pointer;font-weight:700;font-size:12px;text-align:center;transition:.2s}
+.chip i{display:block;height:26px;border-radius:9px;margin-bottom:5px}.chip.on{border-color:var(--cy);box-shadow:0 0 18px rgba(61,232,255,.4);background:rgba(61,232,255,.08)}
+.chip.dis{opacity:.45}.chip b{display:block;font:700 13px 'Orbitron',sans-serif}.chip small{display:block;color:var(--mu);font-size:10.5px;font-weight:600}
+.big{font:900 46px 'Orbitron',sans-serif;margin:2px 0 10px;background:linear-gradient(90deg,var(--cy),var(--mg));-webkit-background-clip:text;background-clip:text;color:transparent}
+.ttl{margin:0;font:900 22px 'Orbitron',sans-serif;color:var(--mg)}
+.nav{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:30;max-width:540px;margin:0 auto;display:flex;justify-content:space-around;align-items:center;padding:8px 6px;border-radius:26px;background:rgba(14,16,48,.82);border:1px solid var(--line);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 14px 40px rgba(0,0,0,.5)}
+.nav a{display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--mu);font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:14px}
+.nav a.on{color:var(--cy)}.nav a.play{width:60px;height:60px;margin-top:-26px;border-radius:50%;justify-content:center;color:#04061a;background:linear-gradient(135deg,var(--cy),var(--vi) 60%,var(--mg));box-shadow:0 8px 26px rgba(139,107,255,.6);border:3px solid #0a0c26}
+.tabs{display:flex;gap:4px;padding:4px;border-radius:16px;background:rgba(255,255,255,.05);border:1px solid var(--line);margin:0 0 14px}
+.tabs button{flex:1;border:0;padding:10px 6px;border-radius:12px;background:none;color:var(--mu);font:700 13px 'Sora',sans-serif;cursor:pointer}.tabs button.on{background:linear-gradient(90deg,rgba(61,232,255,.2),rgba(139,107,255,.25));color:var(--ink)}
+.pk{--c:var(--cy);position:relative;display:grid;grid-template-columns:76px 1fr;gap:14px;align-items:center;padding:14px;margin-bottom:12px;border-radius:22px;background:linear-gradient(150deg,rgba(32,36,96,.45),rgba(10,8,40,.7));border:1px solid var(--line)}
+.pk .ic{width:76px;height:76px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--c) 38%,transparent),rgba(255,255,255,.03) 70%);border:1px solid color-mix(in srgb,var(--c) 45%,transparent);box-shadow:0 0 28px color-mix(in srgb,var(--c) 30%,transparent),inset 0 0 20px color-mix(in srgb,var(--c) 18%,transparent)}
+.pk h3{margin:0;font-size:15.5px;font-weight:800}.pk h3 em{font-style:normal;color:var(--go);margin-left:6px;font-family:'Orbitron',sans-serif;font-size:13px}
+.pk p{margin:3px 0 10px;color:var(--mu);font-size:12.5px;line-height:1.35}
+.pk .ft{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.price{display:flex;align-items:center;gap:6px;font:800 15px 'Orbitron',sans-serif;color:var(--go)}
+.tag{position:absolute;top:-8px;right:14px;padding:3px 10px;border-radius:999px;font-size:10.5px;font-weight:800;color:#04061a;background:linear-gradient(90deg,var(--go),#ff9a2b)}
+.inv{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px}.inv .stat{flex:0 0 auto;min-width:78px;text-align:center}
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;padding:16px;background:rgba(3,4,14,.72);backdrop-filter:blur(6px)}
+.modal .card{width:min(440px,100%);text-align:center}.modal h2{margin:8px 0 2px;font-size:20px}.modal .m{color:var(--mu);font-size:13px;margin:4px 0}
+.modal .ln{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+#toast{position:fixed;left:50%;bottom:calc(104px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:rgba(14,16,48,.95);border:1px solid var(--line);padding:9px 16px;border-radius:14px;font-weight:700;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:90;max-width:90%;text-align:center}
+.rar{display:inline-block;padding:3px 10px;border-radius:999px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.rar.common{background:rgba(180,190,230,.18);color:#c7cff5}.rar.rare{background:rgba(61,232,255,.16);color:var(--cy)}.rar.epic{background:rgba(139,107,255,.22);color:#b9a6ff}.rar.legendary{background:rgba(255,201,51,.2);color:var(--go)}
+.spin{width:44px;height:44px;border-radius:50%;border:4px solid rgba(255,255,255,.12);border-top-color:var(--cy);animation:sp 1s linear infinite;margin:0 auto 10px}@keyframes sp{to{transform:rotate(360deg)}}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.mono{font-family:ui-monospace,Menlo,monospace;word-break:break-all;font-size:12px;color:var(--mu)}
+.logo{margin:0;font:900 clamp(38px,11vw,56px)/.95 'Orbitron',sans-serif;font-style:italic;transform:skewX(-8deg);background:linear-gradient(100deg,#fff 0%,var(--cy) 38%,var(--vi) 70%,var(--mg) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(61,232,255,.45))}
+.logo span{display:block;font-size:.78em}
+.lk{display:flex;align-items:center;gap:14px;padding:14px;margin-top:10px;border-radius:20px;background:rgba(255,255,255,.045);border:1px solid var(--line)}
+.lk b{display:block;font-size:15px}.lk small{color:var(--mu);font-size:12.5px}.lk svg{flex:none}
+
+</style>
+<style>.hs{display:flex;gap:10px;overflow-x:auto;padding:2px 0 12px}.cc{flex:0 0 112px;padding:10px;border-radius:18px;text-align:center;border:1px solid var(--line);background:rgba(255,255,255,.04);cursor:pointer}.cc.on{border-color:var(--cy);box-shadow:0 0 18px rgba(61,232,255,.35)}.cc .av{height:64px;border-radius:14px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font:900 28px Orbitron,sans-serif;color:#04061a;background:linear-gradient(135deg,#c7cff5,#7f8fd0)}.cc.rare .av{background:linear-gradient(135deg,#7ff3ff,#3a7bff)}.cc.epic .av{background:linear-gradient(135deg,#c9b8ff,#8b6bff)}.cc.legendary .av{background:linear-gradient(135deg,#fff0a0,#ff9a2b)}.cc b{display:block;font-size:13px}.cc small{color:var(--mu);font-size:11px}</style>
+</head><body>
+<main class="wrap"><h1 class="pg">Heroes</h1><p class="sub">Tap a hero to preview it. Models download only when you select them.</p>
+<div class="card" style="padding:0;overflow:hidden;position:relative"><canvas id="cv" style="width:100%;height:340px;display:block;touch-action:pan-y"></canvas>
+<div id="ld" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(6,8,20,.55)"><div class="spin"></div><b id="lp">0%</b></div></div>
+<div class="card" id="info"></div>
+<div class="lab">All heroes</div><div class="hs" id="lst"></div></main>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+/* ===== MACO Rush config — fill these in when the chain + edge function are ready ===== */
+window.CONFIG={
+  CHAIN_ID:0,                 // EVM chain ID MACO lives on (0 = don't force a network switch)
+  CHAIN_NAME:'',              // e.g. 'Robinhood Chain'  (only used if the wallet must add the network)
+  RPC_URL:'',                 // public RPC for that chain
+  EXPLORER:'',                // block explorer base URL, e.g. https://explorer.example.com
+  MACO_ADDRESS:'0x6ffb075F8030C6eA7914c1BA90A8CF87c9A8686d',
+  MACO_SYMBOL:'MACO',
+  MACO_DECIMALS:null,         // null = read from the token contract
+  TREASURY:'',                // wallet that receives MACO payments (empty = DEMO mode, nothing is sent)
+  API_BASE:'',                // your edge function base URL (empty = DEMO mode, data stays in this browser)
+  WC_PROJECT_ID:'',           // WalletConnect Project ID (free at dashboard.reown.com). Paste it here, or enter it once on connect.html
+  FREE_SECONDS:300,           // free play time for every new wallet
+  BUY_URL:'https://ponsfamily.com/launchpad/0x6ffb075f8030c6ea7914c1ba90a8cf87c9a8686d'
+};
+
+</script>
+<script>
+/* Everything for sale. Prices are in MACO (whole tokens). Edit the numbers here to re-price the shop. */
+window.CATALOG={
+  PU:{ magnet:{name:'Magnet',c:'#ff4fd8',t:9,d:'Pulls in nearby M coins for 9 seconds.'},
+       shield:{name:'Shield',c:'#3de8ff',t:12,d:'Absorbs one crash within 12 seconds.'},
+       nitro:{name:'Nitro',c:'#ffb300',t:5,d:'5 seconds of boosted speed. Smash through everything.'},
+       x2:{name:'Double score',c:'#ffc933',t:12,d:'Doubles score and M coins for 12 seconds.'},
+       jet:{name:'Rocket',c:'#ff7a3d',t:7,d:'7 seconds of free flight.'},
+       shoe:{name:'Mega boots',c:'#46f0a0',t:15,d:'15 seconds of mega jump: clear cars and gates.'} },
+  chars:[
+    {id:'robot',name:'Robo',file:'models/robot.glb',mb:0.5,rarity:'common',price:0,height:2.4,rot:180,fit:'bbox',desc:'The scout bot every runner starts with.'},
+    {id:'xbot',name:'X-Bot',file:'models/xbot.glb',mb:2.9,rarity:'rare',price:150,height:2.1,rot:180,fit:'bones',desc:'Sleek chrome frame built for speed.'},
+    {id:'soldier',name:'Soldier',file:'models/soldier.glb',mb:2.1,rarity:'rare',price:200,height:2.2,rot:0,fit:'bbox',desc:'Field-tested and impossible to slow down.'},
+    {id:'sprinter',name:'Sprinter',file:'models/sprinter.glb',mb:6.5,rarity:'epic',price:300,height:2.2,rot:180,fit:'skin',desc:'Pure sprint form from the first stride.'},
+    {id:'ethan',name:'Ethan',file:'models/ethan.glb',mb:2.0,rarity:'epic',price:350,height:2.2,rot:180,fit:'bones',desc:'Runs like something is right behind him.'},
+    {id:'rider',name:'Nova Rider',file:'models/rider.glb',mb:10.5,rarity:'legendary',price:500,height:2.1,rot:180,fit:'skin',desc:'Glides above the street on a sci-fi hoverboard.'}
+    
+  ],
+  items:[
+    {id:'keys5',cat:'time',name:'Key pack',qty:'×5',desc:'Each key continues a run after a crash.',icon:'key',price:50,grant:{keys:5}},
+    {id:'keys15',cat:'time',name:'Key pack',qty:'×15',desc:'Each key continues a run after a crash.',icon:'key',price:120,grant:{keys:15},tag:'Popular'},
+    {id:'keys40',cat:'time',name:'Key pack',qty:'×40',desc:'Each key continues a run after a crash.',icon:'key',price:280,grant:{keys:40},tag:'Best value'},
+    {id:'min10',cat:'time',name:'Play time',qty:'10 min',desc:'Extra minutes of run time.',icon:'clock',price:40,grant:{minutes:10}},
+    {id:'min30',cat:'time',name:'Play time',qty:'30 min',desc:'Extra minutes of run time.',icon:'clock',price:100,grant:{minutes:30},tag:'Popular'},
+    {id:'min120',cat:'time',name:'Play time',qty:'2 hours',desc:'Extra minutes of run time.',icon:'clock',price:360,grant:{minutes:120},tag:'Best value'},
+    {id:'magnet5',cat:'power',name:'Magnet',qty:'×5',icon:'magnet',price:30,grant:{inv:{magnet:5}}},
+    {id:'shield5',cat:'power',name:'Shield',qty:'×5',icon:'shield',price:40,grant:{inv:{shield:5}}},
+    {id:'nitro5',cat:'power',name:'Nitro',qty:'×5',icon:'nitro',price:40,grant:{inv:{nitro:5}}},
+    {id:'x25',cat:'power',name:'Double score',qty:'×5',icon:'x2',price:50,grant:{inv:{x2:5}}},
+    {id:'shoe5',cat:'power',name:'Mega boots',qty:'×5',icon:'shoe',price:60,grant:{inv:{shoe:5}}},
+    {id:'jet5',cat:'power',name:'Rocket',qty:'×5',icon:'jet',price:70,grant:{inv:{jet:5}}},
+    {id:'jetpack',cat:'boost',name:'Jetpack',qty:'Permanent',desc:'Fly any time with the rocket button. Refuels while you run.',icon:'jetpack',price:400,grant:{boost:{jet:true}},owned:p=>p.boosts.jet},
+    {id:'fuel1',cat:'boost',name:'Fuel tank I',qty:'+1.5 s',desc:'Longer jetpack flights.',icon:'fuel',price:150,grant:{boost:{fuel:1}},owned:p=>p.boosts.fuel>=1},
+    {id:'fuel2',cat:'boost',name:'Fuel tank II',qty:'+3 s',desc:'Longer jetpack flights.',icon:'fuel',price:250,grant:{boost:{fuel:2}},owned:p=>p.boosts.fuel>=2,locked:p=>p.boosts.fuel<1&&'Needs Fuel tank I'},
+    {id:'fuel3',cat:'boost',name:'Fuel tank III',qty:'+4.5 s',desc:'Longer jetpack flights.',icon:'fuel',price:400,grant:{boost:{fuel:3}},owned:p=>p.boosts.fuel>=3,locked:p=>p.boosts.fuel<2&&'Needs Fuel tank II'}
+  ]
+};
+CATALOG.items.forEach(i=>{if(i.cat==='power'){const k=Object.keys(i.grant.inv)[0];i.desc=CATALOG.PU[k].d+' Start a run with it.'}});
+
+</script>
+<script>
+window.Icons=(function(){
+const g=(id,a,b,v)=>'<linearGradient id="ig_'+id+'" x1="0" y1="0" x2="'+(v?0:1)+'" y2="'+(v?1:1)+'"><stop offset="0" stop-color="'+a+'"/><stop offset="1" stop-color="'+b+'"/></linearGradient>';
+const D={
+mcoin:'<defs><linearGradient id="ig_mc" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0a0"/><stop offset=".55" stop-color="#ffc933"/><stop offset="1" stop-color="#d98a0b"/></linearGradient></defs><circle cx="32" cy="32" r="30" fill="url(#ig_mc)"/><circle cx="32" cy="32" r="24.5" fill="none" stroke="#b8730a" stroke-width="2.5"/><path d="M17 45V19h7.5L32 33l7.5-14H47v26h-6.5V30.5L34 42h-4l-6.5-11.5V45z" fill="#7a4a00"/><path d="M12 22a24 24 0 0 1 22-14" stroke="#fff8d0" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>',
+key:'<defs>'+g('k','#fff0a0','#e09a14')+'</defs><circle cx="22" cy="22" r="13" fill="none" stroke="url(#ig_k)" stroke-width="7"/><path d="M31 31 54 54M44 44l6-6M50 50l5-5" stroke="url(#ig_k)" stroke-width="7" stroke-linecap="round"/><circle cx="22" cy="22" r="4" fill="#ffe27a"/>',
+clock:'<defs>'+g('c','#7ff3ff','#3a7bff')+'</defs><circle cx="32" cy="32" r="28" fill="url(#ig_c)"/><circle cx="32" cy="32" r="22" fill="#0a1236"/><path d="M32 17v16l10 7" stroke="#9ff4ff" stroke-width="4.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="32" cy="32" r="3.5" fill="#fff"/><path d="M32 12v3M32 49v3M12 32h3M49 32h3" stroke="#7ff3ff" stroke-width="3" stroke-linecap="round"/>',
+magnet:'<defs>'+g('m','#ff7ae6','#8b2bff')+'</defs><path d="M12 10h14v26a6 6 0 0 0 12 0V10h14v26a20 20 0 0 1-40 0z" fill="url(#ig_m)"/><rect x="12" y="10" width="14" height="12" fill="#e8ecff"/><rect x="38" y="10" width="14" height="12" fill="#e8ecff"/><path d="M16 12v6M20 12v6M42 12v6M46 12v6" stroke="#9aa6d8" stroke-width="2"/><path d="M20 54l-2 6M32 56v6M44 54l2 6" stroke="#ffe27a" stroke-width="3" stroke-linecap="round"/>',
+shield:'<defs>'+g('s','#7ff3ff','#2a6bff',1)+'</defs><path d="M32 4l22 8v18c0 15-9 24-22 30C19 54 10 45 10 30V12z" fill="url(#ig_s)"/><path d="M32 10l16 6v14c0 11-6 18-16 23z" fill="#0a1a4a" opacity=".5"/><path d="M32 19l3.500 7.500H43l-6 5 2.200 7.800L32 35l-7.200 4.300L27 31.500l-6-5h7.500z" fill="#e8fbff"/>',
+nitro:'<defs>'+g('n','#fff2a0','#ff5a1f',1)+'</defs><path d="M38 2 12 36h15l-5 26 30-38H36z" fill="url(#ig_n)" stroke="#fff3c0" stroke-width="1.5" stroke-linejoin="round"/>',
+x2:'<defs>'+g('x','#fff0a0','#ff9a1f')+'</defs><path d="M32 3l24 14v30L32 61 8 47V17z" fill="url(#ig_x)"/><path d="M32 9l19 11v24L32 55 13 44V20z" fill="#3a2200" opacity=".5"/><text x="32" y="41" text-anchor="middle" font-family="Sora,Arial" font-weight="900" font-size="24" fill="#fff">×2</text>',
+shoe:'<defs>'+g('b','#9dffb0','#14b86a')+'</defs><path d="M8 18h18v12c0 4 3 6 8 8l16 6c4 1.500 6 4 6 8v4H8z" fill="url(#ig_b)"/><rect x="8" y="50" width="48" height="8" rx="3" fill="#eafff0"/><path d="M26 22h-8M26 28h-8" stroke="#0b6b3a" stroke-width="3" stroke-linecap="round"/><path d="M50 14c4-4 8-4 10-2-3 1-5 3-6 6M44 8c3-4 7-5 9-3-3 1-4 3-5 6" fill="#fff" opacity=".9"/>',
+jet:'<defs>'+g('j','#ffffff','#9fb0ff')+g('jf','#fff2a0','#ff5a1f',1)+'</defs><path d="M32 54c-4 4-5 8 0 10 5-2 4-6 0-10z" fill="url(#ig_jf)"/><path d="M32 4c11 9 13 22 9 38H23C19 26 21 13 32 4z" fill="url(#ig_j)"/><circle cx="32" cy="22" r="5.500" fill="#2a6bff" stroke="#fff" stroke-width="2"/><path d="M23 42l-9 10 3-16zM41 42l9 10-3-16z" fill="#ff4f7a"/><rect x="26" y="42" width="12" height="6" rx="2" fill="#7a86c8"/>',
+jetpack:'<defs>'+g('p','#6f7bd0','#2a3270',1)+g('pf','#fff2a0','#ff5a1f',1)+'</defs><path d="M17 50c-3 4-3 9 0 12 3-3 3-8 0-12zM47 50c-3 4-3 9 0 12 3-3 3-8 0-12z" fill="url(#ig_pf)"/><rect x="6" y="6" width="22" height="44" rx="10" fill="url(#ig_p)"/><rect x="36" y="6" width="22" height="44" rx="10" fill="url(#ig_p)"/><path d="M6 20h22M36 20h22M6 32h22M36 32h22" stroke="#3de8ff" stroke-width="3"/><rect x="26" y="16" width="12" height="26" rx="4" fill="#161b44"/><path d="M12 50h10M42 50h10" stroke="#ff9a2b" stroke-width="4" stroke-linecap="round"/>',
+fuel:'<defs>'+g('f','#ffb15c','#e0561f',1)+'</defs><path d="M14 14h26l8 8v38H14z" fill="url(#ig_f)"/><path d="M40 14l8 8h-8z" fill="#ffd9a8"/><rect x="20" y="4" width="14" height="10" rx="3" fill="#7a86c8"/><path d="M31 26c6 7 8 11 8 15a8 8 0 0 1-16 0c0-4 2-8 8-15z" fill="#fff4e0"/>'
+};
+function svg(n,s,c){return '<svg viewBox="0 0 64 64" width="'+s+'" height="'+s+'"'+(c?' class="'+c+'"':'')+' aria-hidden="true">'+(D[n]||'')+'</svg>'}
+function canvas(n,px){const c=document.createElement('canvas');c.width=c.height=px;const im=new Image();const p=new Promise(r=>{im.onload=()=>{c.getContext('2d').drawImage(im,0,0,px,px);r(c)}});im.src='data:image/svg+xml;utf8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="'+px+'" height="'+px+'">'+D[n]+'</svg>');return{canvas:c,ready:p}}
+const N={home:'<path d="M3 11l9-8 9 8v10h-6v-6H9v6H3z"/>',heroes:'<circle cx="12" cy="8" r="4"/><path d="M4 21c1-5 4-7 8-7s7 2 8 7"/>',play:'<path d="M8 5v14l11-7z" fill="currentColor"/>',market:'<path d="M5 8h14l-1 13H6z"/><path d="M9 8a3 3 0 0 1 6 0"/>',rank:'<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3M12 14v4M8 21h8"/>'};
+function nav(n){return '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+N[n]+'</svg>'}
+return{svg,canvas,nav}})();
+
+</script>
+<script>
+(function(){
+const C=window.CONFIG,CAT=window.CATALOG,DEMO=!C.API_BASE||!C.TREASURY;
+const $=(s,r)=>(r||document).querySelector(s);
+const short=a=>a?a.slice(0,6)+'…'+a.slice(-4):'';
+const pad=h=>h.replace(/^0x/,'').toLowerCase().padStart(64,'0');
+const hex=s=>'0x'+Array.from(new TextEncoder().encode(s)).map(b=>b.toString(16).padStart(2,'0')).join('');
+function parseUnits(v,d){const p=String(v).split('.');return BigInt(p[0]+((p[1]||'').padEnd(d,'0').slice(0,d)))}
+function fmt(b,d,mx){mx=mx==null?2:mx;let s=b.toString(),i,f='';if(d>0){s=s.padStart(d+1,'0');i=s.slice(0,-d);f=s.slice(-d).slice(0,mx).replace(/0+$/,'')}else i=s;return i.replace(/\B(?=(\d{3})+(?!\d))/g,',')+(f?'.'+f:'')}
+const fmtT=s=>{s=Math.max(0,Math.floor(s));const m=Math.floor(s/60),r=s%60;return m+':'+String(r).padStart(2,'0')};
+
+/* ---------------- wallet ---------------- */
+const W={addr:null,kind:null,prov:null,chain:null,wrong:false,raw:null,dec:C.MACO_DECIMALS,sym:C.MACO_SYMBOL,fn:[]};
+W.on=f=>W.fn.push(f);W.emit=()=>W.fn.forEach(f=>{try{f(W)}catch(e){}});
+W.req=(m,p)=>W.prov.request({method:m,params:p||[]});
+W.bal=()=>W.raw==null?'—':fmt(W.raw,W.dec==null?18:W.dec,2);
+async function afterConnect(a){W.addr=a;localStorage.setItem('maco_w',W.kind);await W.refresh();
+  if(W.prov&&W.prov.on&&W.kind!=='demo'){W.prov.on('accountsChanged',x=>{if(!x.length)W.disconnect();else{W.addr=x[0];W.refresh()}});W.prov.on('chainChanged',()=>W.refresh())}}
+const wcId=()=>C.WC_PROJECT_ID||localStorage.getItem('maco_wc_id')||'';
+async function wcProvider(connect){const id=wcId();if(!id)throw new Error('NEEDS_WC_ID');
+  let mod;for(const u of ['https://esm.sh/@walletconnect/ethereum-provider@2.17.0','https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.0/+esm']){try{mod=await import(u);break}catch(e){}}
+  if(!mod||!mod.EthereumProvider)throw new Error('Could not load WalletConnect. Check your connection and try again.');
+  const o={projectId:id,showQrModal:true,metadata:{name:'MACO Rush',description:'MACO Rush',url:location.origin,icons:[]}};
+  if(C.CHAIN_ID){o.chains=[C.CHAIN_ID];if(C.RPC_URL)o.rpcMap={[C.CHAIN_ID]:C.RPC_URL}}else o.optionalChains=[1];
+  const p=await mod.EthereumProvider.init(o);
+  if(connect&&!(p.session&&p.accounts&&p.accounts.length))await p.connect();
+  p.on('disconnect',()=>{if(W.kind==='wc')W.disconnect()});return p}
+W.connect=async kind=>{
+  W.kind=kind;
+  if(kind==='demo'){W.addr=localStorage.getItem('maco_demo_addr')||('0x'+Array.from({length:40},()=>'0123456789abcdef'[Math.random()*16|0]).join(''));localStorage.setItem('maco_demo_addr',W.addr);W.raw=5000n*10n**18n;W.dec=18;await afterConnect(W.addr);return}
+  if(kind==='wc')W.prov=await wcProvider(true);
+  else{if(!window.ethereum)throw new Error('No wallet found. Open this page in your wallet app browser, or install MetaMask.');W.prov=window.ethereum}
+  const a=await W.req('eth_requestAccounts');if(!a||!a.length)throw new Error('No account returned');await afterConnect(a[0])};
+W.restore=async()=>{const k=localStorage.getItem('maco_w');if(!k)return;
+  if(k==='demo'&&DEMO){await W.connect('demo');return}
+  if(k==='wc'){try{W.kind='wc';const p=await wcProvider(false);if(p.session&&p.accounts&&p.accounts.length){W.prov=p;await afterConnect(p.accounts[0])}else W.kind=null}catch(e){W.kind=null}return}
+  if(k==='injected'&&window.ethereum){try{W.kind='injected';W.prov=window.ethereum;const a=await W.req('eth_accounts');if(a&&a.length)await afterConnect(a[0]);else W.kind=null}catch(e){W.kind=null}}};
+W.disconnect=()=>{try{if(W.kind==='wc'&&W.prov&&W.prov.disconnect)W.prov.disconnect()}catch(e){}W.addr=null;W.raw=null;W.kind=null;localStorage.removeItem('maco_w');sessionStorage.removeItem('maco_tok');W.emit()};
+W.ensureChain=async()=>{if(!C.CHAIN_ID||W.kind==='demo')return true;const want='0x'+C.CHAIN_ID.toString(16);
+  if(parseInt(await W.req('eth_chainId'),16)===C.CHAIN_ID)return true;
+  try{await W.req('wallet_switchEthereumChain',[{chainId:want}])}catch(e){if(e.code===4902||/unrecognized|not added/i.test(e.message||'')){await W.req('wallet_addEthereumChain',[{chainId:want,chainName:C.CHAIN_NAME||'MACO network',rpcUrls:[C.RPC_URL],blockExplorerUrls:C.EXPLORER?[C.EXPLORER]:undefined,nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}}])}else throw e}
+  await W.refresh();return !W.wrong};
+W.refresh=async()=>{if(!W.addr)return;if(W.kind==='demo'){W.emit();return}
+  try{W.chain=parseInt(await W.req('eth_chainId'),16);W.wrong=!!(C.CHAIN_ID&&W.chain!==C.CHAIN_ID);
+    if(C.MACO_ADDRESS&&!W.wrong){if(W.dec==null){const d=await W.req('eth_call',[{to:C.MACO_ADDRESS,data:'0x313ce567'},'latest']);W.dec=parseInt(d,16)||18}
+      const r=await W.req('eth_call',[{to:C.MACO_ADDRESS,data:'0x70a08231'+pad(W.addr)},'latest']);W.raw=BigInt(r&&r!=='0x'?r:'0x0')}}catch(e){console.warn(e)}
+  W.emit()};
+W.sign=async msg=>{if(W.kind==='demo')return '0xdemo';return W.req('personal_sign',[hex(msg),W.addr])};
+W.pay=async amount=>{if(W.kind==='demo'||DEMO)return 'demo-'+Date.now();
+  if(!await W.ensureChain())throw new Error('Wrong network');
+  const raw=parseUnits(amount,W.dec==null?18:W.dec);if(W.raw!=null&&W.raw<raw)throw new Error('Not enough MACO');
+  const hash=await W.req('eth_sendTransaction',[{from:W.addr,to:C.MACO_ADDRESS,data:'0xa9059cbb'+pad(C.TREASURY)+raw.toString(16).padStart(64,'0')}]);
+  for(let i=0;i<90;i++){const r=await W.req('eth_getTransactionReceipt',[hash]);if(r){if(r.status==='0x1')break;throw new Error('Transaction failed')}await new Promise(r=>setTimeout(r,2000))}
+  W.refresh();return hash};
+
+/* ---------------- API (edge function contract; mock when DEMO) ---------------- */
+const mk=()=>'maco_mock_'+(W.addr||'guest').toLowerCase();
+const weekStart=()=>{const d=new Date(),t=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());return t-((new Date(t).getUTCDay()+6)%7)*864e5};
+function mload(){let p;try{p=JSON.parse(localStorage.getItem(mk()))}catch(e){}
+  if(!p)p={timeSec:C.FREE_SECONDS,keys:0,chars:['robot'],equipped:'robot',inv:{magnet:0,shield:0,nitro:0,x2:0,shoe:0,jet:0},boosts:{jet:false,fuel:0},best:{score:0,coins:0},tot:{coins:0},week:{id:0,score:0,coins:0}};
+  const w=weekStart();if(p.week.id!==w)p.week={id:w,score:0,coins:0};return p}
+const msave=p=>{try{localStorage.setItem(mk(),JSON.stringify(p))}catch(e){}};
+function seeded(n,seed){let s=seed;const r=()=>(s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296;return Array.from({length:n},()=>{let a='0x';for(let i=0;i<40;i++)a+='0123456789abcdef'[r()*16|0];const q=r();return{address:a,coins:Math.floor(60+9000*q*q*q),score:Math.floor(4000+90000*q*q),wc:Math.floor(20+1400*r()*r()),ws:Math.floor(2000+30000*r()*r())}})}
+function mock(path,b){const p=mload();let r={};
+  switch(path){
+    case 'nonce':return {nonce:Math.random().toString(36).slice(2)};
+    case 'login':return {token:'demo'};
+    case 'profile':break;
+    case 'purchase':{const e=CAT.items.find(x=>x.id===b.id)||CAT.chars.find(x=>x.id===b.id);if(!e)throw new Error('Unknown item');
+      if(b.kind==='char'){if(!p.chars.includes(e.id))p.chars.push(e.id)}else{const g=e.grant;if(g.keys)p.keys+=g.keys;if(g.minutes)p.timeSec+=g.minutes*60;if(g.inv)for(const k in g.inv)p.inv[k]=(p.inv[k]||0)+g.inv[k];if(g.boost){if(g.boost.jet)p.boosts.jet=true;if(g.boost.fuel)p.boosts.fuel=Math.max(p.boosts.fuel,g.boost.fuel)}}break}
+    case 'equip':if(p.chars.includes(b.charId))p.equipped=b.charId;break;
+    case 'consumeTime':p.timeSec=Math.max(0,p.timeSec-(b.sec||0));break;
+    case 'useLoadout':(b.items||[]).forEach(k=>{if(p.inv[k]>0)p.inv[k]--});break;
+    case 'useKey':if(p.keys>0)p.keys--;break;
+    case 'submitRun':p.keys+=b.keys||0;p.tot.coins+=b.coins||0;p.week.coins+=b.coins||0;p.best.coins=Math.max(p.best.coins,b.coins||0);p.best.score=Math.max(p.best.score,b.score||0);p.week.score=Math.max(p.week.score,b.score||0);p.timeSec=Math.max(0,p.timeSec-(b.sec||0));break;
+    case 'leaderboard':{const wk=b.period==='week',sc=b.metric==='score',list=seeded(30,wk?77:19).map(x=>({address:x.address,value:wk?(sc?x.ws:x.wc):(sc?x.score:x.coins)}));
+      if(W.addr)list.push({address:W.addr,value:wk?(sc?p.week.score:p.week.coins):(sc?p.best.score:p.tot.coins),me:true});
+      list.sort((a,c)=>c.value-a.value);list.forEach((x,i)=>x.rank=i+1);return {entries:list.slice(0,50),me:list.find(x=>x.me)||null,resetsAt:weekStart()+7*864e5}}
+    default:throw new Error('Unknown endpoint')}
+  msave(p);return p}
+const API={async call(path,body){
+  if(DEMO)return mock(path,body||{});
+  const r=await fetch(C.API_BASE.replace(/\/$/,'')+'/'+path,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+(sessionStorage.getItem('maco_tok')||'')},body:JSON.stringify(Object.assign({address:W.addr},body||{}))});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Request failed');return j}};
+
+/* ---------------- UI helpers ---------------- */
+function toast(m){let e=$('#toast');if(!e){e=document.createElement('div');e.id='toast';document.body.appendChild(e)}e.textContent=m;e.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.opacity=0,2200)}
+function paintChip(){const e=$('#wchip');if(!e)return;e.innerHTML=W.addr?Icons.svg('mcoin',18)+'<b>'+W.bal()+'</b><i>'+short(W.addr)+'</i>':'Connect wallet'}
+function header(){const h=document.createElement('header');h.className='top';h.innerHTML='<a class="brand" href="index.html">'+Icons.svg('mcoin',30)+'<b>MACO<span>RUSH</span></b></a><a class="wchip" id="wchip" href="connect.html"></a>';document.body.prepend(h);paintChip();
+  if(DEMO){const d=document.createElement('div');d.className='demo';d.textContent='Demo mode: payments and progress are simulated in this browser until the treasury wallet and edge function are set in config.js.';h.after(d)}}
+function nav(a){const n=document.createElement('nav');n.className='nav';const L=[['index.html','home','Home','home'],['characters.html','heroes','Heroes','heroes'],['game.html','play','','play'],['market.html','market','Market','market'],['leaderboard.html','rank','Ranks','rank']];
+  n.innerHTML=L.map(l=>'<a href="'+l[0]+'" class="'+(l[1]==='play'?'play ':'')+(a===l[1]?'on':'')+'">'+Icons.nav(l[1])+(l[2]?'<span>'+l[2]+'</span>':'')+'</a>').join('');document.body.appendChild(n)}
+function busy(msg){let m=$('#busy');if(!m){m=document.createElement('div');m.id='busy';m.className='modal';m.style.alignItems='center';document.body.appendChild(m)}m.innerHTML='<div class="card"><div class="spin"></div><b>'+msg+'</b></div>'}
+function unbusy(){const m=$('#busy');if(m)m.remove()}
+function confirmBuy(e,kind){return new Promise(res=>{const m=document.createElement('div');m.className='modal';
+  const need=parseUnits(e.price,W.dec==null?18:W.dec),low=W.raw!=null&&W.raw<need,unk=W.raw==null&&!DEMO;
+  m.innerHTML='<div class="card"><div>'+(kind==='char'?'<span class="rar '+e.rarity+'">'+e.rarity+'</span>':Icons.svg(e.icon,64))+'</div><h2>'+e.name+(e.qty?' '+e.qty:'')+'</h2><p class="m">'+(e.desc||'')+'</p><div class="ln"><span>Price</span><span class="price">'+Icons.svg('mcoin',18)+e.price+' MACO</span></div><div class="ln"><span>Your balance</span><span>'+W.bal()+' MACO</span></div>'+(low?'<p class="bad m">Not enough MACO.</p>':'')+(unk?'<p class="bad m">Switch to the right network on the Wallet page first.</p>':'')+'<button class="btn gold" id="cy"'+(low||unk?' disabled':'')+'>Pay '+e.price+' MACO</button><button class="btn alt" id="cn">Cancel</button></div>';
+  document.body.appendChild(m);$('#cn',m).onclick=()=>{m.remove();res(false)};$('#cy',m).onclick=()=>{m.remove();res(true)}})}
+async function buy(e,kind){
+  if(!W.addr){location.href='connect.html?next='+encodeURIComponent(location.pathname.split('/').pop()||'index.html');return null}
+  if(!await confirmBuy(e,kind))return null;
+  try{busy('Confirm in your wallet…');const tx=await W.pay(e.price);busy('Verifying payment…');const r=await API.call('purchase',{id:e.id,kind:kind||'item',tx});unbusy();App.P=r;toast('Purchase complete');return r}
+  catch(x){unbusy();toast(x&&x.code===4001?'Payment cancelled':(x&&x.message)||'Payment failed');return null}}
+async function init(o){o=o||{};if(o.header!==false)header();if(o.nav!==false)nav(o.page);
+  await W.restore();W.on(paintChip);paintChip();
+  if(o.need&&!W.addr){location.replace('connect.html?next='+encodeURIComponent(location.pathname.split('/').pop()||'index.html'));return null}
+  if(W.addr){try{App.P=await API.call('profile')}catch(e){toast(e.message)}}
+  return App.P||null}
+window.App={W,API,DEMO,wcId,init,toast,buy,short,fmt,fmtT,parseUnits,busy,unbusy,P:null};
+})();
+
+</script>
+<script>
+/* Lazy character loader: a model is only downloaded when someone selects/plays it. */
+window.MacoModels=(function(){
+  const cache={};let gl;
+  const cfg=id=>CATALOG.chars.find(c=>c.id===id);
+  // Measures the model as it is actually drawn (skinning applied), so mixed-unit rigs get the right scale.
+  function measure(o){o.updateMatrixWorld(true);const box=new THREE.Box3(),v=new THREE.Vector3();
+    o.traverse(m=>{if(!m.isMesh)return;const g=m.geometry,pa=g.attributes.position;
+      if(m.isSkinnedMesh&&m.boneTransform){m.skeleton.update();const st=Math.max(1,Math.floor(pa.count/4000));for(let i=0;i<pa.count;i+=st){v.fromBufferAttribute(pa,i);m.boneTransform(i,v);v.applyMatrix4(m.matrixWorld);box.expandByPoint(v)}}
+      else{if(!g.boundingBox)g.computeBoundingBox();box.union(g.boundingBox.clone().applyMatrix4(m.matrixWorld))}});
+    return box}
+  function load(id,onProg){
+    if(cache[id])return cache[id];
+    const c=cfg(id);gl=gl||new THREE.GLTFLoader();
+    const p=new Promise((res,rej)=>{gl.load(c.file,gt=>{
+      const o=gt.scene,h=new THREE.Group();h.add(o);
+      const bb=c.fit==='skin'?measure(o):new THREE.Box3().setFromObject(o);let hg=bb.max.y-bb.min.y,mn=bb.min.y;
+      if(c.fit==='bones'){o.updateMatrixWorld(true);let lo=1e9,hi=-1e9,n=0;const v=new THREE.Vector3();o.traverse(b=>{if(b.isBone){v.setFromMatrixPosition(b.matrixWorld);lo=Math.min(lo,v.y);hi=Math.max(hi,v.y);n++}});if(n>10&&hi-lo>.05){hg=hi-lo;mn=lo}}
+      if(!(hg>0))hg=1;
+      const sc=c.height/hg*(c.k||1);o.scale.setScalar(sc);o.position.y=-mn*sc+(c.y||0);h.rotation.y=THREE.MathUtils.degToRad(c.rot||0);
+      o.traverse(m=>{if(m.isMesh){m.frustumCulled=false;[].concat(m.material).forEach(q=>{if(q.map){q.emissiveMap=q.map;q.emissive=new THREE.Color(0xffffff);q.emissiveIntensity=.3}else if(q.color){q.emissive=q.color.clone();q.emissiveIntensity=.25}})}});
+      const mixer=new THREE.AnimationMixer(o),acts={};gt.animations.forEach(a=>{acts[a.name.toLowerCase().replace(/.*\|/,'')]=mixer.clipAction(a)});
+      const ks=Object.keys(acts);if(c.still){Object.keys(acts).forEach(k=>delete acts[k])}else if(!acts.running){const a=acts.run||(ks.length?acts[ks[0]]:null);if(a)acts.running=a}
+      res({id,g:h,mixer,acts})},ev=>{if(onProg&&ev.total)onProg(ev.loaded,ev.total)},rej)});
+    p.catch(()=>{delete cache[id]});cache[id]=p;return p}
+  return{load,cfg,free:id=>{delete cache[id]}}
+})();
+
+</script>
+<script>
+
+const CH=CATALOG.chars,$=s=>document.querySelector(s),W=App.W;let P=null,sel=null,curM=null,drag=false,lx=0;
+const cv=$('#cv'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio||1,2));
+const sc=new THREE.Scene(),cam=new THREE.PerspectiveCamera(32,1,.1,60);cam.position.set(0,1.9,8);cam.lookAt(0,1.3,0);
+sc.add(new THREE.HemisphereLight(0xbcc8ff,0x221144,1));const dl=new THREE.DirectionalLight(0xffffff,1.1);dl.position.set(3,6,5);sc.add(dl);
+const p1=new THREE.PointLight(0x3de8ff,1.4,14);p1.position.set(-3,2,2);sc.add(p1);const p2=new THREE.PointLight(0xff4fd8,1.4,14);p2.position.set(3,2,-2);sc.add(p2);
+const plat=new THREE.Mesh(new THREE.CylinderGeometry(1.7,1.9,.14,48),new THREE.MeshPhongMaterial({color:0x10143a,shininess:80}));plat.position.y=-.07;sc.add(plat);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(1.82,.04,10,64),new THREE.MeshBasicMaterial({color:0x3de8ff}));ring.rotation.x=Math.PI/2;sc.add(ring);
+const pivot=new THREE.Group();pivot.rotation.y=Math.PI;sc.add(pivot);
+function rs(){const w=cv.clientWidth,h=cv.clientHeight;R.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}addEventListener('resize',rs);rs();
+cv.addEventListener('pointerdown',e=>{drag=true;lx=e.clientX});addEventListener('pointerup',()=>drag=false);addEventListener('pointermove',e=>{if(drag){pivot.rotation.y+=(e.clientX-lx)*.01;lx=e.clientX}});
+const clock=new THREE.Clock();(function loop(){requestAnimationFrame(loop);const dt=Math.min(clock.getDelta(),.05);if(!drag)pivot.rotation.y+=dt*.5;if(curM)curM.mixer.update(dt);R.render(sc,cam)})();
+const owned=id=>id==='robot'||(P&&P.chars.includes(id)),equipped=()=>P?P.equipped:'robot';
+function paint(){const c=CH.find(x=>x.id===sel),own=owned(sel),eq=equipped()===sel;
+  $('#info').innerHTML='<div style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0;font-size:20px">'+c.name+'</h2><span class="rar '+c.rarity+'">'+c.rarity+'</span></div><p class="sub" style="margin:8px 0 4px">'+c.desc+'</p><p class="sub" style="font-size:12px;margin:0 0 14px">Download size: '+c.mb+' MB (only when selected)</p>'+
+   (!W.addr&&!own?'<a class="btn" href="connect.html?next=characters.html">Connect wallet to buy</a>':eq?'<button class="btn" disabled>Equipped</button>':own?(W.addr?'<button class="btn" id="ac">Equip</button>':'<a class="btn" href="connect.html?next=characters.html">Connect wallet</a>'):'<button class="btn gold" id="ac">Buy for '+c.price+' MACO</button>');
+  const ac=$('#ac');if(ac)ac.onclick=async()=>{if(own){try{P=App.P=await App.API.call('equip',{charId:sel});paint();paintList();App.toast(c.name+' equipped')}catch(e){App.toast(e.message)}}else{const r=await App.buy(c,'char');if(r){P=r;paint();paintList()}}};}
+function paintList(){$('#lst').innerHTML=CH.map(c=>'<div class="cc '+c.rarity+(c.id===sel?' on':'')+'" data-id="'+c.id+'"><div class="av">'+c.name[0]+'</div><b>'+c.name+'</b><small>'+(equipped()===c.id?'Equipped':owned(c.id)?'Owned':c.price+' MACO')+'</small></div>').join('');
+  $('#lst').querySelectorAll('.cc').forEach(e=>e.onclick=()=>show(e.dataset.id))}
+async function show(id){sel=id;paint();paintList();$('#ld').style.display='flex';$('#lp').textContent='0%';
+  if(curM){pivot.remove(curM.g);if(curM.id!==id&&curM.id!==equipped())MacoModels.free(curM.id);curM=null}
+  try{const m=await MacoModels.load(id,(l,t)=>{if(sel===id)$('#lp').textContent=Math.round(l/t*100)+'%'});if(sel!==id)return;pivot.add(m.g);curM=m;$('#ld').style.display='none';if(m.acts.running)m.acts.running.reset().play()}catch(e){if(sel===id)$('#lp').textContent=location.protocol==='file:'?'Open through a web server (python3 -m http.server)':'Could not load';console.warn(e)}}
+App.init({page:'heroes'}).then(p=>{P=p;W.on(()=>{paint();paintList()});show(equipped())});
+</script>
+</body></html>

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MACO Rush</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head><body>
+<main class="wrap">
+  <section class="card" style="text-align:center;padding:28px 18px 20px;margin-top:8px">
+    <h1 class="logo">MACO<span>RUSH</span></h1>
+    <p class="sub" id="hs" style="margin:12px 0 16px">Run the neon city, collect M coins, climb the weekly board.</p>
+    <a class="btn" id="go" href="connect.html">Connect wallet to play</a>
+  </section>
+  <div class="row" id="st" style="display:none;margin-top:12px"></div>
+  <div class="lab">Explore</div>
+  <a class="lk" href="characters.html"><svg width="40" height="40" viewBox="0 0 64 64"><circle cx="32" cy="22" r="12" fill="#8b6bff"/><path d="M10 58c2-16 11-22 22-22s20 6 22 22z" fill="#3de8ff"/></svg><div><b>Heroes</b><small>Preview runners and unlock new ones</small></div></a>
+  <a class="lk" href="market.html"><span id="mi"></span><div><b>Market</b><small>Keys, play time, power-ups and boosts, paid in MACO</small></div></a>
+  <a class="lk" href="leaderboard.html"><svg width="40" height="40" viewBox="0 0 64 64"><path d="M16 8h32v16c0 10-7 17-16 17S16 34 16 24z" fill="#ffc933"/><rect x="26" y="42" width="12" height="8" fill="#d98a0b"/><rect x="18" y="50" width="28" height="6" rx="2" fill="#ffc933"/></svg><div><b>Leaderboard</b><small>Weekly and all-time, with wallets</small></div></a>
+</main>
+<script src="assets/config.js"></script>
+<script src="assets/catalog.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/app.js"></script>
+<script>
+App.init({page:'home'}).then(P=>{
+  document.getElementById('mi').innerHTML=Icons.svg('key',40);
+  const go=document.getElementById('go'),hs=document.getElementById('hs');
+  if(!P){return}
+  const ch=(CATALOG.chars.find(c=>c.id===P.equipped)||{}).name||'Robo';
+  const st=document.getElementById('st');st.style.display='flex';
+  st.innerHTML='<div class="stat"><small>Time left</small><b>'+App.fmtT(P.timeSec)+'</b></div><div class="stat"><small>Keys</small><b>'+P.keys+'</b></div><div class="stat"><small>M coins</small><b>'+Icons.svg('mcoin',16)+P.tot.coins.toLocaleString()+'</b></div>';
+  hs.textContent='Runner: '+ch+'. Best score '+P.best.score.toLocaleString()+'.';
+  if(P.timeSec<=0){go.textContent='Out of time: get more';go.href='market.html#time'}else{go.textContent='PLAY';go.href='game.html'}
+});
+</script>
+</body></html>

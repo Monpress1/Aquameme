@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Leaderboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head><body>
+<main class="wrap"><h1 class="pg">Leaderboard</h1><p class="sub" id="rs">Top runners by wallet.</p>
+<div class="tabs" id="pt"><button data-p="week" class="on">This week</button><button data-p="all">All-time</button></div>
+<div class="tabs" id="mt"><button data-m="coins" class="on">M coins collected</button><button data-m="score">Best score</button></div><div id="rows"></div></main>
+<script src="assets/config.js"></script>
+<script src="assets/catalog.js"></script>
+<script src="assets/icons.js"></script>
+<script src="assets/app.js"></script>
+<script>
+
+let period='week',metric='coins';const $=s=>document.querySelector(s);
+function cd(ms){const s=Math.max(0,(ms-Date.now())/1000),d=Math.floor(s/86400),h=Math.floor(s%86400/3600);return d+'d '+h+'h'}
+async function load(){$('#rows').innerHTML='<div class="spin" style="margin:30px auto"></div>';
+  try{const r=await App.API.call('leaderboard',{period,metric});
+    $('#rs').textContent=period==='week'?'Weekly board resets in '+cd(r.resetsAt)+'.':'All-time totals since launch.';
+    const val=v=>(metric==='coins'?Icons.svg('mcoin',16)+' ':'')+Number(v).toLocaleString(),me=App.W.addr&&App.W.addr.toLowerCase();
+    $('#rows').innerHTML=r.entries.map(e=>{const you=me&&e.address.toLowerCase()===me,m=['🥇','🥈','🥉'][e.rank-1];
+      return '<div class="lk" style="'+(you?'border-color:var(--cy);background:rgba(61,232,255,.08)':'')+'"><b style="width:34px;font-family:Orbitron;font-size:15px">'+(m||e.rank)+'</b><div style="flex:1;min-width:0"><b style="font-size:14px">'+App.short(e.address)+(you?' <span class="rar rare">you</span>':'')+'</b></div><span class="price" style="font-size:14px">'+val(e.value)+'</span></div>'}).join('')||'<p class="sub">No runs yet.</p>'}
+  catch(e){$('#rows').innerHTML='<p class="sub">Could not load the leaderboard.</p>'}}
+document.querySelectorAll('#pt button').forEach(b=>b.onclick=()=>{period=b.dataset.p;document.querySelectorAll('#pt button').forEach(x=>x.classList.toggle('on',x===b));load()});
+document.querySelectorAll('#mt button').forEach(b=>b.onclick=()=>{metric=b.dataset.m;document.querySelectorAll('#mt button').forEach(x=>x.classList.toggle('on',x===b));load()});
+App.init({page:'rank'}).then(load);
+</script>
+</body></html>
