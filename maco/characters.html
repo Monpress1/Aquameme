@@ -72,16 +72,16 @@ h1.pg{font:900 26px/1.1 'Orbitron',sans-serif;margin:10px 0 4px}.sub{color:var(-
 <script>
 /* ===== MACO Rush config — fill these in when the chain + edge function are ready ===== */
 window.CONFIG={
-  CHAIN_ID:0,                 // EVM chain ID MACO lives on (0 = don't force a network switch)
-  CHAIN_NAME:'',              // e.g. 'Robinhood Chain'  (only used if the wallet must add the network)
-  RPC_URL:'',                 // public RPC for that chain
-  EXPLORER:'',                // block explorer base URL, e.g. https://explorer.example.com
+  CHAIN_ID:4663,              // Robinhood Chain (MACO lives here)
+  CHAIN_NAME:'Robinhood Chain',
+  RPC_URL:'https://rpc.mainnet.chain.robinhood.com',   // public RPC, used to read the MACO balance
+  EXPLORER:'https://robin.etherscan.io',
   MACO_ADDRESS:'0x6ffb075F8030C6eA7914c1BA90A8CF87c9A8686d',
   MACO_SYMBOL:'MACO',
   MACO_DECIMALS:null,         // null = read from the token contract
   TREASURY:'',                // wallet that receives MACO payments (empty = DEMO mode, nothing is sent)
   API_BASE:'',                // your edge function base URL (empty = DEMO mode, data stays in this browser)
-  WC_PROJECT_ID:'',           // WalletConnect Project ID (free at dashboard.reown.com). Paste it here, or enter it once on connect.html
+  WC_PROJECT_ID:'0e4440427e13366503359ee54e3e2b0e',           // WalletConnect Project ID (free at dashboard.reown.com). Paste it here, or enter it once on connect.html
   FREE_SECONDS:300,           // free play time for every new wallet
   BUY_URL:'https://ponsfamily.com/launchpad/0x6ffb075f8030c6ea7914c1ba90a8cf87c9a8686d'
 };
@@ -102,8 +102,8 @@ window.CATALOG={
     {id:'soldier',name:'Soldier',file:'models/soldier.glb',mb:2.1,rarity:'rare',price:200,height:2.2,rot:0,fit:'bbox',desc:'Field-tested and impossible to slow down.'},
     {id:'sprinter',name:'Sprinter',file:'models/sprinter.glb',mb:6.5,rarity:'epic',price:300,height:2.2,rot:180,fit:'skin',desc:'Pure sprint form from the first stride.'},
     {id:'ethan',name:'Ethan',file:'models/ethan.glb',mb:2.0,rarity:'epic',price:350,height:2.2,rot:180,fit:'bones',desc:'Runs like something is right behind him.'},
-    {id:'rider',name:'Nova Rider',file:'models/rider.glb',mb:10.5,rarity:'legendary',price:500,height:2.1,rot:180,fit:'skin',desc:'Glides above the street on a sci-fi hoverboard.'}
-    
+    {id:'rider',name:'Nova Rider',file:'models/rider.glb',mb:10.5,rarity:'legendary',price:500,height:2.1,rot:180,fit:'skin',desc:'Glides above the street on a sci-fi hoverboard.'},
+    {id:'inspector',name:'Desert Inspector',file:'models/inspector.glb',mb:14.7,rarity:'legendary',price:600,height:2.4,rot:180,fit:'skin',still:true,desc:'Rides in from the wasteland on a battered bike.'}
   ],
   items:[
     {id:'keys5',cat:'time',name:'Key pack',qty:'×5',desc:'Each key continues a run after a crash.',icon:'key',price:50,grant:{keys:5}},
@@ -162,44 +162,59 @@ function fmt(b,d,mx){mx=mx==null?2:mx;let s=b.toString(),i,f='';if(d>0){s=s.padS
 const fmtT=s=>{s=Math.max(0,Math.floor(s));const m=Math.floor(s/60),r=s%60;return m+':'+String(r).padStart(2,'0')};
 
 /* ---------------- wallet ---------------- */
-const W={addr:null,kind:null,prov:null,chain:null,wrong:false,raw:null,dec:C.MACO_DECIMALS,sym:C.MACO_SYMBOL,fn:[]};
+const W={addr:null,kind:null,prov:null,chain:null,wrong:false,raw:null,dec:C.MACO_DECIMALS,sym:C.MACO_SYMBOL,err:null,msg:'',fn:[]};
 W.on=f=>W.fn.push(f);W.emit=()=>W.fn.forEach(f=>{try{f(W)}catch(e){}});
+W.say=m=>{W.msg=m;W.emit()};
 W.req=(m,p)=>W.prov.request({method:m,params:p||[]});
 W.bal=()=>W.raw==null?'—':fmt(W.raw,W.dec==null?18:W.dec,2);
-async function afterConnect(a){W.addr=a;localStorage.setItem('maco_w',W.kind);await W.refresh();
-  if(W.prov&&W.prov.on&&W.kind!=='demo'){W.prov.on('accountsChanged',x=>{if(!x.length)W.disconnect();else{W.addr=x[0];W.refresh()}});W.prov.on('chainChanged',()=>W.refresh())}}
+// Balance is read straight from the token's own network (RPC_URL), so it works whatever network the wallet is on.
+const rpc=async(m,p)=>{const r=await fetch(C.RPC_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({jsonrpc:'2.0',id:1,method:m,params:p})});const j=await r.json();if(j.error)throw new Error(j.error.message);return j.result};
+const read=(m,p)=>C.RPC_URL?rpc(m,p).catch(()=>W.req(m,p)):W.req(m,p);
 const wcId=()=>C.WC_PROJECT_ID||localStorage.getItem('maco_wc_id')||'';
 async function wcProvider(connect){const id=wcId();if(!id)throw new Error('NEEDS_WC_ID');
-  let mod;for(const u of ['https://esm.sh/@walletconnect/ethereum-provider@2.17.0','https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.0/+esm']){try{mod=await import(u);break}catch(e){}}
+  let mod;for(const u of ['https://esm.sh/@walletconnect/ethereum-provider@2.17.0?bundle','https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.17.0/+esm']){try{mod=await import(u);if(mod&&mod.EthereumProvider)break}catch(e){console.warn('wc import',u,e)}}
   if(!mod||!mod.EthereumProvider)throw new Error('Could not load WalletConnect. Check your connection and try again.');
-  const o={projectId:id,showQrModal:true,metadata:{name:'MACO Rush',description:'MACO Rush',url:location.origin,icons:[]}};
-  if(C.CHAIN_ID){o.chains=[C.CHAIN_ID];if(C.RPC_URL)o.rpcMap={[C.CHAIN_ID]:C.RPC_URL}}else o.optionalChains=[1];
+  const o={projectId:id,showQrModal:true,qrModalOptions:{themeMode:'dark'},metadata:{name:'MACO Rush',description:'MACO Rush',url:location.origin,icons:[]},chains:[1]};
+  if(C.CHAIN_ID&&C.CHAIN_ID!==1){o.optionalChains=[C.CHAIN_ID];if(C.RPC_URL)o.rpcMap={[C.CHAIN_ID]:C.RPC_URL,1:'https://cloudflare-eth.com'}}
   const p=await mod.EthereumProvider.init(o);
+  p.on('disconnect',()=>{if(W.kind==='wc')W.disconnect()});
   if(connect&&!(p.session&&p.accounts&&p.accounts.length))await p.connect();
-  p.on('disconnect',()=>{if(W.kind==='wc')W.disconnect()});return p}
+  return p}
+async function afterConnect(a){W.addr=a;localStorage.setItem('maco_w',W.kind);localStorage.removeItem('maco_wc_pending');
+  if(W.prov&&W.prov.on&&W.kind!=='demo'&&!W.bound){W.bound=1;W.prov.on('accountsChanged',x=>{if(!x||!x.length)W.disconnect();else{W.addr=x[0];W.refresh()}});W.prov.on('chainChanged',()=>W.refresh())}
+  W.say('Connected. Reading balance…');await W.refresh()}
 W.connect=async kind=>{
-  W.kind=kind;
+  W.kind=kind;W.bound=0;W.err=null;
   if(kind==='demo'){W.addr=localStorage.getItem('maco_demo_addr')||('0x'+Array.from({length:40},()=>'0123456789abcdef'[Math.random()*16|0]).join(''));localStorage.setItem('maco_demo_addr',W.addr);W.raw=5000n*10n**18n;W.dec=18;await afterConnect(W.addr);return}
-  if(kind==='wc')W.prov=await wcProvider(true);
-  else{if(!window.ethereum)throw new Error('No wallet found. Open this page in your wallet app browser, or install MetaMask.');W.prov=window.ethereum}
-  const a=await W.req('eth_requestAccounts');if(!a||!a.length)throw new Error('No account returned');await afterConnect(a[0])};
+  try{
+    if(kind==='wc'){localStorage.setItem('maco_w','wc');localStorage.setItem('maco_wc_pending',String(Date.now()));W.say('Opening WalletConnect… approve in your wallet, then come back to this page.');
+      W.prov=await wcProvider(true);if(!W.prov.accounts||!W.prov.accounts.length)throw new Error('The wallet did not return an account.');await afterConnect(W.prov.accounts[0]);return}
+    if(!window.ethereum)throw new Error('No wallet found. Open this page in your wallet app browser, or use WalletConnect.');
+    W.prov=window.ethereum;const a=await W.req('eth_requestAccounts');if(!a||!a.length)throw new Error('No account returned');await afterConnect(a[0])
+  }catch(e){W.kind=null;W.prov=null;localStorage.removeItem('maco_wc_pending');if(kind==='wc')localStorage.removeItem('maco_w');W.say('');throw e}};
 W.restore=async()=>{const k=localStorage.getItem('maco_w');if(!k)return;
-  if(k==='demo'&&DEMO){await W.connect('demo');return}
-  if(k==='wc'){try{W.kind='wc';const p=await wcProvider(false);if(p.session&&p.accounts&&p.accounts.length){W.prov=p;await afterConnect(p.accounts[0])}else W.kind=null}catch(e){W.kind=null}return}
+  if(k==='demo'){if(DEMO)await W.connect('demo');return}
+  if(k==='wc'){try{W.kind='wc';W.say('Restoring WalletConnect session…');const p=await wcProvider(false);
+      const pend=Date.now()-Number(localStorage.getItem('maco_wc_pending')||0)<600000;
+      if(!(p.session&&p.accounts&&p.accounts.length)&&pend)await new Promise(res=>{p.on('connect',()=>res());setTimeout(res,8000)});
+      if(p.session&&p.accounts&&p.accounts.length){W.prov=p;await afterConnect(p.accounts[0])}else{W.kind=null;localStorage.removeItem('maco_w');W.say('')}}
+    catch(e){W.kind=null;W.say('WalletConnect restore failed: '+e.message)}return}
   if(k==='injected'&&window.ethereum){try{W.kind='injected';W.prov=window.ethereum;const a=await W.req('eth_accounts');if(a&&a.length)await afterConnect(a[0]);else W.kind=null}catch(e){W.kind=null}}};
-W.disconnect=()=>{try{if(W.kind==='wc'&&W.prov&&W.prov.disconnect)W.prov.disconnect()}catch(e){}W.addr=null;W.raw=null;W.kind=null;localStorage.removeItem('maco_w');sessionStorage.removeItem('maco_tok');W.emit()};
+W.disconnect=()=>{try{if(W.kind==='wc'&&W.prov&&W.prov.disconnect)W.prov.disconnect()}catch(e){}W.addr=null;W.raw=null;W.kind=null;W.prov=null;W.msg='';localStorage.removeItem('maco_w');localStorage.removeItem('maco_wc_pending');sessionStorage.removeItem('maco_tok');W.emit()};
 W.ensureChain=async()=>{if(!C.CHAIN_ID||W.kind==='demo')return true;const want='0x'+C.CHAIN_ID.toString(16);
   if(parseInt(await W.req('eth_chainId'),16)===C.CHAIN_ID)return true;
-  try{await W.req('wallet_switchEthereumChain',[{chainId:want}])}catch(e){if(e.code===4902||/unrecognized|not added/i.test(e.message||'')){await W.req('wallet_addEthereumChain',[{chainId:want,chainName:C.CHAIN_NAME||'MACO network',rpcUrls:[C.RPC_URL],blockExplorerUrls:C.EXPLORER?[C.EXPLORER]:undefined,nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}}])}else throw e}
+  try{await W.req('wallet_switchEthereumChain',[{chainId:want}])}catch(e){if(e.code===4902||/unrecognized|not added|Unrecognized/i.test(e.message||'')){await W.req('wallet_addEthereumChain',[{chainId:want,chainName:C.CHAIN_NAME||'MACO network',rpcUrls:[C.RPC_URL],blockExplorerUrls:C.EXPLORER?[C.EXPLORER]:undefined,nativeCurrency:{name:'ETH',symbol:'ETH',decimals:18}}])}else throw e}
   await W.refresh();return !W.wrong};
 W.refresh=async()=>{if(!W.addr)return;if(W.kind==='demo'){W.emit();return}
-  try{W.chain=parseInt(await W.req('eth_chainId'),16);W.wrong=!!(C.CHAIN_ID&&W.chain!==C.CHAIN_ID);
-    if(C.MACO_ADDRESS&&!W.wrong){if(W.dec==null){const d=await W.req('eth_call',[{to:C.MACO_ADDRESS,data:'0x313ce567'},'latest']);W.dec=parseInt(d,16)||18}
-      const r=await W.req('eth_call',[{to:C.MACO_ADDRESS,data:'0x70a08231'+pad(W.addr)},'latest']);W.raw=BigInt(r&&r!=='0x'?r:'0x0')}}catch(e){console.warn(e)}
+  try{try{W.chain=parseInt(await W.req('eth_chainId'),16)}catch(e){}
+    W.wrong=!!(C.CHAIN_ID&&W.chain&&W.chain!==C.CHAIN_ID);W.err=null;
+    if(C.MACO_ADDRESS){if(W.dec==null){const d=await read('eth_call',[{to:C.MACO_ADDRESS,data:'0x313ce567'},'latest']);W.dec=parseInt(d,16)||18}
+      const r=await read('eth_call',[{to:C.MACO_ADDRESS,data:'0x70a08231'+pad(W.addr)},'latest']);W.raw=BigInt(r&&r!=='0x'?r:'0x0')}
+    W.msg=''}catch(e){console.warn(e);W.err=e.message||String(e)}
   W.emit()};
 W.sign=async msg=>{if(W.kind==='demo')return '0xdemo';return W.req('personal_sign',[hex(msg),W.addr])};
 W.pay=async amount=>{if(W.kind==='demo'||DEMO)return 'demo-'+Date.now();
-  if(!await W.ensureChain())throw new Error('Wrong network');
+  if(!await W.ensureChain())throw new Error('Switch your wallet to '+(C.CHAIN_NAME||'the MACO network')+' to pay.');
   const raw=parseUnits(amount,W.dec==null?18:W.dec);if(W.raw!=null&&W.raw<raw)throw new Error('Not enough MACO');
   const hash=await W.req('eth_sendTransaction',[{from:W.addr,to:C.MACO_ADDRESS,data:'0xa9059cbb'+pad(C.TREASURY)+raw.toString(16).padStart(64,'0')}]);
   for(let i=0;i<90;i++){const r=await W.req('eth_getTransactionReceipt',[hash]);if(r){if(r.status==='0x1')break;throw new Error('Transaction failed')}await new Promise(r=>setTimeout(r,2000))}
