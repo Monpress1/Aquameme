@@ -1,9 +1,9 @@
 /* ===== MACO Rush config — fill these in when the chain + edge function are ready ===== */
 window.CONFIG={
-  CHAIN_ID:0,                 // EVM chain ID MACO lives on (0 = don't force a network switch)
-  CHAIN_NAME:'',              // e.g. 'Robinhood Chain'  (only used if the wallet must add the network)
-  RPC_URL:'',                 // public RPC for that chain
-  EXPLORER:'',                // block explorer base URL, e.g. https://explorer.example.com
+  CHAIN_ID:4663,              // Robinhood Chain (MACO lives here)
+  CHAIN_NAME:'Robinhood Chain',
+  RPC_URL:'https://rpc.mainnet.chain.robinhood.com',   // public RPC, used to read the MACO balance
+  EXPLORER:'https://robin.etherscan.io',
   MACO_ADDRESS:'0x6ffb075F8030C6eA7914c1BA90A8CF87c9A8686d',
   MACO_SYMBOL:'MACO',
   MACO_DECIMALS:null,         // null = read from the token contract
